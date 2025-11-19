@@ -1,0 +1,12 @@
+{
+  "name": "open-browser",
+  "type": "module",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
