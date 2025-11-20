@@ -17,7 +17,6 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 log.info(`AI Server starting`, { hostname, port });
-const cwd = Bun.env["WORKSPACE_ROOT"] || "/sandbox/workspace";
 const server = Router.listen({
     port,
     hostname,

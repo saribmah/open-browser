@@ -2,6 +2,8 @@ import {Hono} from "hono";
 import {cors} from "hono/cors";
 import {Log} from "../util/log";
 import {sessionRoutes} from "./session.ts";
+import {sdkRoutes} from "./sdk.ts";
+import {instanceRoutes} from "./instance.ts";
 
 export namespace Router {
     const log = Log.create({ service: "server" });
@@ -59,6 +61,8 @@ export namespace Router {
                 });
             })
             .route("/session", sessionRoutes)
+            .route("/sdk", sdkRoutes)
+            .route("/instance", instanceRoutes)
 
         return app;
     }
