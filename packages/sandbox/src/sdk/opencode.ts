@@ -85,6 +85,42 @@ export const OPENCODE = {
             });
             throw new Error(`Failed to remove OpenCode SDK: ${error.message}`);
         }
+    },
+    getSessions: async (opts: { directory: string }) => {
+        const { directory } = opts;
+        
+        log.info("Getting sessions from OpenCode SDK", { directory });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+            
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Get sessions using the OpenCode client
+            const response = await opencode.client.session.list();
+            
+            if (!response.data) {
+                log.warn("No session data returned from OpenCode SDK", { directory });
+                return [];
+            }
+
+            log.info("Sessions retrieved successfully", { 
+                directory,
+                count: response.data.length
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to get sessions from OpenCode SDK", { 
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to get sessions: ${error.message}`);
+        }
     }
 };
 

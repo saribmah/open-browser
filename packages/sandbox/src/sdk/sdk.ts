@@ -8,6 +8,17 @@ export namespace SDK {
     export type Type = "OPENCODE" | "CLAUDE_CODE";
 
     /**
+     * Session data structure
+     */
+    export interface Session {
+        id: string;
+        title?: string;
+        createdAt?: string;
+        updatedAt?: string;
+        [key: string]: any;
+    }
+
+    /**
      * SDK configuration for each type
      */
     export interface Config {
@@ -15,6 +26,7 @@ export namespace SDK {
         name: string;
         setup: (opts: { directory: string; metadata?: Record<string, any> }) => Promise<void>;
         remove: (opts: { directory: string; metadata?: Record<string, any> }) => Promise<void>;
+        getSessions: (opts: { directory: string }) => Promise<Session[]>;
     }
 
     /**
@@ -73,6 +85,19 @@ export namespace SDK {
         await config.remove({
             directory: opts.directory,
             metadata: opts.metadata
+        });
+    }
+
+    /**
+     * Get all sessions for an SDK instance
+     */
+    export async function getSessions(opts: {
+        type: Type;
+        directory: string;
+    }): Promise<Session[]> {
+        const config = getConfig(opts.type);
+        return await config.getSessions({
+            directory: opts.directory
         });
     }
 }
