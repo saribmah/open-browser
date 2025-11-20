@@ -1,8 +1,10 @@
-import { $ } from "bun";
+import { createOpencode } from "@opencode-ai/sdk";
 import { Log } from "../util/log";
-import path from "path";
 
 const log = Log.create({ service: "opencode-sdk" });
+
+// Store active OpenCode instances by directory
+const instances = new Map<string, Awaited<ReturnType<typeof createOpencode>>>();
 
 /**
  * OpenCode SDK configuration
@@ -19,25 +21,29 @@ export const OPENCODE = {
         });
 
         try {
-            const configPath = path.join(directory, ".opencode");
-            
-            // Create .opencode directory if it doesn't exist
-            await $`mkdir -p ${configPath}`.quiet();
-            
-            // Create a default config file
-            const config = {
-                model: "anthropic/claude-3-5-sonnet-20241022",
-                hostname: "127.0.0.1",
-                port: 4096,
-                ...metadata
-            };
-            
-            const configFile = path.join(configPath, "config.json");
-            await Bun.write(configFile, JSON.stringify(config, null, 2));
+            // Check if instance already exists for this directory
+            if (instances.has(directory)) {
+                log.info("OpenCode SDK instance already exists for directory", { directory });
+                return;
+            }
+
+            // Create OpenCode instance with server + client
+            const opencode = await createOpencode({
+                hostname: metadata?.hostname || "127.0.0.1",
+                port: metadata?.port || 4096,
+                config: {
+                    model: metadata?.model || "anthropic/claude-3-5-sonnet-20241022",
+                    ...(metadata?.config || {})
+                },
+            });
+
+            // Store the instance
+            instances.set(directory, opencode);
             
             log.info("OpenCode SDK setup completed", { 
                 directory,
-                configPath
+                serverUrl: opencode.server.url,
+                port: metadata?.port || 4096
             });
         } catch (error: any) {
             log.error("Failed to setup OpenCode SDK", { 
@@ -56,14 +62,22 @@ export const OPENCODE = {
         });
 
         try {
-            const configPath = path.join(directory, ".opencode");
+            // Get the instance
+            const opencode = instances.get(directory);
             
-            // Remove .opencode directory
-            await $`rm -rf ${configPath}`.quiet();
-            
-            log.info("OpenCode SDK removed successfully", { 
-                directory
-            });
+            if (opencode) {
+                // Close the server
+                opencode.server.close();
+                
+                // Remove from instances map
+                instances.delete(directory);
+                
+                log.info("OpenCode SDK removed successfully", { 
+                    directory
+                });
+            } else {
+                log.warn("No OpenCode SDK instance found for directory", { directory });
+            }
         } catch (error: any) {
             log.error("Failed to remove OpenCode SDK", { 
                 error: error.message,
@@ -73,3 +87,10 @@ export const OPENCODE = {
         }
     }
 };
+
+/**
+ * Get OpenCode instance for a directory
+ */
+export function getOpencodeInstance(directory: string) {
+    return instances.get(directory);
+}
