@@ -267,7 +267,14 @@ export namespace Instance {
         }
 
         try {
-            // Call the integration's remove method to clean up
+            // Remove SDK
+            await SDK.remove({
+                type: instance.sdkType,
+                directory: instance.directory,
+                metadata: instance.metadata
+            });
+
+            // Remove integration
             await Integration.remove({
                 type: instance.type,
                 directory: instance.directory,
@@ -297,5 +304,77 @@ export namespace Instance {
                 error: error.message
             };
         }
+    }
+
+    /**
+     * Cleanup all instances - called during process shutdown
+     */
+    export async function cleanup(): Promise<void> {
+        log.info("Starting instance cleanup", {
+            currentInstance: currentInstance?.id,
+            availableInstancesCount: availableInstances.length
+        });
+
+        // Get all instances before cleanup
+        const allInstances = getAll();
+        
+        if (allInstances.length === 0) {
+            log.info("No instances to cleanup");
+            return;
+        }
+
+        // Clean up available instances first (remove() only works on available instances)
+        const availableCleanupPromises = availableInstances.map(async (instance) => {
+            try {
+                await remove(instance.id);
+            } catch (error: any) {
+                log.error("Failed to cleanup available instance", {
+                    instanceId: instance.id,
+                    error: error.message
+                });
+                // Continue cleanup even if one fails
+            }
+        });
+
+        await Promise.all(availableCleanupPromises);
+
+        // Clean up current instance separately (since remove() doesn't allow removing current)
+        if (currentInstance) {
+            try {
+                log.info("Cleaning up current instance", {
+                    instanceId: currentInstance.id,
+                    directory: currentInstance.directory
+                });
+
+                // Remove SDK
+                await SDK.remove({
+                    type: currentInstance.sdkType,
+                    directory: currentInstance.directory,
+                    metadata: currentInstance.metadata
+                });
+
+                // Remove integration
+                await Integration.remove({
+                    type: currentInstance.type,
+                    directory: currentInstance.directory,
+                    metadata: currentInstance.metadata
+                });
+
+                log.info("Current instance cleaned up successfully", {
+                    instanceId: currentInstance.id
+                });
+            } catch (error: any) {
+                log.error("Failed to cleanup current instance", {
+                    instanceId: currentInstance.id,
+                    error: error.message
+                });
+            }
+        }
+
+        // Clear all instance state
+        currentInstance = null;
+        availableInstances.length = 0;
+
+        log.info("Instance cleanup completed");
     }
 }

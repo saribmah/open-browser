@@ -27,6 +27,7 @@ export namespace SDK {
         setup: (opts: { directory: string; metadata?: Record<string, any> }) => Promise<void>;
         remove: (opts: { directory: string; metadata?: Record<string, any> }) => Promise<void>;
         getSessions: (opts: { directory: string }) => Promise<Session[]>;
+        createSession: (opts: { directory: string }) => Promise<Session>;
     }
 
     /**
@@ -97,6 +98,19 @@ export namespace SDK {
     }): Promise<Session[]> {
         const config = getConfig(opts.type);
         return await config.getSessions({
+            directory: opts.directory
+        });
+    }
+
+    /**
+     * Create a new session for an SDK instance
+     */
+    export async function createSession(opts: {
+        type: Type;
+        directory: string;
+    }): Promise<Session> {
+        const config = getConfig(opts.type);
+        return await config.createSession({
             directory: opts.directory
         });
     }

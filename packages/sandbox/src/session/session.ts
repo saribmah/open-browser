@@ -54,4 +54,54 @@ export namespace Session {
             };
         }
     }
+
+    /**
+     * Create a new session for the current instance
+     */
+    export async function create(): Promise<{ success: boolean; session?: SDK.Session; error?: string }> {
+        log.info("Creating new session");
+
+        try {
+            // Get current instance
+            const currentInstance = Instance.getCurrent();
+            
+            if (!currentInstance) {
+                log.error("No current instance set");
+                return {
+                    success: false,
+                    error: "No current instance set"
+                };
+            }
+
+            log.info("Creating session for instance", {
+                instanceId: currentInstance.id,
+                sdkType: currentInstance.sdkType,
+                directory: currentInstance.directory
+            });
+
+            // Create session in SDK
+            const session = await SDK.createSession({
+                type: currentInstance.sdkType,
+                directory: currentInstance.directory
+            });
+
+            log.info("Session created successfully", {
+                instanceId: currentInstance.id,
+                sessionId: session.id
+            });
+
+            return {
+                success: true,
+                session
+            };
+        } catch (error: any) {
+            log.error("Failed to create session", {
+                error: error.message
+            });
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
 }

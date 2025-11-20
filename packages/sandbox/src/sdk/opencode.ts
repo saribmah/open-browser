@@ -121,6 +121,44 @@ export const OPENCODE = {
             });
             throw new Error(`Failed to get sessions: ${error.message}`);
         }
+    },
+    createSession: async (opts: { directory: string }) => {
+        const { directory } = opts;
+        
+        log.info("Creating session in OpenCode SDK", { directory });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+            
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Create session using the OpenCode client
+            const response = await opencode.client.session.create({
+                body: {}
+            });
+            
+            if (!response.data) {
+                log.error("No session data returned from OpenCode SDK", { directory });
+                throw new Error("Failed to create session: No data returned");
+            }
+
+            log.info("Session created successfully", { 
+                directory,
+                sessionId: response.data.id
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to create session in OpenCode SDK", { 
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to create session: ${error.message}`);
+        }
     }
 };
 
