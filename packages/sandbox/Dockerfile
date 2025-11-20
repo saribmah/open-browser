@@ -2,7 +2,7 @@
 # Only includes server code, not app templates
 
 # Stage 1: Build server binary
-FROM oven/bun:alpine AS builder
+FROM oven/bun:debian AS builder
 
 WORKDIR /app
 COPY package.json bun.lock* ./
@@ -15,18 +15,23 @@ COPY tsconfig.json ./
 RUN bun build ./src/index.ts --compile --outfile /out/server --minify
 
 
-# ---------- Runtime: Bun Alpine for smaller size with bun included ----------
-FROM oven/bun:alpine AS runtime
+# ---------- Runtime: Bun Debian for glibc compatibility with opencode ----------
+FROM oven/bun:debian AS runtime
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     bash \
     git \
     ca-certificates \
     curl \
     ripgrep \
-    lsof
+    lsof \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN bun add -g opencode-ai
+RUN curl -fsSL https://opencode.ai/install | bash
+
+# Add opencode to PATH
+ENV PATH="/root/.opencode/bin:${PATH}"
 
 WORKDIR /home/user/sandbox
 
