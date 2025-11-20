@@ -4,6 +4,7 @@ import {Log} from "../util/log";
 import {sessionRoutes} from "./session.ts";
 import {sdkRoutes} from "./sdk.ts";
 import {instanceRoutes} from "./instance.ts";
+import {configRoutes} from "./config.ts";
 import { describeRoute, resolver, openAPIRouteHandler } from 'hono-openapi';
 import { z } from "zod";
 
@@ -111,6 +112,7 @@ export namespace Router {
             .route("/session", sessionRoutes)
             .route("/sdk", sdkRoutes)
             .route("/instance", instanceRoutes)
+            .route("/config", configRoutes)
             .get(
                 "/doc",
                 openAPIRouteHandler(app, {

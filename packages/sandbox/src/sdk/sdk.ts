@@ -19,6 +19,24 @@ export namespace SDK {
     }
 
     /**
+     * Provider data structure (matches OpenCode SDK)
+     */
+    export interface Provider {
+        id: string;
+        name: string;
+        models?: { [key: string]: any };
+        [key: string]: any;
+    }
+
+    /**
+     * Providers response structure
+     */
+    export interface ProvidersResponse {
+        providers: Provider[];
+        default: { [key: string]: string };
+    }
+
+    /**
      * SDK configuration for each type
      */
     export interface Config {
@@ -28,6 +46,7 @@ export namespace SDK {
         remove: (opts: { directory: string; metadata?: Record<string, any> }) => Promise<void>;
         getSessions: (opts: { directory: string }) => Promise<Session[]>;
         createSession: (opts: { directory: string }) => Promise<Session>;
+        getProviders: (opts: { directory: string }) => Promise<ProvidersResponse>;
     }
 
     /**
@@ -111,6 +130,19 @@ export namespace SDK {
     }): Promise<Session> {
         const config = getConfig(opts.type);
         return await config.createSession({
+            directory: opts.directory
+        });
+    }
+
+    /**
+     * Get providers for an SDK instance
+     */
+    export async function getProviders(opts: {
+        type: Type;
+        directory: string;
+    }): Promise<ProvidersResponse> {
+        const config = getConfig(opts.type);
+        return await config.getProviders({
             directory: opts.directory
         });
     }
