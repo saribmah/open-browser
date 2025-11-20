@@ -4,11 +4,23 @@ import {Log} from "../util/log";
 import {sessionRoutes} from "./session.ts";
 import {sdkRoutes} from "./sdk.ts";
 import {instanceRoutes} from "./instance.ts";
+import { describeRoute, resolver, openAPIRouteHandler } from 'hono-openapi';
+import { z } from "zod";
 
 export namespace Router {
     const log = Log.create({ service: "server" });
 
     export type Routes = ReturnType<typeof app>;
+
+    const HealthSchema = z.object({
+        status: z.string(),
+        timestamp: z.string()
+    });
+
+    const ServiceInfoSchema = z.object({
+        service: z.string(),
+        version: z.string()
+    });
 
     function app() {
         const app = new Hono();
@@ -48,21 +60,70 @@ export namespace Router {
                     duration: Date.now() - start,
                 });
             })
-            .get("/health", async (c) => {
-                return c.json({
-                    status: "ok",
-                    timestamp: new Date().toISOString()
-                });
-            })
-            .get("/", async (c) => {
-                return c.json({
-                    service: "open-browser sandbox",
-                    version: "1.0.0"
-                });
-            })
+            .get(
+                "/health",
+                describeRoute({
+                    description: 'Health Check',
+                    responses: {
+                        200: {
+                            description: 'Service is healthy',
+                            content: {
+                                'application/json': { 
+                                    schema: resolver(z.object({
+                                        status: z.string(),
+                                        timestamp: z.string()
+                                    }))
+                                },
+                            },
+                        },
+                    },
+                }),
+                async (c) => {
+                    return c.json({
+                        status: "ok",
+                        timestamp: new Date().toISOString()
+                    });
+                })
+            .get(
+                "/",
+                describeRoute({
+                    description: 'Service Information',
+                    responses: {
+                        200: {
+                            description: 'Service details',
+                            content: {
+                                'application/json': { 
+                                    schema: resolver(z.object({
+                                        service: z.string(),
+                                        version: z.string()
+                                    }))
+                                },
+                            },
+                        },
+                    },
+                }),
+                async (c) => {
+                    return c.json({
+                        service: "open-browser sandbox",
+                        version: "1.0.0"
+                    });
+                })
             .route("/session", sessionRoutes)
             .route("/sdk", sdkRoutes)
             .route("/instance", instanceRoutes)
+            .get(
+                "/doc",
+                openAPIRouteHandler(app, {
+                    documentation: {
+                        info: {
+                            title: "Open Browser Sandbox API",
+                            version: "1.0.0",
+                            description: "API documentation for Open Browser Sandbox service",
+                        },
+                        openapi: "3.1.1",
+                    },
+                }),
+            )
 
         return app;
     }
