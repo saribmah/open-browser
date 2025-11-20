@@ -15,6 +15,7 @@ export namespace Integration {
         urlPattern: RegExp;
         parseUrl: (url: string) => { id: string; metadata?: Record<string, any> } | null;
         setup: (opts: { url: string; directory: string; metadata?: Record<string, any> }) => Promise<void>;
+        remove: (opts: { directory: string; metadata?: Record<string, any> }) => Promise<void>;
     }
 
     /**
@@ -80,6 +81,21 @@ export namespace Integration {
         const config = getConfig(opts.type);
         await config.setup({
             url: opts.url,
+            directory: opts.directory,
+            metadata: opts.metadata
+        });
+    }
+
+    /**
+     * Remove an integration from a directory
+     */
+    export async function remove(opts: {
+        type: Type;
+        directory: string;
+        metadata?: Record<string, any>;
+    }): Promise<void> {
+        const config = getConfig(opts.type);
+        await config.remove({
             directory: opts.directory,
             metadata: opts.metadata
         });

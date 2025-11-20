@@ -48,5 +48,29 @@ export const GITHUB: Integration.Config = {
             });
             throw new Error(`Failed to clone GitHub repository: ${error.message}`);
         }
+    },
+    remove: async (opts) => {
+        const { directory, metadata } = opts;
+        
+        log.info("Removing GitHub repository", { 
+            directory,
+            owner: metadata?.owner,
+            repo: metadata?.repo
+        });
+
+        try {
+            // Remove the directory
+            await $`rm -rf ${directory}`.quiet();
+            
+            log.info("GitHub repository removed successfully", { 
+                directory
+            });
+        } catch (error: any) {
+            log.error("Failed to remove GitHub repository", { 
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to remove GitHub repository: ${error.message}`);
+        }
     }
 };

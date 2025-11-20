@@ -61,5 +61,31 @@ export const ARXIV: Integration.Config = {
             });
             throw new Error(`Failed to download arXiv paper: ${error.message}`);
         }
+    },
+    remove: async (opts) => {
+        const { directory, metadata } = opts;
+        const paperId = metadata?.paperId;
+        
+        log.info("Removing arXiv paper", { 
+            directory,
+            paperId
+        });
+
+        try {
+            // Remove the directory
+            await $`rm -rf ${directory}`.quiet();
+            
+            log.info("arXiv paper removed successfully", { 
+                directory,
+                paperId
+            });
+        } catch (error: any) {
+            log.error("Failed to remove arXiv paper", { 
+                error: error.message,
+                directory,
+                paperId
+            });
+            throw new Error(`Failed to remove arXiv paper: ${error.message}`);
+        }
     }
 };

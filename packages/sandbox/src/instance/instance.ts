@@ -9,6 +9,7 @@ export namespace Instance {
         id: string;
         type: Integration.Type;
         url: string;
+        directory: string;
         metadata?: Record<string, any>;
     }
 
@@ -43,7 +44,7 @@ export namespace Instance {
         }
 
         // Create instance from URL and type
-        const instance = createInstanceFromUrl(opts.url, opts.type);
+        const instance = createInstanceFromUrl(opts.url, opts.type, opts.directory);
 
         // Setup the integration
         log.info("Setting up instance", {
@@ -68,13 +69,14 @@ export namespace Instance {
     /**
      * Create an instance from a URL and type
      */
-    function createInstanceFromUrl(url: string, type: Integration.Type): State {
+    function createInstanceFromUrl(url: string, type: Integration.Type, directory: string): State {
         const parsed = Integration.parseUrl(url, type);
 
         return {
             id: parsed.id,
             type,
             url,
+            directory,
             metadata: parsed.metadata
         };
     }
@@ -169,7 +171,7 @@ export namespace Instance {
             throw new Error(`Invalid instance type: ${opts.type}. Must be one of: ${supported}`);
         }
 
-        const instance = createInstanceFromUrl(opts.url, opts.type);
+        const instance = createInstanceFromUrl(opts.url, opts.type, opts.directory);
         const exists = availableInstances.find(i => i.id === instance.id);
         if (!exists) {
             // Setup the integration
@@ -196,13 +198,56 @@ export namespace Instance {
     /**
      * Remove an instance from available instances
      */
-    export function remove(instanceId: string): boolean {
-        const index = availableInstances.findIndex(i => i.id === instanceId);
-        if (index !== -1) {
-            availableInstances.splice(index, 1);
-            log.info("Instance removed", { instanceId });
-            return true;
+    export async function remove(instanceId: string): Promise<{ success: boolean; error?: string }> {
+        log.info("Attempting to remove instance", { instanceId });
+
+        // Check if trying to remove current instance
+        if (currentInstance && currentInstance.id === instanceId) {
+            return {
+                success: false,
+                error: "Cannot remove the current active instance"
+            };
         }
-        return false;
+
+        const instance = availableInstances.find(i => i.id === instanceId);
+        if (!instance) {
+            log.warn("Instance not found", { instanceId });
+            return {
+                success: false,
+                error: "Instance not found"
+            };
+        }
+
+        try {
+            // Call the integration's remove method to clean up
+            await Integration.remove({
+                type: instance.type,
+                directory: instance.directory,
+                metadata: instance.metadata
+            });
+
+            // Remove from available instances
+            const index = availableInstances.findIndex(i => i.id === instanceId);
+            if (index !== -1) {
+                availableInstances.splice(index, 1);
+            }
+            
+            log.info("Instance removed successfully", { 
+                instanceId,
+                directory: instance.directory
+            });
+            
+            return { success: true };
+        } catch (error: any) {
+            log.error("Failed to remove instance", {
+                error: error.message,
+                instanceId,
+                directory: instance.directory
+            });
+            return {
+                success: false,
+                error: error.message
+            };
+        }
     }
 }

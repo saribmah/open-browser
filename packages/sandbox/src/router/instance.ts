@@ -8,7 +8,15 @@ const InstanceStateSchema = z
         id: z.string(),
         type: z.enum(["GITHUB", "ARXIV"]),
         url: z.string(),
+        directory: z.string(),
         metadata: z.record(z.string(), z.any()).optional()
+    })
+
+const InitInstanceSchema = z
+    .object({
+        url: z.string(),
+        type: z.enum(["GITHUB", "ARXIV"]),
+        directory: z.string()
     })
 
 const AddInstanceSchema = z
@@ -19,6 +27,11 @@ const AddInstanceSchema = z
     })
 
 const SwitchInstanceSchema = z
+    .object({
+        instanceId: z.string()
+    })
+
+const RemoveInstanceSchema = z
     .object({
         instanceId: z.string()
     })
@@ -83,6 +96,63 @@ route.get(
     async (c) => {
         const available = Instance.getAvailable();
         return c.json(available);
+    });
+
+// POST /instance/init - Initialize the current active instance
+route.post(
+    "/init",
+    describeRoute({
+        description: 'Initialize Current Instance',
+        responses: {
+            200: {
+                description: 'Instance initialized successfully',
+                content: {
+                    'application/json': { schema: resolver(SuccessSchema) },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    validator('json', InitInstanceSchema),
+    async (c) => {
+        const body = await c.req.json();
+        const { url, type, directory } = body;
+
+        if (!url) {
+            return c.json({
+                error: "url is required"
+            }, 400);
+        }
+
+        if (!type) {
+            return c.json({
+                error: "type is required (GITHUB or ARXIV)"
+            }, 400);
+        }
+
+        if (!directory) {
+            return c.json({
+                error: "directory is required"
+            }, 400);
+        }
+
+        try {
+            await Instance.init({ url, type, directory });
+            return c.json({
+                success: true,
+                message: "Instance initialized and setup completed",
+                directory
+            });
+        } catch (error: any) {
+            return c.json({
+                error: error.message
+            }, 400);
+        }
     });
 
 // POST /instance/add - Add a new instance to available instances
@@ -184,6 +254,51 @@ route.post(
         return c.json({
             success: true,
             instance: result.instance
+        });
+    });
+
+// POST /instance/remove - Remove an instance from available instances
+route.post(
+    "/remove",
+    describeRoute({
+        description: 'Remove Instance',
+        responses: {
+            200: {
+                description: 'Instance removed successfully',
+                content: {
+                    'application/json': { schema: resolver(SuccessSchema) },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    validator('json', RemoveInstanceSchema),
+    async (c) => {
+        const body = await c.req.json();
+        const { instanceId } = body;
+
+        if (!instanceId) {
+            return c.json({
+                error: "instanceId is required"
+            }, 400);
+        }
+
+        const result = await Instance.remove(instanceId);
+
+        if (!result.success) {
+            return c.json({
+                error: result.error
+            }, 400);
+        }
+
+        return c.json({
+            success: true,
+            message: "Instance removed successfully"
         });
     });
 
