@@ -1,8 +1,12 @@
 import { Log } from "../util/log";
 import { Integration } from "../integration/integration";
 import { SDK } from "../sdk/sdk";
+import path from "path";
 
 const log = Log.create({ service: "instance" });
+
+// Base directory for all instances - from env or current working directory
+const WORKSPACE_DIR = process.env["WORKSPACE_DIR"] || process.cwd();
 
 export namespace Instance {
 
@@ -41,10 +45,15 @@ export namespace Instance {
         directory: string;
         sdkType: SDK.Type;
     }) {
+        // Construct full directory path using WORKSPACE_DIR
+        const fullDirectory = path.join(WORKSPACE_DIR, opts.directory);
+
         log.info("Initializing instance state", {
             url: opts.url,
             type: opts.type,
             directory: opts.directory,
+            fullDirectory,
+            baseDir: WORKSPACE_DIR,
             sdkType: opts.sdkType
         });
 
@@ -61,37 +70,37 @@ export namespace Instance {
         }
 
         // Create instance from URL and type
-        const instance = createInstanceFromUrl(opts.url, opts.type, opts.directory, opts.sdkType);
+        const instance = createInstanceFromUrl(opts.url, opts.type, fullDirectory, opts.sdkType);
 
         // Setup the integration
         log.info("Setting up instance", {
             instanceId: instance.id,
-            directory: opts.directory
+            directory: fullDirectory
         });
 
         await Integration.setup({
             url: instance.url,
             type: instance.type,
-            directory: opts.directory,
+            directory: fullDirectory,
             metadata: instance.metadata
         });
 
         // Setup the SDK
         log.info("Setting up SDK", {
             sdkType: opts.sdkType,
-            directory: opts.directory
+            directory: fullDirectory
         });
 
         await SDK.setup({
             type: opts.sdkType,
-            directory: opts.directory,
+            directory: fullDirectory,
             metadata: instance.metadata
         });
 
         currentInstance = instance;
         log.info("Current instance initialized and setup completed", {
             instance: currentInstance,
-            directory: opts.directory
+            directory: fullDirectory
         });
     }
 
@@ -195,6 +204,18 @@ export namespace Instance {
      * Add a new instance to available instances
      */
     export async function add(opts: { url: string; type: Integration.Type; directory: string; sdkType: SDK.Type }) {
+        // Construct full directory path using WORKSPACE_DIR
+        const fullDirectory = path.join(WORKSPACE_DIR, opts.directory);
+
+        log.info("Adding instance", {
+            url: opts.url,
+            type: opts.type,
+            directory: opts.directory,
+            fullDirectory,
+            baseDir: WORKSPACE_DIR,
+            sdkType: opts.sdkType
+        });
+
         // Validate integration type
         if (!validateType(opts.type)) {
             const supported = Integration.getSupportedTypes().join(", ");
@@ -207,38 +228,38 @@ export namespace Instance {
             throw new Error(`Invalid SDK type: ${opts.sdkType}. Must be one of: ${supported}`);
         }
 
-        const instance = createInstanceFromUrl(opts.url, opts.type, opts.directory, opts.sdkType);
+        const instance = createInstanceFromUrl(opts.url, opts.type, fullDirectory, opts.sdkType);
         const exists = availableInstances.find(i => i.id === instance.id);
         if (!exists) {
             // Setup the integration
             log.info("Setting up instance", {
                 instanceId: instance.id,
-                directory: opts.directory
+                directory: fullDirectory
             });
 
             await Integration.setup({
                 url: instance.url,
                 type: instance.type,
-                directory: opts.directory,
+                directory: fullDirectory,
                 metadata: instance.metadata
             });
 
             // Setup the SDK
             log.info("Setting up SDK", {
                 sdkType: opts.sdkType,
-                directory: opts.directory
+                directory: fullDirectory
             });
 
             await SDK.setup({
                 type: opts.sdkType,
-                directory: opts.directory,
+                directory: fullDirectory,
                 metadata: instance.metadata
             });
 
             availableInstances.push(instance);
             log.info("Instance added and setup completed", {
                 instanceId: instance.id,
-                directory: opts.directory
+                directory: fullDirectory
             });
         }
     }
@@ -286,12 +307,12 @@ export namespace Instance {
             if (index !== -1) {
                 availableInstances.splice(index, 1);
             }
-            
-            log.info("Instance removed successfully", { 
+
+            log.info("Instance removed successfully", {
                 instanceId,
                 directory: instance.directory
             });
-            
+
             return { success: true };
         } catch (error: any) {
             log.error("Failed to remove instance", {
@@ -317,7 +338,7 @@ export namespace Instance {
 
         // Get all instances before cleanup
         const allInstances = getAll();
-        
+
         if (allInstances.length === 0) {
             log.info("No instances to cleanup");
             return;
