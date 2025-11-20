@@ -1,4 +1,4 @@
-import { createOpencode } from "@opencode-ai/sdk";
+import { createOpencode, createOpencodeServer } from "@opencode-ai/sdk";
 import { Log } from "../util/log";
 
 const log = Log.create({ service: "opencode-sdk" });
@@ -14,8 +14,8 @@ export const OPENCODE = {
     name: "OpenCode",
     setup: async (opts: { directory: string; metadata?: Record<string, any> }) => {
         const { directory, metadata } = opts;
-        
-        log.info("Setting up OpenCode SDK", { 
+
+        log.info("Setting up OpenCode SDK", {
             directory,
             metadata
         });
@@ -39,14 +39,14 @@ export const OPENCODE = {
 
             // Store the instance
             instances.set(directory, opencode);
-            
-            log.info("OpenCode SDK setup completed", { 
+
+            log.info("OpenCode SDK setup completed", {
                 directory,
                 serverUrl: opencode.server.url,
                 port: metadata?.port || 4096
             });
         } catch (error: any) {
-            log.error("Failed to setup OpenCode SDK", { 
+            log.error("Failed to setup OpenCode SDK", {
                 error: error.message,
                 directory
             });
@@ -55,8 +55,8 @@ export const OPENCODE = {
     },
     remove: async (opts: { directory: string; metadata?: Record<string, any> }) => {
         const { directory, metadata } = opts;
-        
-        log.info("Removing OpenCode SDK", { 
+
+        log.info("Removing OpenCode SDK", {
             directory,
             metadata
         });
@@ -64,22 +64,22 @@ export const OPENCODE = {
         try {
             // Get the instance
             const opencode = instances.get(directory);
-            
+
             if (opencode) {
                 // Close the server
                 opencode.server.close();
-                
+
                 // Remove from instances map
                 instances.delete(directory);
-                
-                log.info("OpenCode SDK removed successfully", { 
+
+                log.info("OpenCode SDK removed successfully", {
                     directory
                 });
             } else {
                 log.warn("No OpenCode SDK instance found for directory", { directory });
             }
         } catch (error: any) {
-            log.error("Failed to remove OpenCode SDK", { 
+            log.error("Failed to remove OpenCode SDK", {
                 error: error.message,
                 directory
             });
