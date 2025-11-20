@@ -38,7 +38,7 @@ export function Features() {
         <div className="mb-16 md:text-center max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-6">
             One prefix. <br />
-            <span className="text-zinc-500">Infinite possibilities.</span>
+            <span className="text-zinc-500">Open possibilities.</span>
           </h2>
           <p className="text-zinc-400 text-lg">
             Open-browser.ai bridges the gap between static web content and active AI assistance. It's the fastest way to

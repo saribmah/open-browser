@@ -1,12 +1,22 @@
 {
   "name": "sandbox",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun --hot run ./src/index.ts",
+    "build": "bun run build",
+    "build:image:dev": "scripts/build.sh build dev"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@opencode-ai/sdk": "^1.0.80",
+    "hono": "^4.10.6",
+    "zod": "^4.1.12"
   }
 }
