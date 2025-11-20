@@ -9,6 +9,7 @@ const InstanceStateSchema = z
         type: z.enum(["GITHUB", "ARXIV"]),
         url: z.string(),
         directory: z.string(),
+        sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
         metadata: z.record(z.string(), z.any()).optional()
     })
 
@@ -16,14 +17,16 @@ const InitInstanceSchema = z
     .object({
         url: z.string(),
         type: z.enum(["GITHUB", "ARXIV"]),
-        directory: z.string()
+        directory: z.string(),
+        sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
     })
 
 const AddInstanceSchema = z
     .object({
         url: z.string(),
         type: z.enum(["GITHUB", "ARXIV"]),
-        directory: z.string()
+        directory: z.string(),
+        sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
     })
 
 const SwitchInstanceSchema = z
@@ -121,7 +124,7 @@ route.post(
     validator('json', InitInstanceSchema),
     async (c) => {
         const body = await c.req.json();
-        const { url, type, directory } = body;
+        const { url, type, directory, sdkType } = body;
 
         if (!url) {
             return c.json({
@@ -141,8 +144,14 @@ route.post(
             }, 400);
         }
 
+        if (!sdkType) {
+            return c.json({
+                error: "sdkType is required (OPENCODE or CLAUDE_CODE)"
+            }, 400);
+        }
+
         try {
-            await Instance.init({ url, type, directory });
+            await Instance.init({ url, type, directory, sdkType });
             return c.json({
                 success: true,
                 message: "Instance initialized and setup completed",
@@ -178,7 +187,7 @@ route.post(
     validator('json', AddInstanceSchema),
     async (c) => {
         const body = await c.req.json();
-        const { url, type, directory } = body;
+        const { url, type, directory, sdkType } = body;
 
         if (!url) {
             return c.json({
@@ -198,8 +207,14 @@ route.post(
             }, 400);
         }
 
+        if (!sdkType) {
+            return c.json({
+                error: "sdkType is required (OPENCODE or CLAUDE_CODE)"
+            }, 400);
+        }
+
         try {
-            await Instance.add({ url, type, directory });
+            await Instance.add({ url, type, directory, sdkType });
             return c.json({
                 success: true,
                 message: "Instance added and setup completed",

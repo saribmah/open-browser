@@ -2,74 +2,72 @@ import { $ } from "bun";
 import { Log } from "../util/log";
 import path from "path";
 
-const log = Log.create({ service: "opencode-sdk" });
+const log = Log.create({ service: "claude-code-sdk" });
 
 /**
- * OpenCode SDK configuration
+ * Claude Code SDK configuration
  */
-export const OPENCODE = {
-    type: "OPENCODE" as const,
-    name: "OpenCode",
+export const CLAUDE_CODE = {
+    type: "CLAUDE_CODE" as const,
+    name: "Claude Code",
     setup: async (opts: { directory: string; metadata?: Record<string, any> }) => {
         const { directory, metadata } = opts;
         
-        log.info("Setting up OpenCode SDK", { 
+        log.info("Setting up Claude Code SDK", { 
             directory,
             metadata
         });
 
         try {
-            const configPath = path.join(directory, ".opencode");
+            const configPath = path.join(directory, ".claude");
             
-            // Create .opencode directory if it doesn't exist
+            // Create .claude directory if it doesn't exist
             await $`mkdir -p ${configPath}`.quiet();
             
             // Create a default config file
             const config = {
-                model: "anthropic/claude-3-5-sonnet-20241022",
-                hostname: "127.0.0.1",
-                port: 4096,
+                model: "claude-3-5-sonnet-20241022",
                 ...metadata
             };
             
             const configFile = path.join(configPath, "config.json");
             await Bun.write(configFile, JSON.stringify(config, null, 2));
             
-            log.info("OpenCode SDK setup completed", { 
+            log.info("Claude Code SDK setup completed", { 
                 directory,
                 configPath
             });
         } catch (error: any) {
-            log.error("Failed to setup OpenCode SDK", { 
+            log.error("Failed to setup Claude Code SDK", { 
                 error: error.message,
                 directory
             });
-            throw new Error(`Failed to setup OpenCode SDK: ${error.message}`);
+            throw new Error(`Failed to setup Claude Code SDK: ${error.message}`);
         }
     },
     remove: async (opts: { directory: string; metadata?: Record<string, any> }) => {
         const { directory, metadata } = opts;
         
-        log.info("Removing OpenCode SDK", { 
+        log.info("Removing Claude Code SDK", { 
             directory,
             metadata
         });
 
         try {
-            const configPath = path.join(directory, ".opencode");
+            const configPath = path.join(directory, ".claude");
             
-            // Remove .opencode directory
+            // Remove .claude directory
             await $`rm -rf ${configPath}`.quiet();
             
-            log.info("OpenCode SDK removed successfully", { 
+            log.info("Claude Code SDK removed successfully", { 
                 directory
             });
         } catch (error: any) {
-            log.error("Failed to remove OpenCode SDK", { 
+            log.error("Failed to remove Claude Code SDK", { 
                 error: error.message,
                 directory
             });
-            throw new Error(`Failed to remove OpenCode SDK: ${error.message}`);
+            throw new Error(`Failed to remove Claude Code SDK: ${error.message}`);
         }
     }
 };

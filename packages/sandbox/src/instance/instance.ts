@@ -1,5 +1,6 @@
 import { Log } from "../util/log";
 import { Integration } from "../integration/integration";
+import { SDK } from "../sdk/sdk";
 
 const log = Log.create({ service: "instance" });
 
@@ -10,6 +11,7 @@ export namespace Instance {
         type: Integration.Type;
         url: string;
         directory: string;
+        sdkType: SDK.Type;
         metadata?: Record<string, any>;
     }
 
@@ -24,27 +26,42 @@ export namespace Instance {
     }
 
     /**
+     * Validate SDK type
+     */
+    function validateSDKType(type: string): type is SDK.Type {
+        return SDK.isValidType(type);
+    }
+
+    /**
      * Initialize the instance state when server boots up
      */
     export async function init(opts: {
         url: string;
         type: Integration.Type;
         directory: string;
+        sdkType: SDK.Type;
     }) {
         log.info("Initializing instance state", {
             url: opts.url,
             type: opts.type,
-            directory: opts.directory
+            directory: opts.directory,
+            sdkType: opts.sdkType
         });
 
-        // Validate type
+        // Validate integration type
         if (!validateType(opts.type)) {
             const supported = Integration.getSupportedTypes().join(", ");
             throw new Error(`Invalid instance type: ${opts.type}. Must be one of: ${supported}`);
         }
 
+        // Validate SDK type
+        if (!validateSDKType(opts.sdkType)) {
+            const supported = SDK.getSupportedTypes().join(", ");
+            throw new Error(`Invalid SDK type: ${opts.sdkType}. Must be one of: ${supported}`);
+        }
+
         // Create instance from URL and type
-        const instance = createInstanceFromUrl(opts.url, opts.type, opts.directory);
+        const instance = createInstanceFromUrl(opts.url, opts.type, opts.directory, opts.sdkType);
 
         // Setup the integration
         log.info("Setting up instance", {
@@ -59,6 +76,18 @@ export namespace Instance {
             metadata: instance.metadata
         });
 
+        // Setup the SDK
+        log.info("Setting up SDK", {
+            sdkType: opts.sdkType,
+            directory: opts.directory
+        });
+
+        await SDK.setup({
+            type: opts.sdkType,
+            directory: opts.directory,
+            metadata: instance.metadata
+        });
+
         currentInstance = instance;
         log.info("Current instance initialized and setup completed", {
             instance: currentInstance,
@@ -69,7 +98,7 @@ export namespace Instance {
     /**
      * Create an instance from a URL and type
      */
-    function createInstanceFromUrl(url: string, type: Integration.Type, directory: string): State {
+    function createInstanceFromUrl(url: string, type: Integration.Type, directory: string, sdkType: SDK.Type): State {
         const parsed = Integration.parseUrl(url, type);
 
         return {
@@ -77,6 +106,7 @@ export namespace Instance {
             type,
             url,
             directory,
+            sdkType,
             metadata: parsed.metadata
         };
     }
@@ -164,14 +194,20 @@ export namespace Instance {
     /**
      * Add a new instance to available instances
      */
-    export async function add(opts: { url: string; type: Integration.Type; directory: string }) {
-        // Validate type
+    export async function add(opts: { url: string; type: Integration.Type; directory: string; sdkType: SDK.Type }) {
+        // Validate integration type
         if (!validateType(opts.type)) {
             const supported = Integration.getSupportedTypes().join(", ");
             throw new Error(`Invalid instance type: ${opts.type}. Must be one of: ${supported}`);
         }
 
-        const instance = createInstanceFromUrl(opts.url, opts.type, opts.directory);
+        // Validate SDK type
+        if (!validateSDKType(opts.sdkType)) {
+            const supported = SDK.getSupportedTypes().join(", ");
+            throw new Error(`Invalid SDK type: ${opts.sdkType}. Must be one of: ${supported}`);
+        }
+
+        const instance = createInstanceFromUrl(opts.url, opts.type, opts.directory, opts.sdkType);
         const exists = availableInstances.find(i => i.id === instance.id);
         if (!exists) {
             // Setup the integration
@@ -183,6 +219,18 @@ export namespace Instance {
             await Integration.setup({
                 url: instance.url,
                 type: instance.type,
+                directory: opts.directory,
+                metadata: instance.metadata
+            });
+
+            // Setup the SDK
+            log.info("Setting up SDK", {
+                sdkType: opts.sdkType,
+                directory: opts.directory
+            });
+
+            await SDK.setup({
+                type: opts.sdkType,
                 directory: opts.directory,
                 metadata: instance.metadata
             });
