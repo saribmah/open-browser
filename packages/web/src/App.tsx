@@ -1,17 +1,15 @@
-import { Navbar } from "./components/Navbar"
-import { Hero } from "./components/Hero"
-import { Features } from "./components/Features"
-import { DemoSection } from "./components/DemoSection"
-import { Footer } from "./components/Footer"
+import { Routes, Route } from "react-router"
+import { Layout } from "./components/Layout"
+import HomePage from "./pages/home"
+import Chat from "./pages/chat"
 
 export default function App() {
   return (
-    <main className="flex min-h-screen flex-col items-center overflow-hidden">
-      <Navbar />
-      <Hero />
-      <DemoSection />
-      <Features />
-      <Footer />
-    </main>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/chat" element={<Chat />} />
+      </Routes>
+    </Layout>
   )
 }
