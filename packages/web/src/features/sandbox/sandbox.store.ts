@@ -3,7 +3,7 @@ import { postSandbox } from "@/client/api/sdk.gen"
 import { client } from "@/client/api/client.gen"
 import type { PostSandboxResponses } from "@/client/api/types.gen"
 
-export type SandboxProviderType = "cloudflare" | "daytona" | "vercel" | "docker"
+export type SandboxProviderType = "cloudflare" | "daytona" | "vercel"
 export type IntegrationType = "GITHUB" | "ARXIV"
 export type SdkType = "OPENCODE" | "CLAUDE_CODE"
 export type SandboxStatus = "idle" | "setting-up" | "creating" | "ready" | "error"

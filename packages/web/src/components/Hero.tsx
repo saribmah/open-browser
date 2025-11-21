@@ -49,7 +49,7 @@ export function Hero() {
           type: parsed.type,
           directory: parsed.directory,
           sdkType: 'OPENCODE',
-          provider: (import.meta.env.VITE_DEFAULT_PROVIDER as 'docker' | 'cloudflare' | 'daytona' | 'vercel') || 'docker',
+          provider: 'daytona',
         }
       })
 

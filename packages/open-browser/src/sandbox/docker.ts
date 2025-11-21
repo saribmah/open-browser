@@ -1,19 +1,131 @@
-import { Docker } from 'node-docker-api/lib/docker';
 import type { SandboxConfig, SandboxSession, SandboxProviderInterface } from "./manager";
+
+interface DockerContainerInfo {
+    id: string;
+    ports: {
+        [key: string]: Array<{ HostPort: string; HostIp: string }>;
+    };
+}
+
+interface DockerContainer {
+    id: string;
+    start(): Promise<void>;
+    stop(): Promise<void>;
+    remove(): Promise<void>;
+    inspect(): Promise<DockerContainerInfo>;
+    exec(options: {
+        Cmd: string[];
+        AttachStdout: boolean;
+        AttachStderr: boolean;
+        Env?: string[];
+    }): Promise<{ start(): Promise<void> }>;
+}
+
+interface Docker {
+    createContainer(options: any): Promise<DockerContainer>;
+    getContainer(id: string): DockerContainer;
+}
 
 const DOCKER_IMAGE = process.env.DOCKER_IMAGE || "open-browser-sandbox:latest";
 const SERVER_PORT = 3000;
 const FRONTEND_PORT = 5173;
 
+// Simple Docker API client (can be replaced with dockerode if needed)
+class SimpleDockerClient implements Docker {
+    private baseUrl: string;
+
+    constructor() {
+        this.baseUrl = process.env.DOCKER_HOST || "http://localhost:2375";
+    }
+
+    async createContainer(options: any): Promise<DockerContainer> {
+        const response = await fetch(`${this.baseUrl}/containers/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(options),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to create container: ${response.statusText}`);
+        }
+
+        const data = await response.json() as { Id: string };
+        return this.getContainer(data.Id);
+    }
+
+    getContainer(id: string): DockerContainer {
+        return {
+            id,
+            start: async () => {
+                const response = await fetch(`${this.baseUrl}/containers/${id}/start`, {
+                    method: "POST",
+                });
+                if (!response.ok) {
+                    throw new Error(`Failed to start container: ${response.statusText}`);
+                }
+            },
+            stop: async () => {
+                const response = await fetch(`${this.baseUrl}/containers/${id}/stop`, {
+                    method: "POST",
+                });
+                if (!response.ok && response.status !== 304) {
+                    throw new Error(`Failed to stop container: ${response.statusText}`);
+                }
+            },
+            remove: async () => {
+                const response = await fetch(`${this.baseUrl}/containers/${id}?force=true`, {
+                    method: "DELETE",
+                });
+                if (!response.ok) {
+                    throw new Error(`Failed to remove container: ${response.statusText}`);
+                }
+            },
+            inspect: async () => {
+                const response = await fetch(`${this.baseUrl}/containers/${id}/json`);
+                if (!response.ok) {
+                    throw new Error(`Failed to inspect container: ${response.statusText}`);
+                }
+                const data = await response.json() as any;
+                return {
+                    id: data.Id,
+                    ports: data.NetworkSettings?.Ports || {},
+                };
+            },
+            exec: async (options) => {
+                const response = await fetch(`${this.baseUrl}/containers/${id}/exec`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(options),
+                });
+                if (!response.ok) {
+                    throw new Error(`Failed to create exec: ${response.statusText}`);
+                }
+                const data = await response.json() as { Id: string };
+                return {
+                    start: async () => {
+                        const startResponse = await fetch(
+                            `${this.baseUrl}/exec/${data.Id}/start`,
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ Detach: true }),
+                            }
+                        );
+                        if (!startResponse.ok) {
+                            throw new Error(`Failed to start exec: ${startResponse.statusText}`);
+                        }
+                    },
+                };
+            },
+        };
+    }
+}
+
 export class DockerSandbox implements SandboxProviderInterface {
     private docker: Docker;
 
     constructor() {
-        // Connect to Docker daemon
-        // Uses Unix socket by default
-        this.docker = new Docker({
-            socketPath: process.env.DOCKER_SOCKET || '/var/run/docker.sock'
-        });
+        this.docker = new SimpleDockerClient();
     }
 
     async create(config: SandboxConfig): Promise<SandboxSession> {
@@ -21,7 +133,7 @@ export class DockerSandbox implements SandboxProviderInterface {
 
         try {
             // Create Docker container
-            const container = await this.docker.container.create({
+            const container = await this.docker.createContainer({
                 Image: DOCKER_IMAGE,
                 name: `sandbox-${id}`,
                 ExposedPorts: {
@@ -34,8 +146,8 @@ export class DockerSandbox implements SandboxProviderInterface {
                     PublishAllPorts: true,
                     AutoRemove: true,
                     PortBindings: {
-                        [`${SERVER_PORT}/tcp`]: [{ HostPort: '0' }], // Dynamic port
-                        [`${FRONTEND_PORT}/tcp`]: [{ HostPort: '0' }], // Dynamic port
+                        [`${SERVER_PORT}/tcp`]: [{ HostPort: "0" }], // Dynamic port
+                        [`${FRONTEND_PORT}/tcp`]: [{ HostPort: "0" }], // Dynamic port
                     },
                 },
                 Env: [
@@ -50,17 +162,18 @@ export class DockerSandbox implements SandboxProviderInterface {
             // Start the container
             await container.start();
 
-            // Get container status to get port mappings
-            const containerStatus = await container.status();
-            const ports = (containerStatus.data as any).NetworkSettings.Ports;
+            // Get container info and port mappings
+            const containerInfo = await container.inspect();
+            const ports = containerInfo.ports;
 
             // Get the dynamically assigned host ports
-            const serverPortMapping = ports[`${SERVER_PORT}/tcp`];
-            if (!serverPortMapping || serverPortMapping.length === 0) {
-                throw new Error('Failed to get server port mapping from container');
+            const serverPortMapping = ports[`${SERVER_PORT}/tcp`]?.[0];
+
+            if (!serverPortMapping) {
+                throw new Error("Failed to get server port mapping from container");
             }
 
-            const serverPort = serverPortMapping[0].HostPort;
+            const serverPort = serverPortMapping.HostPort;
             const serverUrl = `http://127.0.0.1:${serverPort}`;
 
             // Start the sandbox server inside the container
@@ -78,7 +191,6 @@ export class DockerSandbox implements SandboxProviderInterface {
                 config,
             };
         } catch (error: any) {
-            console.log(error);
             return {
                 id,
                 provider: "docker",
@@ -92,12 +204,12 @@ export class DockerSandbox implements SandboxProviderInterface {
     }
 
     private async startServer(
-        container: any,
+        container: DockerContainer,
         config: SandboxConfig
     ): Promise<void> {
-        // Execute the sandbox server command inside the container
-        const exec = await container.exec.create({
-            Cmd: ['/bin/sh', '-c', '/usr/local/bin/server'],
+        // Execute the sandbox server command
+        const exec = await container.exec({
+            Cmd: ["/bin/sh", "-c", "/usr/local/bin/server"],
             AttachStdout: true,
             AttachStderr: true,
             Env: [
@@ -108,8 +220,8 @@ export class DockerSandbox implements SandboxProviderInterface {
             ],
         });
 
-        // Start the exec (runs in detached mode)
-        await exec.start({ Detach: true });
+        // Start the exec (runs in background)
+        await exec.start();
     }
 
     private async waitForServerReady(
@@ -127,22 +239,17 @@ export class DockerSandbox implements SandboxProviderInterface {
             }
             await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-        throw new Error('Server did not become ready in time');
+        throw new Error("Server did not become ready in time");
     }
 
     async stop(sandboxId: string): Promise<void> {
-        const container = this.docker.container.get(sandboxId);
+        const container = this.docker.getContainer(sandboxId);
         await container.stop();
     }
 
     async delete(sandboxId: string): Promise<void> {
-        const container = this.docker.container.get(sandboxId);
-        try {
-            await container.stop();
-        } catch (error: any) {
-            // Container might already be stopped, continue to remove
-            console.warn(`Container ${sandboxId} already stopped or error stopping:`, error.message);
-        }
-        await container.delete({ force: true });
+        const container = this.docker.getContainer(sandboxId);
+        await container.stop();
+        await container.remove();
     }
 }
