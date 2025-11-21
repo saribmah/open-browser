@@ -224,15 +224,227 @@
         }
       }
     },
+    "/instance/init": {
+      "post": {
+        "operationId": "postInstanceInit",
+        "description": "Initialize SDK",
+        "responses": {
+          "200": {
+            "description": "SDK initialized successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "project": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "GITHUB",
+                            "ARXIV"
+                          ]
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "directory": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "type",
+                        "url",
+                        "directory"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sdkType": {
+                    "type": "string",
+                    "enum": [
+                      "OPENCODE",
+                      "CLAUDE_CODE"
+                    ]
+                  }
+                },
+                "required": [
+                  "sdkType"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instance/state": {
+      "get": {
+        "operationId": "getInstanceState",
+        "description": "Get Instance State",
+        "responses": {
+          "200": {
+            "description": "Instance state retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sdkType": {
+                      "type": "string",
+                      "enum": [
+                        "OPENCODE",
+                        "CLAUDE_CODE"
+                      ]
+                    },
+                    "currentProject": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "GITHUB",
+                                "ARXIV"
+                              ]
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "directory": {
+                              "type": "string"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type",
+                            "url",
+                            "directory"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "projects": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "GITHUB",
+                              "ARXIV"
+                            ]
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "directory": {
+                            "type": "string"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {}
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "url",
+                          "directory"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "sdkType",
+                    "currentProject",
+                    "projects"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/instance/current": {
       "get": {
         "operationId": "getInstanceCurrent",
-        "description": "Get Current Instance State",
+        "description": "Get Current Project",
         "responses": {
           "200": {
-            "description": "Successful response",
+            "description": "Current project retrieved successfully",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -252,13 +464,6 @@
                     "directory": {
                       "type": "string"
                     },
-                    "sdkType": {
-                      "type": "string",
-                      "enum": [
-                        "OPENCODE",
-                        "CLAUDE_CODE"
-                      ]
-                    },
                     "metadata": {
                       "type": "object",
                       "propertyNames": {
@@ -271,8 +476,25 @@
                     "id",
                     "type",
                     "url",
-                    "directory",
-                    "sdkType"
+                    "directory"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No current project set",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
                   ]
                 }
               }
@@ -281,13 +503,13 @@
         }
       }
     },
-    "/instance/available": {
+    "/instance/projects": {
       "get": {
-        "operationId": "getInstanceAvailable",
-        "description": "Get All Available Instances",
+        "operationId": "getInstanceProjects",
+        "description": "Get All Projects",
         "responses": {
           "200": {
-            "description": "Successful response",
+            "description": "Projects retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -311,13 +533,6 @@
                       "directory": {
                         "type": "string"
                       },
-                      "sdkType": {
-                        "type": "string",
-                        "enum": [
-                          "OPENCODE",
-                          "CLAUDE_CODE"
-                        ]
-                      },
                       "metadata": {
                         "type": "object",
                         "propertyNames": {
@@ -330,8 +545,7 @@
                       "id",
                       "type",
                       "url",
-                      "directory",
-                      "sdkType"
+                      "directory"
                     ]
                   }
                 }
@@ -341,13 +555,13 @@
         }
       }
     },
-    "/instance/init": {
+    "/instance/project/add": {
       "post": {
-        "operationId": "postInstanceInit",
-        "description": "Initialize Current Instance",
+        "operationId": "postInstanceProjectAdd",
+        "description": "Add New Project",
         "responses": {
           "200": {
-            "description": "Instance initialized successfully",
+            "description": "Project added successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -359,10 +573,7 @@
                     "message": {
                       "type": "string"
                     },
-                    "directory": {
-                      "type": "string"
-                    },
-                    "instance": {
+                    "project": {
                       "type": "object",
                       "properties": {
                         "id": {
@@ -381,13 +592,6 @@
                         "directory": {
                           "type": "string"
                         },
-                        "sdkType": {
-                          "type": "string",
-                          "enum": [
-                            "OPENCODE",
-                            "CLAUDE_CODE"
-                          ]
-                        },
                         "metadata": {
                           "type": "object",
                           "propertyNames": {
@@ -400,8 +604,7 @@
                         "id",
                         "type",
                         "url",
-                        "directory",
-                        "sdkType"
+                        "directory"
                       ]
                     }
                   },
@@ -449,20 +652,12 @@
                   },
                   "directory": {
                     "type": "string"
-                  },
-                  "sdkType": {
-                    "type": "string",
-                    "enum": [
-                      "OPENCODE",
-                      "CLAUDE_CODE"
-                    ]
                   }
                 },
                 "required": [
                   "url",
                   "type",
-                  "directory",
-                  "sdkType"
+                  "directory"
                 ]
               }
             }
@@ -470,13 +665,13 @@
         }
       }
     },
-    "/instance/add": {
+    "/instance/project/switch": {
       "post": {
-        "operationId": "postInstanceAdd",
-        "description": "Add New Instance",
+        "operationId": "postInstanceProjectSwitch",
+        "description": "Switch to Different Project",
         "responses": {
           "200": {
-            "description": "Instance added successfully",
+            "description": "Project switched successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -488,10 +683,7 @@
                     "message": {
                       "type": "string"
                     },
-                    "directory": {
-                      "type": "string"
-                    },
-                    "instance": {
+                    "project": {
                       "type": "object",
                       "properties": {
                         "id": {
@@ -510,13 +702,6 @@
                         "directory": {
                           "type": "string"
                         },
-                        "sdkType": {
-                          "type": "string",
-                          "enum": [
-                            "OPENCODE",
-                            "CLAUDE_CODE"
-                          ]
-                        },
                         "metadata": {
                           "type": "object",
                           "propertyNames": {
@@ -529,8 +714,7 @@
                         "id",
                         "type",
                         "url",
-                        "directory",
-                        "sdkType"
+                        "directory"
                       ]
                     }
                   },
@@ -566,32 +750,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "url": {
+                  "projectId": {
                     "type": "string"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "GITHUB",
-                      "ARXIV"
-                    ]
-                  },
-                  "directory": {
-                    "type": "string"
-                  },
-                  "sdkType": {
-                    "type": "string",
-                    "enum": [
-                      "OPENCODE",
-                      "CLAUDE_CODE"
-                    ]
                   }
                 },
                 "required": [
-                  "url",
-                  "type",
-                  "directory",
-                  "sdkType"
+                  "projectId"
                 ]
               }
             }
@@ -599,13 +763,13 @@
         }
       }
     },
-    "/instance/switch": {
+    "/instance/project/remove": {
       "post": {
-        "operationId": "postInstanceSwitch",
-        "description": "Switch to Different Instance",
+        "operationId": "postInstanceProjectRemove",
+        "description": "Remove Project",
         "responses": {
           "200": {
-            "description": "Instance switched successfully",
+            "description": "Project removed successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -617,10 +781,7 @@
                     "message": {
                       "type": "string"
                     },
-                    "directory": {
-                      "type": "string"
-                    },
-                    "instance": {
+                    "project": {
                       "type": "object",
                       "properties": {
                         "id": {
@@ -639,13 +800,6 @@
                         "directory": {
                           "type": "string"
                         },
-                        "sdkType": {
-                          "type": "string",
-                          "enum": [
-                            "OPENCODE",
-                            "CLAUDE_CODE"
-                          ]
-                        },
                         "metadata": {
                           "type": "object",
                           "propertyNames": {
@@ -658,8 +812,7 @@
                         "id",
                         "type",
                         "url",
-                        "directory",
-                        "sdkType"
+                        "directory"
                       ]
                     }
                   },
@@ -695,121 +848,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "instanceId": {
+                  "projectId": {
                     "type": "string"
                   }
                 },
                 "required": [
-                  "instanceId"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instance/remove": {
-      "post": {
-        "operationId": "postInstanceRemove",
-        "description": "Remove Instance",
-        "responses": {
-          "200": {
-            "description": "Instance removed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "directory": {
-                      "type": "string"
-                    },
-                    "instance": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "GITHUB",
-                            "ARXIV"
-                          ]
-                        },
-                        "url": {
-                          "type": "string"
-                        },
-                        "directory": {
-                          "type": "string"
-                        },
-                        "sdkType": {
-                          "type": "string",
-                          "enum": [
-                            "OPENCODE",
-                            "CLAUDE_CODE"
-                          ]
-                        },
-                        "metadata": {
-                          "type": "object",
-                          "propertyNames": {
-                            "type": "string"
-                          },
-                          "additionalProperties": {}
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "type",
-                        "url",
-                        "directory",
-                        "sdkType"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "instanceId": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "instanceId"
+                  "projectId"
                 ]
               }
             }

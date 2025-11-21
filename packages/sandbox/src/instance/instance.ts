@@ -10,17 +10,27 @@ const WORKSPACE_DIR = process.env["WORKSPACE_DIR"] || process.cwd();
 
 export namespace Instance {
 
-    export interface State {
+    export interface Project {
         id: string;
         type: Integration.Type;
         url: string;
         directory: string;
-        sdkType: SDK.Type;
         metadata?: Record<string, any>;
     }
 
-    let currentInstance: State | null = null;
-    const availableInstances: State[] = [];
+    export interface State {
+        sdkType: SDK.Type;
+        currentProject: Project | null;
+        projects: Project[];
+    }
+
+    let state: State = {
+        sdkType: "OPENCODE",
+        currentProject: null,
+        projects: []
+    };
+
+    let sdkInitialized = false;
 
     /**
      * Validate instance type
@@ -37,31 +47,15 @@ export namespace Instance {
     }
 
     /**
-     * Initialize the instance state when server boots up
+     * Initialize the SDK when server boots up
+     * This should be called once at startup
      */
     export async function init(opts: {
-        url: string;
-        type: Integration.Type;
-        directory: string;
         sdkType: SDK.Type;
     }) {
-        // Construct full directory path using WORKSPACE_DIR
-        const fullDirectory = path.join(WORKSPACE_DIR, opts.directory);
-
-        log.info("Initializing instance state", {
-            url: opts.url,
-            type: opts.type,
-            directory: opts.directory,
-            fullDirectory,
-            baseDir: WORKSPACE_DIR,
+        log.info("Initializing SDK", {
             sdkType: opts.sdkType
         });
-
-        // Validate integration type
-        if (!validateType(opts.type)) {
-            const supported = Integration.getSupportedTypes().join(", ");
-            throw new Error(`Invalid instance type: ${opts.type}. Must be one of: ${supported}`);
-        }
 
         // Validate SDK type
         if (!validateSDKType(opts.sdkType)) {
@@ -69,45 +63,49 @@ export namespace Instance {
             throw new Error(`Invalid SDK type: ${opts.sdkType}. Must be one of: ${supported}`);
         }
 
-        // Create instance from URL and type
-        const instance = createInstanceFromUrl(opts.url, opts.type, fullDirectory, opts.sdkType);
+        if (sdkInitialized) {
+            log.warn("SDK already initialized, skipping");
+            return;
+        }
 
-        // Setup the integration
-        log.info("Setting up instance", {
-            instanceId: instance.id,
-            directory: fullDirectory
-        });
+        state.sdkType = opts.sdkType;
 
-        await Integration.setup({
-            url: instance.url,
-            type: instance.type,
-            directory: fullDirectory,
-            metadata: instance.metadata
-        });
-
-        // Setup the SDK
+        // Setup the SDK with workspace directory
         log.info("Setting up SDK", {
             sdkType: opts.sdkType,
-            directory: fullDirectory
+            workspaceDir: WORKSPACE_DIR
         });
 
         await SDK.setup({
             type: opts.sdkType,
-            directory: fullDirectory,
-            metadata: instance.metadata
+            directory: WORKSPACE_DIR,
+            metadata: {}
         });
 
-        currentInstance = instance;
-        log.info("Current instance initialized and setup completed", {
-            instance: currentInstance,
-            directory: fullDirectory
+        sdkInitialized = true;
+        log.info("SDK initialized successfully", {
+            sdkType: opts.sdkType
         });
     }
 
     /**
-     * Create an instance from a URL and type
+     * Get the current instance state
      */
-    function createInstanceFromUrl(url: string, type: Integration.Type, directory: string, sdkType: SDK.Type): State {
+    export function getState(): State {
+        return state;
+    }
+
+    /**
+     * Get the current active project
+     */
+    export function getCurrent(): Project | null {
+        return state.currentProject;
+    }
+
+    /**
+     * Create a project from a URL and type
+     */
+    function createProjectFromUrl(url: string, type: Integration.Type, directory: string): Project {
         const parsed = Integration.parseUrl(url, type);
 
         return {
@@ -115,210 +113,94 @@ export namespace Instance {
             type,
             url,
             directory,
-            sdkType,
             metadata: parsed.metadata
         };
     }
 
     /**
-     * Get the current active instance
+     * Add a new project
      */
-    export function getCurrent(): State | null {
-        return currentInstance;
-    }
-
-    /**
-     * Get all available instances (excluding current)
-     */
-    export function getAvailable(): State[] {
-        if (!currentInstance) {
-            return availableInstances;
-        }
-        const currentId = currentInstance.id;
-        return availableInstances.filter(i => i.id !== currentId);
-    }
-
-    /**
-     * Get all instances including current
-     */
-    export function getAll(): State[] {
-        const all: State[] = [];
-        if (currentInstance) {
-            all.push(currentInstance);
-        }
-        const currentId = currentInstance?.id;
-        all.push(...availableInstances.filter(i =>
-            !currentId || i.id !== currentId
-        ));
-        return all;
-    }
-
-    /**
-     * Switch to a different instance
-     */
-    export function switchTo(instanceId: string): { success: boolean; error?: string; instance?: State } {
-        log.info("Attempting to switch instance", { targetId: instanceId });
-
-        // Check if trying to switch to current instance
-        if (currentInstance && currentInstance.id === instanceId) {
-            return {
-                success: false,
-                error: "Already on this instance"
-            };
-        }
-
-        // Find the target instance
-        const targetInstance = availableInstances.find(i => i.id === instanceId);
-
-        if (!targetInstance) {
-            log.warn("Instance not found", { instanceId });
-            return {
-                success: false,
-                error: "Instance not found"
-            };
-        }
-
-        // If there was a current instance, add it back to available
-        if (currentInstance) {
-            const prevInstance = currentInstance;
-            const existingIndex = availableInstances.findIndex(i => i.id === prevInstance.id);
-            if (existingIndex === -1) {
-                availableInstances.push(prevInstance);
-            }
-        }
-
-        // Set the new current instance
-        currentInstance = targetInstance;
-
-        log.info("Instance switched successfully", {
-            newInstance: currentInstance.id
-        });
-
-        return {
-            success: true,
-            instance: currentInstance
-        };
-    }
-
-    /**
-     * Add a new instance to available instances
-     */
-    export async function add(opts: { url: string; type: Integration.Type; directory: string; sdkType: SDK.Type }) {
+    export async function addProject(opts: {
+        url: string;
+        type: Integration.Type;
+        directory: string;
+    }): Promise<{ success: boolean; project?: Project; error?: string }> {
         // Construct full directory path using WORKSPACE_DIR
         const fullDirectory = path.join(WORKSPACE_DIR, opts.directory);
 
-        log.info("Adding instance", {
+        log.info("Adding project", {
             url: opts.url,
             type: opts.type,
             directory: opts.directory,
             fullDirectory,
-            baseDir: WORKSPACE_DIR,
-            sdkType: opts.sdkType
+            baseDir: WORKSPACE_DIR
         });
+
+        if (!sdkInitialized) {
+            return {
+                success: false,
+                error: "SDK not initialized. Call /instance/init first"
+            };
+        }
 
         // Validate integration type
         if (!validateType(opts.type)) {
             const supported = Integration.getSupportedTypes().join(", ");
-            throw new Error(`Invalid instance type: ${opts.type}. Must be one of: ${supported}`);
-        }
-
-        // Validate SDK type
-        if (!validateSDKType(opts.sdkType)) {
-            const supported = SDK.getSupportedTypes().join(", ");
-            throw new Error(`Invalid SDK type: ${opts.sdkType}. Must be one of: ${supported}`);
-        }
-
-        const instance = createInstanceFromUrl(opts.url, opts.type, fullDirectory, opts.sdkType);
-        const exists = availableInstances.find(i => i.id === instance.id);
-        if (!exists) {
-            // Setup the integration
-            log.info("Setting up instance", {
-                instanceId: instance.id,
-                directory: fullDirectory
-            });
-
-            await Integration.setup({
-                url: instance.url,
-                type: instance.type,
-                directory: fullDirectory,
-                metadata: instance.metadata
-            });
-
-            // Setup the SDK
-            log.info("Setting up SDK", {
-                sdkType: opts.sdkType,
-                directory: fullDirectory
-            });
-
-            await SDK.setup({
-                type: opts.sdkType,
-                directory: fullDirectory,
-                metadata: instance.metadata
-            });
-
-            availableInstances.push(instance);
-            log.info("Instance added and setup completed", {
-                instanceId: instance.id,
-                directory: fullDirectory
-            });
-        }
-    }
-
-    /**
-     * Remove an instance from available instances
-     */
-    export async function remove(instanceId: string): Promise<{ success: boolean; error?: string }> {
-        log.info("Attempting to remove instance", { instanceId });
-
-        // Check if trying to remove current instance
-        if (currentInstance && currentInstance.id === instanceId) {
             return {
                 success: false,
-                error: "Cannot remove the current active instance"
+                error: `Invalid project type: ${opts.type}. Must be one of: ${supported}`
             };
         }
 
-        const instance = availableInstances.find(i => i.id === instanceId);
-        if (!instance) {
-            log.warn("Instance not found", { instanceId });
+        const project = createProjectFromUrl(opts.url, opts.type, fullDirectory);
+        
+        // Check if project already exists
+        const exists = state.projects.find(p => p.id === project.id);
+        if (exists) {
             return {
                 success: false,
-                error: "Instance not found"
+                error: "Project already exists"
             };
         }
 
         try {
-            // Remove SDK
-            await SDK.remove({
-                type: instance.sdkType,
-                directory: instance.directory,
-                metadata: instance.metadata
+            // Setup the integration
+            log.info("Setting up project integration", {
+                projectId: project.id,
+                directory: fullDirectory
             });
 
-            // Remove integration
-            await Integration.remove({
-                type: instance.type,
-                directory: instance.directory,
-                metadata: instance.metadata
+            await Integration.setup({
+                url: project.url,
+                type: project.type,
+                directory: fullDirectory,
+                metadata: project.metadata
             });
 
-            // Remove from available instances
-            const index = availableInstances.findIndex(i => i.id === instanceId);
-            if (index !== -1) {
-                availableInstances.splice(index, 1);
+            state.projects.push(project);
+
+            // If this is the first project, make it current
+            if (state.projects.length === 1) {
+                state.currentProject = project;
+                log.info("Set as current project (first project added)", {
+                    projectId: project.id
+                });
             }
 
-            log.info("Instance removed successfully", {
-                instanceId,
-                directory: instance.directory
+            log.info("Project added successfully", {
+                projectId: project.id,
+                directory: fullDirectory,
+                totalProjects: state.projects.length
             });
 
-            return { success: true };
+            return {
+                success: true,
+                project
+            };
         } catch (error: any) {
-            log.error("Failed to remove instance", {
+            log.error("Failed to add project", {
                 error: error.message,
-                instanceId,
-                directory: instance.directory
+                url: opts.url
             });
             return {
                 success: false,
@@ -328,73 +210,169 @@ export namespace Instance {
     }
 
     /**
-     * Cleanup all instances - called during process shutdown
+     * Switch to a different project
+     */
+    export function switchProject(projectId: string): { success: boolean; error?: string; project?: Project } {
+        log.info("Attempting to switch project", { targetId: projectId });
+
+        // Check if trying to switch to current project
+        if (state.currentProject && state.currentProject.id === projectId) {
+            return {
+                success: false,
+                error: "Already on this project"
+            };
+        }
+
+        // Find the target project
+        const targetProject = state.projects.find(p => p.id === projectId);
+
+        if (!targetProject) {
+            log.warn("Project not found", { projectId });
+            return {
+                success: false,
+                error: "Project not found"
+            };
+        }
+
+        // Set the new current project
+        state.currentProject = targetProject;
+
+        log.info("Project switched successfully", {
+            newProject: state.currentProject.id
+        });
+
+        return {
+            success: true,
+            project: state.currentProject
+        };
+    }
+
+    /**
+     * Remove a project
+     */
+    export async function removeProject(projectId: string): Promise<{ success: boolean; error?: string }> {
+        log.info("Attempting to remove project", { projectId });
+
+        const project = state.projects.find(p => p.id === projectId);
+        if (!project) {
+            log.warn("Project not found", { projectId });
+            return {
+                success: false,
+                error: "Project not found"
+            };
+        }
+
+        try {
+            // Remove integration
+            await Integration.remove({
+                type: project.type,
+                directory: project.directory,
+                metadata: project.metadata
+            });
+
+            // Remove from projects array
+            const index = state.projects.findIndex(p => p.id === projectId);
+            if (index !== -1) {
+                state.projects.splice(index, 1);
+            }
+
+            // If we removed the current project, switch to another or set to null
+            if (state.currentProject && state.currentProject.id === projectId) {
+                state.currentProject = state.projects.length > 0 ? (state.projects[0] || null) : null;
+                log.info("Current project removed, switched to", {
+                    newCurrentProject: state.currentProject?.id || "none"
+                });
+            }
+
+            log.info("Project removed successfully", {
+                projectId,
+                directory: project.directory,
+                remainingProjects: state.projects.length
+            });
+
+            return { success: true };
+        } catch (error: any) {
+            log.error("Failed to remove project", {
+                error: error.message,
+                projectId,
+                directory: project.directory
+            });
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Get all projects
+     */
+    export function getAllProjects(): Project[] {
+        return state.projects;
+    }
+
+    /**
+     * Cleanup all projects and SDK - called during process shutdown
      */
     export async function cleanup(): Promise<void> {
         log.info("Starting instance cleanup", {
-            currentInstance: currentInstance?.id,
-            availableInstancesCount: availableInstances.length
+            sdkType: state.sdkType,
+            currentProject: state.currentProject?.id,
+            projectsCount: state.projects.length
         });
 
-        // Get all instances before cleanup
-        const allInstances = getAll();
-
-        if (allInstances.length === 0) {
-            log.info("No instances to cleanup");
+        if (state.projects.length === 0 && !sdkInitialized) {
+            log.info("No projects or SDK to cleanup");
             return;
         }
 
-        // Clean up available instances first (remove() only works on available instances)
-        const availableCleanupPromises = availableInstances.map(async (instance) => {
+        // Clean up all projects
+        const cleanupPromises = state.projects.map(async (project) => {
             try {
-                await remove(instance.id);
+                await Integration.remove({
+                    type: project.type,
+                    directory: project.directory,
+                    metadata: project.metadata
+                });
+                log.info("Project cleaned up", { projectId: project.id });
             } catch (error: any) {
-                log.error("Failed to cleanup available instance", {
-                    instanceId: instance.id,
+                log.error("Failed to cleanup project", {
+                    projectId: project.id,
                     error: error.message
                 });
-                // Continue cleanup even if one fails
             }
         });
 
-        await Promise.all(availableCleanupPromises);
+        await Promise.all(cleanupPromises);
 
-        // Clean up current instance separately (since remove() doesn't allow removing current)
-        if (currentInstance) {
+        // Clean up SDK
+        if (sdkInitialized) {
             try {
-                log.info("Cleaning up current instance", {
-                    instanceId: currentInstance.id,
-                    directory: currentInstance.directory
+                log.info("Cleaning up SDK", {
+                    sdkType: state.sdkType
                 });
 
-                // Remove SDK
                 await SDK.remove({
-                    type: currentInstance.sdkType,
-                    directory: currentInstance.directory,
-                    metadata: currentInstance.metadata
+                    type: state.sdkType,
+                    directory: WORKSPACE_DIR,
+                    metadata: {}
                 });
 
-                // Remove integration
-                await Integration.remove({
-                    type: currentInstance.type,
-                    directory: currentInstance.directory,
-                    metadata: currentInstance.metadata
-                });
-
-                log.info("Current instance cleaned up successfully", {
-                    instanceId: currentInstance.id
-                });
+                log.info("SDK cleaned up successfully");
             } catch (error: any) {
-                log.error("Failed to cleanup current instance", {
-                    instanceId: currentInstance.id,
+                log.error("Failed to cleanup SDK", {
                     error: error.message
                 });
             }
         }
 
-        // Clear all instance state
-        currentInstance = null;
-        availableInstances.length = 0;
+        // Clear all state
+        state = {
+            sdkType: "OPENCODE",
+            currentProject: null,
+            projects: []
+        };
+        sdkInitialized = false;
 
         log.info("Instance cleanup completed");
     }

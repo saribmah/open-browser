@@ -3,112 +3,58 @@ import { Instance } from "../instance/instance";
 import { describeRoute, resolver, validator } from 'hono-openapi'
 import {z} from "zod";
 
-const InstanceStateSchema = z
-    .object({
-        id: z.string(),
-        type: z.enum(["GITHUB", "ARXIV"]),
-        url: z.string(),
-        directory: z.string(),
-        sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
-        metadata: z.record(z.string(), z.any()).optional()
-    })
+const ProjectSchema = z.object({
+    id: z.string(),
+    type: z.enum(["GITHUB", "ARXIV"]),
+    url: z.string(),
+    directory: z.string(),
+    metadata: z.record(z.string(), z.any()).optional()
+});
 
-const InitInstanceSchema = z
-    .object({
-        url: z.string(),
-        type: z.enum(["GITHUB", "ARXIV"]),
-        directory: z.string(),
-        sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
-    })
+const InstanceStateSchema = z.object({
+    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
+    currentProject: ProjectSchema.nullable(),
+    projects: z.array(ProjectSchema)
+});
 
-const AddInstanceSchema = z
-    .object({
-        url: z.string(),
-        type: z.enum(["GITHUB", "ARXIV"]),
-        directory: z.string(),
-        sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
-    })
+const InitInstanceSchema = z.object({
+    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
+});
 
-const SwitchInstanceSchema = z
-    .object({
-        instanceId: z.string()
-    })
+const AddProjectSchema = z.object({
+    url: z.string(),
+    type: z.enum(["GITHUB", "ARXIV"]),
+    directory: z.string()
+});
 
-const RemoveInstanceSchema = z
-    .object({
-        instanceId: z.string()
-    })
+const SwitchProjectSchema = z.object({
+    projectId: z.string()
+});
 
-const ErrorSchema = z
-    .object({
-        error: z.string()
-    })
+const RemoveProjectSchema = z.object({
+    projectId: z.string()
+});
 
-const SuccessSchema = z
-    .object({
-        success: z.boolean(),
-        message: z.string().optional(),
-        directory: z.string().optional(),
-        instance: InstanceStateSchema.optional()
-    })
+const ErrorSchema = z.object({
+    error: z.string()
+});
+
+const SuccessSchema = z.object({
+    success: z.boolean(),
+    message: z.string().optional(),
+    project: ProjectSchema.optional()
+});
 
 const route = new Hono();
 
-// GET /instance/current - Get the current active instance
-route.get(
-    "/current",
-    describeRoute({
-        description: 'Get Current Instance State',
-        responses: {
-            200: {
-                description: 'Successful response',
-                content: {
-                    'text/plain': { schema: resolver(InstanceStateSchema) },
-                },
-            },
-        },
-    }),
-    async (c) => {
-    const current = Instance.getCurrent();
-
-    if (!current) {
-        return c.json({
-            error: "No current instance set"
-        }, 404);
-    }
-
-    return c.json(current);
-});
-
-// GET /instance/available - Get all available instances (excluding current)
-route.get(
-    "/available",
-    describeRoute({
-        description: 'Get All Available Instances',
-        responses: {
-            200: {
-                description: 'Successful response',
-                content: {
-                    'application/json': { 
-                        schema: resolver(z.array(InstanceStateSchema)) 
-                    },
-                },
-            },
-        },
-    }),
-    async (c) => {
-        const available = Instance.getAvailable();
-        return c.json(available);
-    });
-
-// POST /instance/init - Initialize the current active instance
+// POST /instance/init - Initialize the SDK (call this once at startup)
 route.post(
     "/init",
     describeRoute({
-        description: 'Initialize Current Instance',
+        description: 'Initialize SDK',
         responses: {
             200: {
-                description: 'Instance initialized successfully',
+                description: 'SDK initialized successfully',
                 content: {
                     'application/json': { schema: resolver(SuccessSchema) },
                 },
@@ -124,7 +70,123 @@ route.post(
     validator('json', InitInstanceSchema),
     async (c) => {
         const body = await c.req.json();
-        const { url, type, directory, sdkType } = body;
+        const { sdkType } = body;
+
+        if (!sdkType) {
+            return c.json({
+                error: "sdkType is required (OPENCODE or CLAUDE_CODE)"
+            }, 400);
+        }
+
+        try {
+            await Instance.init({ sdkType });
+            return c.json({
+                success: true,
+                message: "SDK initialized successfully"
+            });
+        } catch (error: any) {
+            return c.json({
+                error: error.message
+            }, 400);
+        }
+    });
+
+// GET /instance/state - Get the current instance state (SDK type + all projects)
+route.get(
+    "/state",
+    describeRoute({
+        description: 'Get Instance State',
+        responses: {
+            200: {
+                description: 'Instance state retrieved successfully',
+                content: {
+                    'application/json': { schema: resolver(InstanceStateSchema) },
+                },
+            },
+        },
+    }),
+    async (c) => {
+        const state = Instance.getState();
+        return c.json(state);
+    });
+
+// GET /instance/current - Get the current active project
+route.get(
+    "/current",
+    describeRoute({
+        description: 'Get Current Project',
+        responses: {
+            200: {
+                description: 'Current project retrieved successfully',
+                content: {
+                    'application/json': { schema: resolver(ProjectSchema) },
+                },
+            },
+            404: {
+                description: 'No current project set',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    async (c) => {
+        const current = Instance.getCurrent();
+
+        if (!current) {
+            return c.json({
+                error: "No current project set"
+            }, 404);
+        }
+
+        return c.json(current);
+    });
+
+// GET /instance/projects - Get all projects
+route.get(
+    "/projects",
+    describeRoute({
+        description: 'Get All Projects',
+        responses: {
+            200: {
+                description: 'Projects retrieved successfully',
+                content: {
+                    'application/json': { 
+                        schema: resolver(z.array(ProjectSchema)) 
+                    },
+                },
+            },
+        },
+    }),
+    async (c) => {
+        const projects = Instance.getAllProjects();
+        return c.json(projects);
+    });
+
+// POST /instance/project/add - Add a new project
+route.post(
+    "/project/add",
+    describeRoute({
+        description: 'Add New Project',
+        responses: {
+            200: {
+                description: 'Project added successfully',
+                content: {
+                    'application/json': { schema: resolver(SuccessSchema) },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    validator('json', AddProjectSchema),
+    async (c) => {
+        const body = await c.req.json();
+        const { url, type, directory } = body;
 
         if (!url) {
             return c.json({
@@ -144,142 +206,29 @@ route.post(
             }, 400);
         }
 
-        if (!sdkType) {
-            return c.json({
-                error: "sdkType is required (OPENCODE or CLAUDE_CODE)"
-            }, 400);
-        }
-
-        try {
-            await Instance.init({ url, type, directory, sdkType });
-            return c.json({
-                success: true,
-                message: "Instance initialized and setup completed",
-                directory
-            });
-        } catch (error: any) {
-            return c.json({
-                error: error.message
-            }, 400);
-        }
-    });
-
-// POST /instance/add - Add a new instance to available instances
-route.post(
-    "/add",
-    describeRoute({
-        description: 'Add New Instance',
-        responses: {
-            200: {
-                description: 'Instance added successfully',
-                content: {
-                    'application/json': { schema: resolver(SuccessSchema) },
-                },
-            },
-            400: {
-                description: 'Bad request',
-                content: {
-                    'application/json': { schema: resolver(ErrorSchema) },
-                },
-            },
-        },
-    }),
-    validator('json', AddInstanceSchema),
-    async (c) => {
-        const body = await c.req.json();
-        const { url, type, directory, sdkType } = body;
-
-        if (!url) {
-            return c.json({
-                error: "url is required"
-            }, 400);
-        }
-
-        if (!type) {
-            return c.json({
-                error: "type is required (GITHUB or ARXIV)"
-            }, 400);
-        }
-
-        if (!directory) {
-            return c.json({
-                error: "directory is required"
-            }, 400);
-        }
-
-        if (!sdkType) {
-            return c.json({
-                error: "sdkType is required (OPENCODE or CLAUDE_CODE)"
-            }, 400);
-        }
-
-        try {
-            await Instance.add({ url, type, directory, sdkType });
-            return c.json({
-                success: true,
-                message: "Instance added and setup completed",
-                directory
-            });
-        } catch (error: any) {
-            return c.json({
-                error: error.message
-            }, 400);
-        }
-    });
-
-// POST /instance/switch - Switch to a different instance
-route.post(
-    "/switch",
-    describeRoute({
-        description: 'Switch to Different Instance',
-        responses: {
-            200: {
-                description: 'Instance switched successfully',
-                content: {
-                    'application/json': { schema: resolver(SuccessSchema) },
-                },
-            },
-            400: {
-                description: 'Bad request',
-                content: {
-                    'application/json': { schema: resolver(ErrorSchema) },
-                },
-            },
-        },
-    }),
-    validator('json', SwitchInstanceSchema),
-    async (c) => {
-        const body = await c.req.json();
-        const { instanceId } = body;
-
-        if (!instanceId) {
-            return c.json({
-                error: "instanceId is required"
-            }, 400);
-        }
-
-        const result = Instance.switchTo(instanceId);
+        const result = await Instance.addProject({ url, type, directory });
 
         if (!result.success) {
             return c.json({
-                error: result.error
+                error: result.error || "Failed to add project"
             }, 400);
         }
 
         return c.json({
             success: true,
-            instance: result.instance
+            message: "Project added successfully",
+            project: result.project
         });
     });
 
-// POST /instance/remove - Remove an instance from available instances
+// POST /instance/project/switch - Switch to a different project
 route.post(
-    "/remove",
+    "/project/switch",
     describeRoute({
-        description: 'Remove Instance',
+        description: 'Switch to Different Project',
         responses: {
             200: {
-                description: 'Instance removed successfully',
+                description: 'Project switched successfully',
                 content: {
                     'application/json': { schema: resolver(SuccessSchema) },
                 },
@@ -292,28 +241,74 @@ route.post(
             },
         },
     }),
-    validator('json', RemoveInstanceSchema),
+    validator('json', SwitchProjectSchema),
     async (c) => {
         const body = await c.req.json();
-        const { instanceId } = body;
+        const { projectId } = body;
 
-        if (!instanceId) {
+        if (!projectId) {
             return c.json({
-                error: "instanceId is required"
+                error: "projectId is required"
             }, 400);
         }
 
-        const result = await Instance.remove(instanceId);
+        const result = Instance.switchProject(projectId);
 
         if (!result.success) {
             return c.json({
-                error: result.error
+                error: result.error || "Failed to switch project"
             }, 400);
         }
 
         return c.json({
             success: true,
-            message: "Instance removed successfully"
+            message: "Project switched successfully",
+            project: result.project
+        });
+    });
+
+// POST /instance/project/remove - Remove a project
+route.post(
+    "/project/remove",
+    describeRoute({
+        description: 'Remove Project',
+        responses: {
+            200: {
+                description: 'Project removed successfully',
+                content: {
+                    'application/json': { schema: resolver(SuccessSchema) },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    validator('json', RemoveProjectSchema),
+    async (c) => {
+        const body = await c.req.json();
+        const { projectId } = body;
+
+        if (!projectId) {
+            return c.json({
+                error: "projectId is required"
+            }, 400);
+        }
+
+        const result = await Instance.removeProject(projectId);
+
+        if (!result.success) {
+            return c.json({
+                error: result.error || "Failed to remove project"
+            }, 400);
+        }
+
+        return c.json({
+            success: true,
+            message: "Project removed successfully"
         });
     });
 

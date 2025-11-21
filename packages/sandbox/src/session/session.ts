@@ -12,31 +12,34 @@ export namespace Session {
         log.info("Getting all sessions");
 
         try {
-            // Get current instance
-            const currentInstance = Instance.getCurrent();
+            // Get current project
+            const currentProject = Instance.getCurrent();
             
-            if (!currentInstance) {
-                log.error("No current instance set");
+            if (!currentProject) {
+                log.error("No current project set");
                 return {
                     success: false,
-                    error: "No current instance set"
+                    error: "No current project set"
                 };
             }
 
-            log.info("Getting sessions for instance", {
-                instanceId: currentInstance.id,
-                sdkType: currentInstance.sdkType,
-                directory: currentInstance.directory
+            // Get SDK type from state
+            const state = Instance.getState();
+
+            log.info("Getting sessions for project", {
+                projectId: currentProject.id,
+                sdkType: state.sdkType,
+                directory: currentProject.directory
             });
 
             // Get sessions from SDK
             const sessions = await SDK.getSessions({
-                type: currentInstance.sdkType,
-                directory: currentInstance.directory
+                type: state.sdkType,
+                directory: currentProject.directory
             });
 
             log.info("Sessions retrieved successfully", {
-                instanceId: currentInstance.id,
+                projectId: currentProject.id,
                 count: sessions.length
             });
 
@@ -62,31 +65,34 @@ export namespace Session {
         log.info("Creating new session");
 
         try {
-            // Get current instance
-            const currentInstance = Instance.getCurrent();
+            // Get current project
+            const currentProject = Instance.getCurrent();
             
-            if (!currentInstance) {
-                log.error("No current instance set");
+            if (!currentProject) {
+                log.error("No current project set");
                 return {
                     success: false,
-                    error: "No current instance set"
+                    error: "No current project set"
                 };
             }
 
-            log.info("Creating session for instance", {
-                instanceId: currentInstance.id,
-                sdkType: currentInstance.sdkType,
-                directory: currentInstance.directory
+            // Get SDK type from state
+            const state = Instance.getState();
+
+            log.info("Creating session for project", {
+                projectId: currentProject.id,
+                sdkType: state.sdkType,
+                directory: currentProject.directory
             });
 
             // Create session in SDK
             const session = await SDK.createSession({
-                type: currentInstance.sdkType,
-                directory: currentInstance.directory
+                type: state.sdkType,
+                directory: currentProject.directory
             });
 
             log.info("Session created successfully", {
-                instanceId: currentInstance.id,
+                projectId: currentProject.id,
                 sessionId: session.id
             });
 

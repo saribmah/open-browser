@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Search, Loader2 } from "lucide-react"
 import type { FormEvent } from "react"
-import { useSandbox } from "@/features/sandbox"
+import { postSandbox } from "@/client/api/sdk.gen"
+import type { PostSandboxResponses } from "@/client/api/types.gen"
 
 function parseUrl(url: string): { type: 'GITHUB' | 'ARXIV'; directory: string } | null {
   if (url.includes('github.com')) {
@@ -25,8 +26,8 @@ function parseUrl(url: string): { type: 'GITHUB' | 'ARXIV'; directory: string } 
 export function Hero() {
   const navigate = useNavigate()
   const [url, setUrl] = useState("")
-  const { createSandbox, status, error } = useSandbox()
-  const isCreating = status === "creating"
+  const [isCreating, setIsCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -34,19 +35,40 @@ export function Hero() {
 
     const parsed = parseUrl(url)
     if (!parsed) {
+      setError("Invalid URL. Please enter a valid GitHub or arXiv URL.")
       return
     }
 
-    const sandbox = await createSandbox({
-      url,
-      type: parsed.type,
-      directory: parsed.directory,
-      sdkType: 'OPENCODE',
-      provider: 'daytona',
-    })
+    setIsCreating(true)
+    setError(null)
 
-    if (sandbox) {
-      navigate(`/chat/${sandbox.id}`)
+    try {
+      const result = await postSandbox({
+        body: {
+          url,
+          type: parsed.type,
+          directory: parsed.directory,
+          sdkType: 'OPENCODE',
+          provider: 'daytona',
+        }
+      })
+
+      if (result.error) {
+        setError((result.error as { error?: string })?.error || "Failed to create sandbox")
+        setIsCreating(false)
+        return
+      }
+
+      const data = result.data as PostSandboxResponses[200]
+      if (data?.sandbox) {
+        navigate(`/chat/${data.sandbox.id}`)
+      } else {
+        setError("No sandbox returned")
+        setIsCreating(false)
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to create sandbox")
+      setIsCreating(false)
     }
   }
 

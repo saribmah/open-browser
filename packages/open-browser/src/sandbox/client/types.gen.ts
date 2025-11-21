@@ -131,61 +131,8 @@ export type GetSdkResponses = {
 
 export type GetSdkResponse = GetSdkResponses[keyof GetSdkResponses];
 
-export type GetInstanceCurrentData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/instance/current';
-};
-
-export type GetInstanceCurrentResponses = {
-    /**
-     * Successful response
-     */
-    200: {
-        id: string;
-        type: 'GITHUB' | 'ARXIV';
-        url: string;
-        directory: string;
-        sdkType: 'OPENCODE' | 'CLAUDE_CODE';
-        metadata?: {
-            [key: string]: unknown;
-        };
-    };
-};
-
-export type GetInstanceCurrentResponse = GetInstanceCurrentResponses[keyof GetInstanceCurrentResponses];
-
-export type GetInstanceAvailableData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/instance/available';
-};
-
-export type GetInstanceAvailableResponses = {
-    /**
-     * Successful response
-     */
-    200: Array<{
-        id: string;
-        type: 'GITHUB' | 'ARXIV';
-        url: string;
-        directory: string;
-        sdkType: 'OPENCODE' | 'CLAUDE_CODE';
-        metadata?: {
-            [key: string]: unknown;
-        };
-    }>;
-};
-
-export type GetInstanceAvailableResponse = GetInstanceAvailableResponses[keyof GetInstanceAvailableResponses];
-
 export type PostInstanceInitData = {
     body?: {
-        url: string;
-        type: 'GITHUB' | 'ARXIV';
-        directory: string;
         sdkType: 'OPENCODE' | 'CLAUDE_CODE';
     };
     path?: never;
@@ -206,18 +153,16 @@ export type PostInstanceInitError = PostInstanceInitErrors[keyof PostInstanceIni
 
 export type PostInstanceInitResponses = {
     /**
-     * Instance initialized successfully
+     * SDK initialized successfully
      */
     200: {
         success: boolean;
         message?: string;
-        directory?: string;
-        instance?: {
+        project?: {
             id: string;
             type: 'GITHUB' | 'ARXIV';
             url: string;
             directory: string;
-            sdkType: 'OPENCODE' | 'CLAUDE_CODE';
             metadata?: {
                 [key: string]: unknown;
             };
@@ -227,19 +172,113 @@ export type PostInstanceInitResponses = {
 
 export type PostInstanceInitResponse = PostInstanceInitResponses[keyof PostInstanceInitResponses];
 
-export type PostInstanceAddData = {
+export type GetInstanceStateData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/instance/state';
+};
+
+export type GetInstanceStateResponses = {
+    /**
+     * Instance state retrieved successfully
+     */
+    200: {
+        sdkType: 'OPENCODE' | 'CLAUDE_CODE';
+        currentProject: {
+            id: string;
+            type: 'GITHUB' | 'ARXIV';
+            url: string;
+            directory: string;
+            metadata?: {
+                [key: string]: unknown;
+            };
+        } | null;
+        projects: Array<{
+            id: string;
+            type: 'GITHUB' | 'ARXIV';
+            url: string;
+            directory: string;
+            metadata?: {
+                [key: string]: unknown;
+            };
+        }>;
+    };
+};
+
+export type GetInstanceStateResponse = GetInstanceStateResponses[keyof GetInstanceStateResponses];
+
+export type GetInstanceCurrentData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/instance/current';
+};
+
+export type GetInstanceCurrentErrors = {
+    /**
+     * No current project set
+     */
+    404: {
+        error: string;
+    };
+};
+
+export type GetInstanceCurrentError = GetInstanceCurrentErrors[keyof GetInstanceCurrentErrors];
+
+export type GetInstanceCurrentResponses = {
+    /**
+     * Current project retrieved successfully
+     */
+    200: {
+        id: string;
+        type: 'GITHUB' | 'ARXIV';
+        url: string;
+        directory: string;
+        metadata?: {
+            [key: string]: unknown;
+        };
+    };
+};
+
+export type GetInstanceCurrentResponse = GetInstanceCurrentResponses[keyof GetInstanceCurrentResponses];
+
+export type GetInstanceProjectsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/instance/projects';
+};
+
+export type GetInstanceProjectsResponses = {
+    /**
+     * Projects retrieved successfully
+     */
+    200: Array<{
+        id: string;
+        type: 'GITHUB' | 'ARXIV';
+        url: string;
+        directory: string;
+        metadata?: {
+            [key: string]: unknown;
+        };
+    }>;
+};
+
+export type GetInstanceProjectsResponse = GetInstanceProjectsResponses[keyof GetInstanceProjectsResponses];
+
+export type PostInstanceProjectAddData = {
     body?: {
         url: string;
         type: 'GITHUB' | 'ARXIV';
         directory: string;
-        sdkType: 'OPENCODE' | 'CLAUDE_CODE';
     };
     path?: never;
     query?: never;
-    url: '/instance/add';
+    url: '/instance/project/add';
 };
 
-export type PostInstanceAddErrors = {
+export type PostInstanceProjectAddErrors = {
     /**
      * Bad request
      */
@@ -248,22 +287,20 @@ export type PostInstanceAddErrors = {
     };
 };
 
-export type PostInstanceAddError = PostInstanceAddErrors[keyof PostInstanceAddErrors];
+export type PostInstanceProjectAddError = PostInstanceProjectAddErrors[keyof PostInstanceProjectAddErrors];
 
-export type PostInstanceAddResponses = {
+export type PostInstanceProjectAddResponses = {
     /**
-     * Instance added successfully
+     * Project added successfully
      */
     200: {
         success: boolean;
         message?: string;
-        directory?: string;
-        instance?: {
+        project?: {
             id: string;
             type: 'GITHUB' | 'ARXIV';
             url: string;
             directory: string;
-            sdkType: 'OPENCODE' | 'CLAUDE_CODE';
             metadata?: {
                 [key: string]: unknown;
             };
@@ -271,18 +308,18 @@ export type PostInstanceAddResponses = {
     };
 };
 
-export type PostInstanceAddResponse = PostInstanceAddResponses[keyof PostInstanceAddResponses];
+export type PostInstanceProjectAddResponse = PostInstanceProjectAddResponses[keyof PostInstanceProjectAddResponses];
 
-export type PostInstanceSwitchData = {
+export type PostInstanceProjectSwitchData = {
     body?: {
-        instanceId: string;
+        projectId: string;
     };
     path?: never;
     query?: never;
-    url: '/instance/switch';
+    url: '/instance/project/switch';
 };
 
-export type PostInstanceSwitchErrors = {
+export type PostInstanceProjectSwitchErrors = {
     /**
      * Bad request
      */
@@ -291,22 +328,20 @@ export type PostInstanceSwitchErrors = {
     };
 };
 
-export type PostInstanceSwitchError = PostInstanceSwitchErrors[keyof PostInstanceSwitchErrors];
+export type PostInstanceProjectSwitchError = PostInstanceProjectSwitchErrors[keyof PostInstanceProjectSwitchErrors];
 
-export type PostInstanceSwitchResponses = {
+export type PostInstanceProjectSwitchResponses = {
     /**
-     * Instance switched successfully
+     * Project switched successfully
      */
     200: {
         success: boolean;
         message?: string;
-        directory?: string;
-        instance?: {
+        project?: {
             id: string;
             type: 'GITHUB' | 'ARXIV';
             url: string;
             directory: string;
-            sdkType: 'OPENCODE' | 'CLAUDE_CODE';
             metadata?: {
                 [key: string]: unknown;
             };
@@ -314,18 +349,18 @@ export type PostInstanceSwitchResponses = {
     };
 };
 
-export type PostInstanceSwitchResponse = PostInstanceSwitchResponses[keyof PostInstanceSwitchResponses];
+export type PostInstanceProjectSwitchResponse = PostInstanceProjectSwitchResponses[keyof PostInstanceProjectSwitchResponses];
 
-export type PostInstanceRemoveData = {
+export type PostInstanceProjectRemoveData = {
     body?: {
-        instanceId: string;
+        projectId: string;
     };
     path?: never;
     query?: never;
-    url: '/instance/remove';
+    url: '/instance/project/remove';
 };
 
-export type PostInstanceRemoveErrors = {
+export type PostInstanceProjectRemoveErrors = {
     /**
      * Bad request
      */
@@ -334,22 +369,20 @@ export type PostInstanceRemoveErrors = {
     };
 };
 
-export type PostInstanceRemoveError = PostInstanceRemoveErrors[keyof PostInstanceRemoveErrors];
+export type PostInstanceProjectRemoveError = PostInstanceProjectRemoveErrors[keyof PostInstanceProjectRemoveErrors];
 
-export type PostInstanceRemoveResponses = {
+export type PostInstanceProjectRemoveResponses = {
     /**
-     * Instance removed successfully
+     * Project removed successfully
      */
     200: {
         success: boolean;
         message?: string;
-        directory?: string;
-        instance?: {
+        project?: {
             id: string;
             type: 'GITHUB' | 'ARXIV';
             url: string;
             directory: string;
-            sdkType: 'OPENCODE' | 'CLAUDE_CODE';
             metadata?: {
                 [key: string]: unknown;
             };
@@ -357,7 +390,7 @@ export type PostInstanceRemoveResponses = {
     };
 };
 
-export type PostInstanceRemoveResponse = PostInstanceRemoveResponses[keyof PostInstanceRemoveResponses];
+export type PostInstanceProjectRemoveResponse = PostInstanceProjectRemoveResponses[keyof PostInstanceProjectRemoveResponses];
 
 export type GetConfigProvidersData = {
     body?: never;

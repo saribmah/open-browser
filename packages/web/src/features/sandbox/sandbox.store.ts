@@ -6,7 +6,7 @@ import type { PostSandboxResponses } from "@/client/api/types.gen"
 export type SandboxProviderType = "cloudflare" | "daytona" | "vercel"
 export type IntegrationType = "GITHUB" | "ARXIV"
 export type SdkType = "OPENCODE" | "CLAUDE_CODE"
-export type SandboxStatus = "idle" | "creating" | "ready" | "error"
+export type SandboxStatus = "idle" | "setting-up" | "creating" | "ready" | "error"
 
 export interface Sandbox {
   id: string
@@ -29,6 +29,8 @@ export interface SandboxState {
   sandbox: Sandbox | null
   status: SandboxStatus
   error: string | null
+  setupComplete: boolean
+  setupSteps: string[]
 }
 
 export interface SandboxActions {
@@ -36,6 +38,8 @@ export interface SandboxActions {
   setSandbox: (sandbox: Sandbox | null) => void
   setStatus: (status: SandboxStatus) => void
   setError: (error: string | null) => void
+  setSetupComplete: (complete: boolean) => void
+  addSetupStep: (step: string) => void
   reset: () => void
 }
 
@@ -45,6 +49,8 @@ const initialState: SandboxState = {
   sandbox: null,
   status: "idle",
   error: null,
+  setupComplete: false,
+  setupSteps: [],
 }
 
 // Configure the API client base URL
@@ -57,6 +63,8 @@ export function createSandboxStore(initialSandbox?: Sandbox) {
     ...initialState,
     sandbox: initialSandbox ?? null,
     status: initialSandbox ? "ready" : "idle",
+    setupComplete: initialSandbox ? true : false,
+    setupSteps: [],
 
     createSandbox: async (params) => {
       set({ status: "creating", error: null })
@@ -90,6 +98,8 @@ export function createSandboxStore(initialSandbox?: Sandbox) {
     setSandbox: (sandbox) => set({ sandbox, status: sandbox ? "ready" : "idle" }),
     setStatus: (status) => set({ status }),
     setError: (error) => set({ error }),
+    setSetupComplete: (complete) => set({ setupComplete: complete }),
+    addSetupStep: (step) => set((state) => ({ setupSteps: [...state.setupSteps, step] })),
     reset: () => set(initialState),
   }))
 }

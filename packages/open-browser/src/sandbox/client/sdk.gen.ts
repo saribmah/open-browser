@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetConfigProvidersData, GetConfigProvidersErrors, GetConfigProvidersResponses, GetFileListData, GetFileListErrors, GetFileListResponses, GetFileReadData, GetFileReadErrors, GetFileReadResponses, GetFileTreeData, GetFileTreeErrors, GetFileTreeResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetInstanceAvailableData, GetInstanceAvailableResponses, GetInstanceCurrentData, GetInstanceCurrentResponses, GetSdkData, GetSdkResponses, GetSessionData, GetSessionErrors, GetSessionResponses, PostInstanceAddData, PostInstanceAddErrors, PostInstanceAddResponses, PostInstanceInitData, PostInstanceInitErrors, PostInstanceInitResponses, PostInstanceRemoveData, PostInstanceRemoveErrors, PostInstanceRemoveResponses, PostInstanceSwitchData, PostInstanceSwitchErrors, PostInstanceSwitchResponses, PostSessionData, PostSessionErrors, PostSessionResponses } from './types.gen';
+import type { GetConfigProvidersData, GetConfigProvidersErrors, GetConfigProvidersResponses, GetFileListData, GetFileListErrors, GetFileListResponses, GetFileReadData, GetFileReadErrors, GetFileReadResponses, GetFileTreeData, GetFileTreeErrors, GetFileTreeResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetInstanceCurrentData, GetInstanceCurrentErrors, GetInstanceCurrentResponses, GetInstanceProjectsData, GetInstanceProjectsResponses, GetInstanceStateData, GetInstanceStateResponses, GetSdkData, GetSdkResponses, GetSessionData, GetSessionErrors, GetSessionResponses, PostInstanceInitData, PostInstanceInitErrors, PostInstanceInitResponses, PostInstanceProjectAddData, PostInstanceProjectAddErrors, PostInstanceProjectAddResponses, PostInstanceProjectRemoveData, PostInstanceProjectRemoveErrors, PostInstanceProjectRemoveResponses, PostInstanceProjectSwitchData, PostInstanceProjectSwitchErrors, PostInstanceProjectSwitchResponses, PostSessionData, PostSessionErrors, PostSessionResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -44,17 +44,7 @@ export const postSession = <ThrowOnError extends boolean = false>(options?: Opti
 export const getSdk = <ThrowOnError extends boolean = false>(options?: Options<GetSdkData, ThrowOnError>) => (options?.client ?? client).get<GetSdkResponses, unknown, ThrowOnError>({ url: '/sdk', ...options });
 
 /**
- * Get Current Instance State
- */
-export const getInstanceCurrent = <ThrowOnError extends boolean = false>(options?: Options<GetInstanceCurrentData, ThrowOnError>) => (options?.client ?? client).get<GetInstanceCurrentResponses, unknown, ThrowOnError>({ url: '/instance/current', ...options });
-
-/**
- * Get All Available Instances
- */
-export const getInstanceAvailable = <ThrowOnError extends boolean = false>(options?: Options<GetInstanceAvailableData, ThrowOnError>) => (options?.client ?? client).get<GetInstanceAvailableResponses, unknown, ThrowOnError>({ url: '/instance/available', ...options });
-
-/**
- * Initialize Current Instance
+ * Initialize SDK
  */
 export const postInstanceInit = <ThrowOnError extends boolean = false>(options?: Options<PostInstanceInitData, ThrowOnError>) => (options?.client ?? client).post<PostInstanceInitResponses, PostInstanceInitErrors, ThrowOnError>({
     url: '/instance/init',
@@ -66,10 +56,25 @@ export const postInstanceInit = <ThrowOnError extends boolean = false>(options?:
 });
 
 /**
- * Add New Instance
+ * Get Instance State
  */
-export const postInstanceAdd = <ThrowOnError extends boolean = false>(options?: Options<PostInstanceAddData, ThrowOnError>) => (options?.client ?? client).post<PostInstanceAddResponses, PostInstanceAddErrors, ThrowOnError>({
-    url: '/instance/add',
+export const getInstanceState = <ThrowOnError extends boolean = false>(options?: Options<GetInstanceStateData, ThrowOnError>) => (options?.client ?? client).get<GetInstanceStateResponses, unknown, ThrowOnError>({ url: '/instance/state', ...options });
+
+/**
+ * Get Current Project
+ */
+export const getInstanceCurrent = <ThrowOnError extends boolean = false>(options?: Options<GetInstanceCurrentData, ThrowOnError>) => (options?.client ?? client).get<GetInstanceCurrentResponses, GetInstanceCurrentErrors, ThrowOnError>({ url: '/instance/current', ...options });
+
+/**
+ * Get All Projects
+ */
+export const getInstanceProjects = <ThrowOnError extends boolean = false>(options?: Options<GetInstanceProjectsData, ThrowOnError>) => (options?.client ?? client).get<GetInstanceProjectsResponses, unknown, ThrowOnError>({ url: '/instance/projects', ...options });
+
+/**
+ * Add New Project
+ */
+export const postInstanceProjectAdd = <ThrowOnError extends boolean = false>(options?: Options<PostInstanceProjectAddData, ThrowOnError>) => (options?.client ?? client).post<PostInstanceProjectAddResponses, PostInstanceProjectAddErrors, ThrowOnError>({
+    url: '/instance/project/add',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -78,10 +83,10 @@ export const postInstanceAdd = <ThrowOnError extends boolean = false>(options?: 
 });
 
 /**
- * Switch to Different Instance
+ * Switch to Different Project
  */
-export const postInstanceSwitch = <ThrowOnError extends boolean = false>(options?: Options<PostInstanceSwitchData, ThrowOnError>) => (options?.client ?? client).post<PostInstanceSwitchResponses, PostInstanceSwitchErrors, ThrowOnError>({
-    url: '/instance/switch',
+export const postInstanceProjectSwitch = <ThrowOnError extends boolean = false>(options?: Options<PostInstanceProjectSwitchData, ThrowOnError>) => (options?.client ?? client).post<PostInstanceProjectSwitchResponses, PostInstanceProjectSwitchErrors, ThrowOnError>({
+    url: '/instance/project/switch',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -90,10 +95,10 @@ export const postInstanceSwitch = <ThrowOnError extends boolean = false>(options
 });
 
 /**
- * Remove Instance
+ * Remove Project
  */
-export const postInstanceRemove = <ThrowOnError extends boolean = false>(options?: Options<PostInstanceRemoveData, ThrowOnError>) => (options?.client ?? client).post<PostInstanceRemoveResponses, PostInstanceRemoveErrors, ThrowOnError>({
-    url: '/instance/remove',
+export const postInstanceProjectRemove = <ThrowOnError extends boolean = false>(options?: Options<PostInstanceProjectRemoveData, ThrowOnError>) => (options?.client ?? client).post<PostInstanceProjectRemoveResponses, PostInstanceProjectRemoveErrors, ThrowOnError>({
+    url: '/instance/project/remove',
     ...options,
     headers: {
         'Content-Type': 'application/json',
