@@ -399,3 +399,116 @@ export type GetConfigProvidersResponses = {
 };
 
 export type GetConfigProvidersResponse = GetConfigProvidersResponses[keyof GetConfigProvidersResponses];
+
+export type GetFileListData = {
+    body?: never;
+    path?: never;
+    query?: {
+        path?: string;
+    };
+    url: '/file/list';
+};
+
+export type GetFileListErrors = {
+    /**
+     * Bad request
+     */
+    400: {
+        error: string;
+    };
+};
+
+export type GetFileListError = GetFileListErrors[keyof GetFileListErrors];
+
+export type GetFileListResponses = {
+    /**
+     * Files retrieved successfully
+     */
+    200: {
+        files: Array<{
+            name: string;
+            path: string;
+            type: 'file' | 'directory';
+            size?: number;
+            modifiedAt?: string;
+        }>;
+    };
+};
+
+export type GetFileListResponse = GetFileListResponses[keyof GetFileListResponses];
+
+export type GetFileTreeData = {
+    body?: never;
+    path?: never;
+    query?: {
+        path?: string;
+        maxDepth?: string;
+    };
+    url: '/file/tree';
+};
+
+export type GetFileTreeErrors = {
+    /**
+     * Bad request
+     */
+    400: {
+        error: string;
+    };
+};
+
+export type GetFileTreeError = GetFileTreeErrors[keyof GetFileTreeErrors];
+
+export type GetFileTreeResponses = {
+    /**
+     * File tree retrieved successfully
+     */
+    200: {
+        tree: {
+            name: string;
+            path: string;
+            type: 'file' | 'directory';
+            children?: Array<{
+                name: string;
+                path: string;
+                type: 'file' | 'directory';
+                size?: number;
+                modifiedAt?: string;
+            }>;
+            size?: number;
+            modifiedAt?: string;
+        };
+    };
+};
+
+export type GetFileTreeResponse = GetFileTreeResponses[keyof GetFileTreeResponses];
+
+export type GetFileReadData = {
+    body?: never;
+    path?: never;
+    query: {
+        path: string;
+    };
+    url: '/file/read';
+};
+
+export type GetFileReadErrors = {
+    /**
+     * Bad request
+     */
+    400: {
+        error: string;
+    };
+};
+
+export type GetFileReadError = GetFileReadErrors[keyof GetFileReadErrors];
+
+export type GetFileReadResponses = {
+    /**
+     * File content retrieved successfully
+     */
+    200: {
+        content: string;
+    };
+};
+
+export type GetFileReadResponse = GetFileReadResponses[keyof GetFileReadResponses];

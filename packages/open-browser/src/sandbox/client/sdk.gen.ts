@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetConfigProvidersData, GetConfigProvidersErrors, GetConfigProvidersResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetInstanceAvailableData, GetInstanceAvailableResponses, GetInstanceCurrentData, GetInstanceCurrentResponses, GetSdkData, GetSdkResponses, GetSessionData, GetSessionErrors, GetSessionResponses, PostInstanceAddData, PostInstanceAddErrors, PostInstanceAddResponses, PostInstanceInitData, PostInstanceInitErrors, PostInstanceInitResponses, PostInstanceRemoveData, PostInstanceRemoveErrors, PostInstanceRemoveResponses, PostInstanceSwitchData, PostInstanceSwitchErrors, PostInstanceSwitchResponses, PostSessionData, PostSessionErrors, PostSessionResponses } from './types.gen';
+import type { GetConfigProvidersData, GetConfigProvidersErrors, GetConfigProvidersResponses, GetFileListData, GetFileListErrors, GetFileListResponses, GetFileReadData, GetFileReadErrors, GetFileReadResponses, GetFileTreeData, GetFileTreeErrors, GetFileTreeResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetInstanceAvailableData, GetInstanceAvailableResponses, GetInstanceCurrentData, GetInstanceCurrentResponses, GetSdkData, GetSdkResponses, GetSessionData, GetSessionErrors, GetSessionResponses, PostInstanceAddData, PostInstanceAddErrors, PostInstanceAddResponses, PostInstanceInitData, PostInstanceInitErrors, PostInstanceInitResponses, PostInstanceRemoveData, PostInstanceRemoveErrors, PostInstanceRemoveResponses, PostInstanceSwitchData, PostInstanceSwitchErrors, PostInstanceSwitchResponses, PostSessionData, PostSessionErrors, PostSessionResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -105,3 +105,18 @@ export const postInstanceRemove = <ThrowOnError extends boolean = false>(options
  * Get All Providers
  */
 export const getConfigProviders = <ThrowOnError extends boolean = false>(options?: Options<GetConfigProvidersData, ThrowOnError>) => (options?.client ?? client).get<GetConfigProvidersResponses, GetConfigProvidersErrors, ThrowOnError>({ url: '/config/providers', ...options });
+
+/**
+ * List Files in Directory
+ */
+export const getFileList = <ThrowOnError extends boolean = false>(options?: Options<GetFileListData, ThrowOnError>) => (options?.client ?? client).get<GetFileListResponses, GetFileListErrors, ThrowOnError>({ url: '/file/list', ...options });
+
+/**
+ * Get File Tree Structure
+ */
+export const getFileTree = <ThrowOnError extends boolean = false>(options?: Options<GetFileTreeData, ThrowOnError>) => (options?.client ?? client).get<GetFileTreeResponses, GetFileTreeErrors, ThrowOnError>({ url: '/file/tree', ...options });
+
+/**
+ * Read File Content
+ */
+export const getFileRead = <ThrowOnError extends boolean = false>(options: Options<GetFileReadData, ThrowOnError>) => (options.client ?? client).get<GetFileReadResponses, GetFileReadErrors, ThrowOnError>({ url: '/file/read', ...options });
