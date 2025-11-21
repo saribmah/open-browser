@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from "zod";
+import { SandboxManager } from "../sandbox/manager";
 
 const route = new Hono();
 
@@ -82,18 +83,31 @@ route.post(
         const body = await c.req.json();
         const { url, type, directory, sdkType, provider } = body;
 
-        // TODO: Implement sandbox creation based on provider
-        return c.json({
-            success: true,
-            message: `Sandbox creation with provider ${provider} not yet implemented`,
-            sandbox: {
-                id: crypto.randomUUID(),
-                provider,
-                status: "pending" as const,
-                createdAt: new Date().toISOString(),
-                metadata: { url, type, directory, sdkType }
-            }
-        });
+        try {
+            const session = await SandboxManager.create({
+                url,
+                type,
+                directory,
+                sdkType,
+                provider
+            });
+
+            return c.json({
+                success: true,
+                sandbox: {
+                    id: session.id,
+                    provider: session.provider,
+                    status: session.status,
+                    url: session.url,
+                    createdAt: session.createdAt,
+                    metadata: session.config
+                }
+            });
+        } catch (error: any) {
+            return c.json({
+                error: error.message || "Failed to create sandbox"
+            }, 400);
+        }
     },
 );
 

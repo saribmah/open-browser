@@ -1,3 +1,8 @@
+import { Hono } from 'hono'
 import { Api } from './api/api'
 
-export default Api.routes
+const app = new Hono()
+
+app.route('/api', Api.routes)
+
+export default app
