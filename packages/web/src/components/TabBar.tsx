@@ -29,10 +29,10 @@ export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose, onNewTab }:
   }, [activeTabId])
 
   return (
-    <div className="flex items-center h-[72px] px-2 gap-1 min-w-0">
+    <div className="flex items-center justify-center h-[72px] px-2 gap-1 min-w-0">
       {/* Tabs - scrollable container */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden min-w-0 scrollbar-hide">
-        <div className="flex items-center h-full gap-1">
+      <div className="overflow-x-auto overflow-y-hidden scrollbar-hide max-w-full">
+        <div className="flex items-center h-full gap-1 justify-center">
           {tabs.map((tab) => (
             <div
               key={tab.id}
