@@ -3,17 +3,17 @@ import { Log } from "./util/log.ts";
 import { Instance } from "./instance/instance.ts";
 
 const log = Log.create({ service: "main" });
-const port = Number(process.env["SERVER_PORT"] || 3097);
+const port = Number(process.env["SERVER_PORT"] || 4096);
 const hostname = "0.0.0.0";
 
 // Cleanup function to be called on shutdown
 async function shutdown(signal: string) {
     log.info(`Received ${signal}, starting graceful shutdown`);
-    
+
     try {
         // Cleanup all instances
         await Instance.cleanup();
-        
+
         log.info("Graceful shutdown completed");
         process.exit(0);
     } catch (error: any) {

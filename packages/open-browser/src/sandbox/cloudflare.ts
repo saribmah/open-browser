@@ -1,7 +1,7 @@
 import { getSandbox, type Sandbox } from '@cloudflare/sandbox';
 import type { SandboxConfig, SandboxSession, SandboxProviderInterface } from "./manager";
 
-const SERVER_PORT = 3097;
+const SERVER_PORT = 4096;
 
 export class CloudflareSandbox implements SandboxProviderInterface {
     private env: Cloudflare.Env;
@@ -16,7 +16,7 @@ export class CloudflareSandbox implements SandboxProviderInterface {
         try {
             console.log("CREATING CONTAINER");
             // Create the Cloudflare sandbox using the SDK
-            const container = getSandbox(this.env.CLOUDFLARE_SANDBOX, id, {
+            const container = getSandbox(this.env.CLOUDFLARE_SANDBOX, `cf-${id}`, {
                 sleepAfter: "45m",
                 keepAlive: false,
             });
@@ -25,18 +25,21 @@ export class CloudflareSandbox implements SandboxProviderInterface {
             // Start the sandbox server binary
             await this.startServer(container);
 
+            console.log("GETTING HOSTNAME");
             // Get the hostname from the environment or use a default
             const hostname = this.getHostname();
 
+            console.log("EXPOSING PORTS");
             // Expose the server port and get the preview URL
             const portInfo = await container.exposePort(SERVER_PORT, {
                 name: 'server',
                 hostname,
             });
             const serverUrl = portInfo.url;
+            console.log("SERVER URL", serverUrl)
 
             // Wait for server to be ready
-            await this.waitForServerReady(serverUrl);
+            // await this.waitForServerReady(serverUrl);
 
             return {
                 id,
@@ -64,6 +67,7 @@ export class CloudflareSandbox implements SandboxProviderInterface {
         await container.createSession({ id: sessionId });
 
         // Start the compiled server binary
+        console.log("STARTING SERVER inside");
         await container.startProcess('/usr/local/bin/server', {
             processId: `server-process-${sessionId}`,
         });
