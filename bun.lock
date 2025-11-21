@@ -12,6 +12,40 @@
     },
     "packages/open-browser": {
       "name": "open-browser",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/sandbox": {
+      "name": "sandbox",
+      "dependencies": {
+        "@hono/standard-validator": "^0.2.0",
+        "@opencode-ai/sdk": "^1.0.80",
+        "hono": "^4.10.6",
+        "hono-openapi": "^1.1.1",
+        "zod": "^4.1.12",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/ui": {
+      "name": "@open-browser/ui",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/web": {
+      "name": "@open-browser/web",
       "version": "0.1.0",
       "dependencies": {
         "class-variance-authority": "^0.7.1",
@@ -30,22 +64,6 @@
         "tailwindcss": "^3.4.17",
         "typescript": "^5.6.3",
         "vite": "^6.0.5",
-      },
-    },
-    "packages/sandbox": {
-      "name": "sandbox",
-      "dependencies": {
-        "@hono/standard-validator": "^0.2.0",
-        "@opencode-ai/sdk": "^1.0.80",
-        "hono": "^4.10.6",
-        "hono-openapi": "^1.1.1",
-        "zod": "^4.1.12",
-      },
-      "devDependencies": {
-        "@types/bun": "latest",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
       },
     },
   },
@@ -159,6 +177,10 @@
     "@nodelib/fs.stat": ["@nodelib/fs.stat@2.0.5", "", {}, "sha512-RkhPPp2zrqDAQA/2jNhnztcPAlv64XdhIp7a7454A5ovI7Bukxgt7MX7udwAu3zg1DcpPU0rz3VV1SeaqvY4+A=="],
 
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
+
+    "@open-browser/ui": ["@open-browser/ui@workspace:packages/ui"],
+
+    "@open-browser/web": ["@open-browser/web@workspace:packages/web"],
 
     "@opencode-ai/sdk": ["@opencode-ai/sdk@1.0.80", "", {}, "sha512-dTGj0VULDMlDmKx/9Rcl30isVFsY1nt5IFREvu/7KjYYMd8689OWzfCI/sN7tvBTP+aZTPbMbk4/C328XLUXww=="],
 
