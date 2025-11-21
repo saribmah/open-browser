@@ -1,25 +1,20 @@
 import { createContext, useContext } from "react"
-import { useStore } from "zustand"
-import type { InstanceStore, InstanceStoreApi } from "./instance.store"
+import { useStore } from "zustand/react"
+import type { InstanceStoreState, InstanceStore } from "./instance.store"
 
-export const InstanceContext = createContext<InstanceStoreApi | null>(null)
+export const InstanceContext = createContext<InstanceStore | null>(null)
 
-export function useInstanceStore<T>(selector: (state: InstanceStore) => T): T {
+export function useInstanceContext<T>(selector: (state: InstanceStoreState) => T): T {
   const store = useContext(InstanceContext)
   if (!store) {
-    throw new Error("useInstanceStore must be used within an InstanceProvider")
+    throw new Error("Missing InstanceContext.Provider in the tree")
   }
   return useStore(store, selector)
 }
 
-export function useInstance() {
-  return useInstanceStore((state) => state)
-}
-
-export function useInstanceContext() {
-  const store = useContext(InstanceContext)
-  if (!store) {
-    throw new Error("useInstanceContext must be used within an InstanceProvider")
-  }
-  return store
-}
+// Helper selectors
+export const useInstanceStatus = () => useInstanceContext(state => state.status)
+export const useInstanceError = () => useInstanceContext(state => state.error)
+export const useInstanceInitialized = () => useInstanceContext(state => state.initialized)
+export const useInstanceSdkType = () => useInstanceContext(state => state.sdkType)
+export const useInitializeInstance = () => useInstanceContext(state => state.initialize)

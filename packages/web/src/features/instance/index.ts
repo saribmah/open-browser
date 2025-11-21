@@ -1,3 +1,18 @@
 export { InstanceProvider } from "./instance.provider"
-export { useInstance, useInstanceStore, useInstanceContext } from "./instance.context"
-export type { InstanceStore, InstanceStoreApi, SdkType, InstanceStatus } from "./instance.store"
+export { 
+  useInstanceContext,
+  useInstanceStatus,
+  useInstanceError,
+  useInstanceInitialized,
+  useInstanceSdkType,
+  useInitializeInstance
+} from "./instance.context"
+export { createInstanceStore } from "./instance.store"
+export type { 
+  InstanceState,
+  InstanceActions,
+  InstanceStoreState,
+  InstanceStore, 
+  SdkType, 
+  InstanceStatus 
+} from "./instance.store"

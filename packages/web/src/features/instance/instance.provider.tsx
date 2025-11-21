@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react"
 import { InstanceContext } from "./instance.context"
-import { createInstanceStore, type InstanceStoreApi, type SdkType } from "./instance.store"
-import { useSandboxStore } from "@/features/sandbox/sandbox.context"
+import { createInstanceStore, type InstanceStore, type SdkType } from "./instance.store"
+import { useSandboxContext } from "@/features/sandbox/sandbox.context"
 
 type InstanceProviderProps = React.PropsWithChildren<{
   sdkType?: SdkType
@@ -11,9 +11,9 @@ export const InstanceProvider = ({
   children, 
   sdkType = "OPENCODE" 
 }: InstanceProviderProps) => {
-  const sandbox = useSandboxStore(s => s.sandbox)
-  const sandboxClient = useSandboxStore(s => s.sandboxClient)
-  const storeRef = useRef<InstanceStoreApi>(createInstanceStore())
+  const sandbox = useSandboxContext(s => s.sandbox)
+  const sandboxClient = useSandboxContext(s => s.sandboxClient)
+  const storeRef = useRef<InstanceStore>(createInstanceStore())
   const initializeRef = useRef(false)
 
   // Initialize instance when sandbox and sandboxClient are available
@@ -22,7 +22,8 @@ export const InstanceProvider = ({
       return
     }
 
-    const state = storeRef.current.getState()
+    const store = storeRef.current
+    const state = store.getState()
     
     // Skip if already initialized
     if (state.initialized) {
@@ -33,7 +34,7 @@ export const InstanceProvider = ({
 
     const performInit = async () => {
       try {
-        await state.initialize(sdkType, sandboxClient)
+        await store.getState().initialize(sdkType, sandboxClient)
       } catch (error) {
         // Error is already handled in the store
         console.error("Instance initialization failed:", error)

@@ -1,11 +1,20 @@
 export { SandboxProvider } from "./sandbox.provider"
-export { SandboxContext, useSandbox, useSandboxStore, useSandboxContext, useSandboxClient } from "./sandbox.context"
+export { 
+  SandboxContext, 
+  useSandboxContext, 
+  useSandboxData,
+  useSandboxClient,
+  useSandboxStatus,
+  useSandboxError,
+  useCreateSandbox,
+  useSetSandbox
+} from "./sandbox.context"
 export { createSandboxStore } from "./sandbox.store"
 export type {
   SandboxState,
   SandboxActions,
+  SandboxStoreState,
   SandboxStore,
-  SandboxStoreApi,
   Sandbox,
   CreateSandboxParams,
   SandboxProviderType,

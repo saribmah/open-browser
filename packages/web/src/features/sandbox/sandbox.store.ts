@@ -1,4 +1,5 @@
-import { createStore } from "zustand/vanilla"
+import { create } from "zustand"
+import { devtools } from "zustand/middleware"
 import { postSandbox } from "@/client/api/sdk.gen"
 import { client } from "@/client/api/client.gen"
 import { client as sandboxClient } from "@/client/sandbox/client.gen"
@@ -34,21 +35,14 @@ export interface SandboxActions {
   reset: () => void
 }
 
-export type SandboxStore = SandboxState & SandboxActions
-
-const initialState: SandboxState = {
-  sandbox: null,
-  sandboxClient: null,
-  status: "idle",
-  error: null,
-}
+export type SandboxStoreState = SandboxState & SandboxActions
 
 // Configure the API client base URL
 client.setConfig({
   baseUrl: "/api",
 })
 
-export function createSandboxStore(initialSandbox?: Sandbox) {
+export const createSandboxStore = (initialSandbox?: Sandbox) => {
   // Initialize sandbox client if we have a sandbox URL
   let initialClient: typeof sandboxClient | null = null
   if (initialSandbox?.url) {
@@ -57,63 +51,77 @@ export function createSandboxStore(initialSandbox?: Sandbox) {
     initialClient = client
   }
 
-  return createStore<SandboxStore>((set, get) => ({
-    ...initialState,
+  const initialState: SandboxState = {
     sandbox: initialSandbox ?? null,
     sandboxClient: initialClient,
     status: initialSandbox ? "ready" : "idle",
+    error: null,
+  }
 
-    createSandbox: async (params) => {
-      set({ status: "creating", error: null })
+  return create<SandboxStoreState>()(
+    devtools(
+      (set) => ({
+        // Initial state
+        ...initialState,
 
-      try {
-        const result = await postSandbox({
-          body: params,
-        })
+        // Actions
+        createSandbox: async (params) => {
+          set({ status: "creating", error: null })
 
-        if (result.error) {
-          const errorMsg =
-            (result.error as { error?: string })?.error || "Failed to create sandbox"
-          set({ error: errorMsg, status: "error" })
-          return null
-        }
+          try {
+            const result = await postSandbox({
+              body: params,
+            })
 
-        const data = result.data as PostSandboxResponses[200]
-        if (data?.sandbox) {
-          // Configure sandbox client with the sandbox URL
-          const client = sandboxClient
-          client.setConfig({ baseUrl: data.sandbox.url })
-          
-          set({ 
-            sandbox: data.sandbox, 
-            sandboxClient: client,
-            status: "ready" 
-          })
-          return data.sandbox
-        }
+            if (result.error) {
+              const errorMsg =
+                (result.error as { error?: string })?.error || "Failed to create sandbox"
+              set({ error: errorMsg, status: "error" })
+              return null
+            }
 
-        set({ error: "No sandbox returned", status: "error" })
-        return null
-      } catch (err: any) {
-        set({ error: err.message || "Failed to create sandbox", status: "error" })
-        return null
+            const data = result.data as PostSandboxResponses[200]
+            if (data?.sandbox) {
+              // Configure sandbox client with the sandbox URL
+              const client = sandboxClient
+              client.setConfig({ baseUrl: data.sandbox.url })
+              
+              set({ 
+                sandbox: data.sandbox, 
+                sandboxClient: client,
+                status: "ready" 
+              })
+              return data.sandbox
+            }
+
+            set({ error: "No sandbox returned", status: "error" })
+            return null
+          } catch (err: any) {
+            set({ error: err.message || "Failed to create sandbox", status: "error" })
+            return null
+          }
+        },
+
+        setSandbox: (sandbox) => {
+          if (sandbox?.url) {
+            // Configure sandbox client when sandbox is set
+            const client = sandboxClient
+            client.setConfig({ baseUrl: sandbox.url })
+            set({ sandbox, sandboxClient: client, status: "ready" })
+          } else {
+            set({ sandbox, sandboxClient: null, status: "idle" })
+          }
+        },
+        
+        setStatus: (status) => set({ status }),
+        setError: (error) => set({ error }),
+        reset: () => set(initialState),
+      }),
+      {
+        name: "sandbox-store",
       }
-    },
-
-    setSandbox: (sandbox) => {
-      if (sandbox?.url) {
-        // Configure sandbox client when sandbox is set
-        const client = sandboxClient
-        client.setConfig({ baseUrl: sandbox.url })
-        set({ sandbox, sandboxClient: client, status: "ready" })
-      } else {
-        set({ sandbox, sandboxClient: null, status: "idle" })
-      }
-    },
-    setStatus: (status) => set({ status }),
-    setError: (error) => set({ error }),
-    reset: () => set(initialState),
-  }))
+    )
+  )
 }
 
-export type SandboxStoreApi = ReturnType<typeof createSandboxStore>
+export type SandboxStore = ReturnType<typeof createSandboxStore>

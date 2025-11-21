@@ -1,7 +1,7 @@
 import { useRef, useEffect, type ReactNode } from "react"
 import { useParams } from "react-router"
 import { SandboxContext } from "./sandbox.context"
-import { createSandboxStore, type SandboxStoreApi, type Sandbox, type SdkType } from "./sandbox.store"
+import { createSandboxStore, type SandboxStore, type Sandbox, type SdkType } from "./sandbox.store"
 import { InstanceProvider } from "@/features/instance"
 import { getSandboxId } from "@/client/api/sdk.gen"
 import type { GetSandboxIdResponses } from "@/client/api/types.gen"
@@ -19,7 +19,7 @@ export function SandboxProvider({
 }: SandboxProviderProps) {
   const params = useParams<{ sandboxId?: string }>()
   const sandboxId = params.sandboxId
-  const storeRef = useRef<SandboxStoreApi>(createSandboxStore(initialSandbox))
+  const storeRef = useRef<SandboxStore>(createSandboxStore(initialSandbox))
 
   // Load sandbox if sandboxId is in URL
   useEffect(() => {
@@ -27,28 +27,29 @@ export function SandboxProvider({
       return
     }
 
-    const state = storeRef.current.getState()
+    const store = storeRef.current
+    const state = store.getState()
 
     // If we have a sandbox ID from URL but no sandbox loaded, fetch it
     if (!state.sandbox || state.sandbox.id !== sandboxId) {
       const fetchSandbox = async () => {
         try {
-          state.setStatus("creating")
-          state.setError(null)
+          store.getState().setStatus("creating")
+          store.getState().setError(null)
 
           const result = await getSandboxId({
             path: { id: sandboxId }
           })
 
           if (result.error) {
-            state.setError("Failed to load sandbox")
-            state.setStatus("error")
+            store.getState().setError("Failed to load sandbox")
+            store.getState().setStatus("error")
             return
           }
 
           const data = result.data as GetSandboxIdResponses[200]
           if (data) {
-            state.setSandbox({
+            store.getState().setSandbox({
               id: data.id,
               provider: data.provider,
               status: data.status,
@@ -58,8 +59,8 @@ export function SandboxProvider({
             })
           }
         } catch (err: any) {
-          state.setError(err.message || "Failed to load sandbox")
-          state.setStatus("error")
+          store.getState().setError(err.message || "Failed to load sandbox")
+          store.getState().setStatus("error")
         }
       }
 
