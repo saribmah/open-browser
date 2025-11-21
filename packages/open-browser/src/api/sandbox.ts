@@ -16,7 +16,7 @@ const ErrorSchema = z.object({
 
 const SandboxSchema = z.object({
     id: z.string(),
-    provider: z.enum(["cloudflare", "daytona", "vercel"]),
+    provider: z.enum(["cloudflare", "daytona", "vercel", "docker"]),
     status: z.enum(["pending", "running", "stopped", "error"]),
     url: z.string().optional(),
     createdAt: z.string(),
@@ -28,7 +28,7 @@ const CreateSandboxSchema = z.object({
     type: z.enum(["GITHUB", "ARXIV"]),
     directory: z.string(),
     sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
-    provider: z.enum(["cloudflare", "daytona", "vercel"])
+    provider: z.enum(["cloudflare", "daytona", "vercel", "docker"])
 });
 
 const SandboxesResponseSchema = z.object({

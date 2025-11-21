@@ -2,8 +2,9 @@ import { DurableObject } from "cloudflare:workers";
 import { CloudflareSandbox } from "./cloudflare";
 import { DaytonaSandbox } from "./daytona";
 import { VercelSandbox } from "./vercel";
+import { DockerSandbox } from "./docker";
 
-export type SandboxProvider = "cloudflare" | "daytona" | "vercel";
+export type SandboxProvider = "cloudflare" | "daytona" | "vercel" | "docker";
 export type IntegrationType = "GITHUB" | "ARXIV";
 export type SdkType = "OPENCODE" | "CLAUDE_CODE";
 
@@ -32,7 +33,7 @@ export interface SandboxProviderInterface {
 export class SandboxManager extends DurableObject {
     private sql: SqlStorage;
 
-    constructor(ctx: DurableObjectState, env: Env) {
+    constructor(ctx: DurableObjectState, env: Cloudflare.Env) {
         super(ctx, env);
         this.sql = ctx.storage.sql;
         this.initDatabase();
@@ -60,6 +61,8 @@ export class SandboxManager extends DurableObject {
                 return new DaytonaSandbox();
             case "vercel":
                 return new VercelSandbox();
+            case "docker":
+                return new DockerSandbox();
             default:
                 throw new Error(`Unknown provider: ${provider}`);
         }
@@ -141,9 +144,4 @@ export class SandboxManager extends DurableObject {
         );
         return true;
     }
-}
-
-// Type for the environment bindings
-export interface Env {
-    SANDBOX_MANAGER: DurableObjectNamespace<SandboxManager>;
 }
