@@ -56,7 +56,7 @@ export class SandboxManager extends DurableObject {
     private getProviderInstance(provider: SandboxProvider): SandboxProviderInterface {
         switch (provider) {
             case "cloudflare":
-                return new CloudflareSandbox();
+                return new CloudflareSandbox(this.env);
             case "daytona":
                 return new DaytonaSandbox();
             case "vercel":

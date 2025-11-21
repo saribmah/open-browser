@@ -14,10 +14,10 @@
   ],
   "durable_objects": {
     "bindings": [
-//      {
-//        "class_name": "Sandbox",
-//        "name": "Sandbox"
-//      },
+      {
+        "class_name": "CloudflareSandbox",
+        "name": "CLOUDFLARE_SANDBOX"
+      },
       {
         "class_name": "SandboxManager",
         "name": "SANDBOX_MANAGER"

@@ -10,6 +10,7 @@
     "generate": "bun run generate:openapi && bun run generate:client"
   },
   "dependencies": {
+    "@cloudflare/sandbox": "^0.5.1",
     "@daytonaio/sdk": "^0.115.2",
     "hono": "^4.10.6",
     "hono-openapi": "^1.1.1",
