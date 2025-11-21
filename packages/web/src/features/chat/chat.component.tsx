@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { ContextItem } from "@/components/ContextItem"
 import { ChatInput } from "@/components/ChatInput"
@@ -14,45 +14,97 @@ import {
   useTabs,
   useActiveTabId,
   useActiveTab,
-  useContexts,
   useAddTab,
   useRemoveTab,
   useSetActiveTab,
-  useAddContext,
-  useRemoveContext,
   useSendMessage,
 } from "./chat.context"
+import {
+  useProjects,
+  useGetAllProjects,
+  useAddProject,
+  useRemoveProject,
+  type ProjectType,
+} from "@/features/project"
+import { useSandboxClient } from "@/features/sandbox"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
   
-  // Get state from store
+  // Get state from chat store
   const tabs = useTabs()
   const activeTabId = useActiveTabId()
   const activeTab = useActiveTab()
-  const contexts = useContexts()
   
-  // Get actions from store
+  // Get actions from chat store
   const addTab = useAddTab()
   const removeTab = useRemoveTab()
   const setActiveTab = useSetActiveTab()
-  const addContext = useAddContext()
-  const removeContext = useRemoveContext()
   const sendMessage = useSendMessage()
 
-  const handleAddContext = (url: string) => {
-    console.log("Adding context:", url)
-    // TODO: Fetch and parse the URL to get context data
-    const newContext: Context = {
-      id: Date.now().toString(),
-      name: url,
-      files: [],
+  // Get project state and actions
+  const projects = useProjects()
+  const getAllProjects = useGetAllProjects()
+  const addProject = useAddProject()
+  const removeProject = useRemoveProject()
+  const sandboxClient = useSandboxClient()
+
+  // Load projects on mount
+  useEffect(() => {
+    if (sandboxClient) {
+      getAllProjects(sandboxClient)
     }
-    addContext(newContext)
+  }, [sandboxClient, getAllProjects])
+
+  // Convert projects to Context format for UI
+  const contexts = useMemo<Context[]>(() => {
+    return projects.map((project) => ({
+      id: project.id,
+      name: project.directory,
+      files: [], // TODO: Load files from project
+    }))
+  }, [projects])
+
+  const handleAddContext = async (url: string) => {
+    if (!sandboxClient) {
+      console.error("Sandbox client not available")
+      return
+    }
+
+    console.log("Adding project:", url)
+    
+    // Parse URL to determine type
+    // TODO: Better URL parsing logic
+    const type: ProjectType = url.includes("github.com") ? "GITHUB" : "ARXIV"
+    const directory = url.split("/").pop() || "project"
+
+    const success = await addProject(
+      {
+        url,
+        type,
+        directory: `/workspace/${directory}`,
+      },
+      sandboxClient
+    )
+
+    if (success) {
+      // Refresh projects list
+      getAllProjects(sandboxClient)
+    }
   }
 
-  const handleDeleteContext = (id: string) => {
-    removeContext(id)
+  const handleDeleteContext = async (id: string) => {
+    if (!sandboxClient) {
+      console.error("Sandbox client not available")
+      return
+    }
+
+    const success = await removeProject(id, sandboxClient)
+    
+    if (!success) {
+      console.error("Failed to remove project")
+    }
+    // Project list is automatically updated by the store
   }
 
   const handleSendMessage = (message: string, mentionedFiles?: MentionFile[]) => {
@@ -124,9 +176,9 @@ export function ChatComponent() {
           onAddContext={handleAddContext}
           contexts={contexts.map(c => ({ id: c.id, name: c.name }))}
         >
-          {contexts.length === 0 ? (
+          {projects.length === 0 ? (
             <div className="p-4 text-sm text-zinc-500">
-              no context added yet. click "add context" to get started.
+              no projects added yet. click "add context" to get started.
             </div>
           ) : (
             <div>
