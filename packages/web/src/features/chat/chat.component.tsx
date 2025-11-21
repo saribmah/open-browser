@@ -27,9 +27,11 @@ import {
   type ProjectType,
 } from "@/features/project"
 import { useSandboxClient } from "@/features/sandbox"
+import { useGetFileTree, useFileTree, type FileTreeNode } from "@/features/filesystem"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
+  const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
   
   // Get state from chat store
   const tabs = useTabs()
@@ -49,6 +51,10 @@ export function ChatComponent() {
   const removeProject = useRemoveProject()
   const sandboxClient = useSandboxClient()
 
+  // Get filesystem actions
+  const getFileTree = useGetFileTree()
+  const fileTree = useFileTree()
+
   // Load projects on mount
   useEffect(() => {
     if (sandboxClient) {
@@ -56,14 +62,64 @@ export function ChatComponent() {
     }
   }, [sandboxClient, getAllProjects])
 
+  // Load file trees for all projects
+  useEffect(() => {
+    if (!sandboxClient || projects.length === 0) return
+
+    const loadFileTrees = async () => {
+      for (const project of projects) {
+        // Skip if we already loaded this project's files
+        if (projectFileTrees.has(project.id)) continue
+
+        try {
+          await getFileTree(project.directory, 3, sandboxClient)
+          
+          // Store the file tree for this project
+          if (fileTree) {
+            setProjectFileTrees(prev => new Map(prev).set(project.id, fileTree))
+          }
+        } catch (error) {
+          console.error(`Failed to load file tree for project ${project.id}:`, error)
+        }
+      }
+    }
+
+    loadFileTrees()
+  }, [projects, sandboxClient, getFileTree, fileTree, projectFileTrees])
+
+  // Helper function to convert FileTreeNode to flat file list
+  const flattenFileTree = (node: FileTreeNode, basePath = ""): Array<{ path: string; name: string }> => {
+    const files: Array<{ path: string; name: string }> = []
+    
+    if (node.type === "file") {
+      files.push({
+        path: node.path,
+        name: node.name,
+      })
+    }
+    
+    if (node.children) {
+      for (const child of node.children) {
+        files.push(...flattenFileTree(child, node.path))
+      }
+    }
+    
+    return files
+  }
+
   // Convert projects to Context format for UI
   const contexts = useMemo<Context[]>(() => {
-    return projects.map((project) => ({
-      id: project.id,
-      name: project.directory,
-      files: [], // TODO: Load files from project
-    }))
-  }, [projects])
+    return projects.map((project) => {
+      const tree = projectFileTrees.get(project.id)
+      const files = tree ? flattenFileTree(tree) : []
+      
+      return {
+        id: project.id,
+        name: project.directory,
+        files,
+      }
+    })
+  }, [projects, projectFileTrees])
 
   const handleAddContext = async (url: string) => {
     if (!sandboxClient) {

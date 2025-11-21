@@ -1,5 +1,5 @@
 import { Log } from "../util/log";
-import { Instance } from "../instance/instance";
+import { Project } from "../instance/project";
 import * as fs from "fs/promises";
 import * as path from "path";
 
@@ -30,22 +30,22 @@ export namespace File {
         log.info("Listing files", { dirPath });
 
         try {
-            // Get current instance
-            const currentInstance = Instance.getCurrent();
+            // Get current project
+            const currentProject = Project.getCurrent();
             
-            if (!currentInstance) {
-                log.error("No current instance set");
+            if (!currentProject) {
+                log.error("No current project set");
                 return {
                     success: false,
-                    error: "No current instance set"
+                    error: "No current project set"
                 };
             }
 
-            const basePath = currentInstance.directory;
+            const basePath = currentProject.directory;
             const fullPath = path.join(basePath, dirPath);
 
             log.info("Reading directory", {
-                instanceId: currentInstance.id,
+                projectId: currentProject.id,
                 basePath,
                 fullPath
             });
@@ -79,7 +79,7 @@ export namespace File {
             }
 
             log.info("Files listed successfully", {
-                instanceId: currentInstance.id,
+                projectId: currentProject.id,
                 count: files.length
             });
 
@@ -106,22 +106,22 @@ export namespace File {
         log.info("Getting file tree", { dirPath, maxDepth });
 
         try {
-            // Get current instance
-            const currentInstance = Instance.getCurrent();
+            // Get current project
+            const currentProject = Project.getCurrent();
             
-            if (!currentInstance) {
-                log.error("No current instance set");
+            if (!currentProject) {
+                log.error("No current project set");
                 return {
                     success: false,
-                    error: "No current instance set"
+                    error: "No current project set"
                 };
             }
 
-            const basePath = currentInstance.directory;
+            const basePath = currentProject.directory;
             const fullPath = path.join(basePath, dirPath);
 
             log.info("Building file tree", {
-                instanceId: currentInstance.id,
+                projectId: currentProject.id,
                 basePath,
                 fullPath,
                 maxDepth
@@ -130,7 +130,7 @@ export namespace File {
             const tree = await buildTree(fullPath, dirPath, 0, maxDepth);
 
             log.info("File tree built successfully", {
-                instanceId: currentInstance.id
+                projectId: currentProject.id
             });
 
             return {
@@ -217,22 +217,22 @@ export namespace File {
         log.info("Reading file", { filePath });
 
         try {
-            // Get current instance
-            const currentInstance = Instance.getCurrent();
+            // Get current project
+            const currentProject = Project.getCurrent();
             
-            if (!currentInstance) {
-                log.error("No current instance set");
+            if (!currentProject) {
+                log.error("No current project set");
                 return {
                     success: false,
-                    error: "No current instance set"
+                    error: "No current project set"
                 };
             }
 
-            const basePath = currentInstance.directory;
+            const basePath = currentProject.directory;
             const fullPath = path.join(basePath, filePath);
 
             log.info("Reading file content", {
-                instanceId: currentInstance.id,
+                projectId: currentProject.id,
                 basePath,
                 fullPath
             });
@@ -257,7 +257,7 @@ export namespace File {
             const content = await fs.readFile(fullPath, 'utf-8');
 
             log.info("File read successfully", {
-                instanceId: currentInstance.id,
+                projectId: currentProject.id,
                 size: content.length
             });
 

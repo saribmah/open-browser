@@ -15,7 +15,7 @@
   "containers": [
     {
       "class_name": "CloudflareSandbox",
-      "image": "../sandbox/Dockerfile",
+      "image": "../sandbox/Cloudflare.Dockerfile",
       "instance_type": "standard-1",
       "max_instances": 100
     }

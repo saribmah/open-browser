@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { Instance } from "../instance/instance";
+import { Project } from "../instance/project";
 import { describeRoute, resolver, validator } from 'hono-openapi'
 import {z} from "zod";
 
@@ -12,7 +13,10 @@ const ProjectSchema = z.object({
 });
 
 const InstanceStateSchema = z.object({
-    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
+    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
+});
+
+const ProjectStateSchema = z.object({
     currentProject: ProjectSchema.nullable(),
     projects: z.array(ProjectSchema)
 });
@@ -131,7 +135,7 @@ route.get(
         },
     }),
     async (c) => {
-        const current = Instance.getCurrent();
+        const current = Project.getCurrent();
 
         if (!current) {
             return c.json({
@@ -159,7 +163,7 @@ route.get(
         },
     }),
     async (c) => {
-        const projects = Instance.getAllProjects();
+        const projects = Project.getAll();
         return c.json(projects);
     });
 
@@ -206,7 +210,14 @@ route.post(
             }, 400);
         }
 
-        const result = await Instance.addProject({ url, type, directory });
+        // Check if SDK is initialized
+        if (!Instance.isInitialized()) {
+            return c.json({
+                error: "SDK not initialized. Call /instance/init first"
+            }, 400);
+        }
+
+        const result = await Project.add({ url, type, directory });
 
         if (!result.success) {
             return c.json({
@@ -252,7 +263,7 @@ route.post(
             }, 400);
         }
 
-        const result = Instance.switchProject(projectId);
+        const result = Project.switchTo(projectId);
 
         if (!result.success) {
             return c.json({
@@ -298,7 +309,7 @@ route.post(
             }, 400);
         }
 
-        const result = await Instance.removeProject(projectId);
+        const result = await Project.remove(projectId);
 
         if (!result.success) {
             return c.json({

@@ -16,7 +16,9 @@ RUN bun build ./src/index.ts --compile --outfile /out/server --minify
 
 
 # ---------- Runtime: Bun Debian for glibc compatibility with opencode ----------
-FROM oven/bun:debian AS runtime
+# Use Cloudflare sandbox as base
+FROM docker.io/cloudflare/sandbox:0.5.1 AS runtime
+#FROM oven/bun:debian AS runtime
 
 RUN apt-get update && apt-get install -y \
     bash \
@@ -51,4 +53,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD echo "Container is running" || exit 1
 
 # Default command - keep container running
-CMD ["sleep", "infinity"]
+#CMD ["sleep", "infinity"]

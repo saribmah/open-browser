@@ -1,5 +1,6 @@
 import { Log } from "../util/log";
 import { Instance } from "../instance/instance";
+import { Project } from "../instance/project";
 import { SDK } from "../sdk/sdk";
 
 const log = Log.create({ service: "config" });
@@ -12,31 +13,34 @@ export namespace Config {
         log.info("Getting providers");
 
         try {
-            // Get current instance
-            const currentInstance = Instance.getCurrent();
+            // Get current project
+            const currentProject = Project.getCurrent();
             
-            if (!currentInstance) {
-                log.error("No current instance set");
+            if (!currentProject) {
+                log.error("No current project set");
                 return {
                     success: false,
-                    error: "No current instance set"
+                    error: "No current project set"
                 };
             }
 
-            log.info("Getting providers for instance", {
-                instanceId: currentInstance.id,
-                sdkType: currentInstance.sdkType,
-                directory: currentInstance.directory
+            // Get SDK type from instance state
+            const state = Instance.getState();
+
+            log.info("Getting providers for project", {
+                projectId: currentProject.id,
+                sdkType: state.sdkType,
+                directory: currentProject.directory
             });
 
             // Get providers from SDK
             const providersData = await SDK.getProviders({
-                type: currentInstance.sdkType,
-                directory: currentInstance.directory
+                type: state.sdkType,
+                directory: currentProject.directory
             });
 
             log.info("Providers retrieved successfully", {
-                instanceId: currentInstance.id,
+                projectId: currentProject.id,
                 providersCount: providersData.providers?.length || 0
             });
 

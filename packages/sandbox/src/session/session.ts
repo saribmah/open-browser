@@ -1,5 +1,6 @@
 import { Log } from "../util/log";
 import { Instance } from "../instance/instance";
+import { Project } from "../instance/project";
 import { SDK } from "../sdk/sdk";
 
 const log = Log.create({ service: "session" });
@@ -13,7 +14,7 @@ export namespace Session {
 
         try {
             // Get current project
-            const currentProject = Instance.getCurrent();
+            const currentProject = Project.getCurrent();
             
             if (!currentProject) {
                 log.error("No current project set");
@@ -66,7 +67,7 @@ export namespace Session {
 
         try {
             // Get current project
-            const currentProject = Instance.getCurrent();
+            const currentProject = Project.getCurrent();
             
             if (!currentProject) {
                 log.error("No current project set");
