@@ -92,7 +92,8 @@
                               "cloudflare",
                               "daytona",
                               "vercel",
-                              "docker"
+                              "docker",
+                              "local"
                             ]
                           },
                           "status": {
@@ -165,7 +166,8 @@
                             "cloudflare",
                             "daytona",
                             "vercel",
-                            "docker"
+                            "docker",
+                            "local"
                           ]
                         },
                         "status": {
@@ -257,7 +259,8 @@
                       "cloudflare",
                       "daytona",
                       "vercel",
-                      "docker"
+                      "docker",
+                      "local"
                     ]
                   }
                 },
@@ -295,7 +298,8 @@
                         "cloudflare",
                         "daytona",
                         "vercel",
-                        "docker"
+                        "docker",
+                        "local"
                       ]
                     },
                     "status": {
@@ -390,7 +394,8 @@
                             "cloudflare",
                             "daytona",
                             "vercel",
-                            "docker"
+                            "docker",
+                            "local"
                           ]
                         },
                         "status": {

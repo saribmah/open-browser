@@ -49,7 +49,7 @@ export function Hero() {
           type: parsed.type,
           directory: parsed.directory,
           sdkType: 'OPENCODE',
-          provider: 'cloudflare',
+          provider: 'local',
         }
       })
 

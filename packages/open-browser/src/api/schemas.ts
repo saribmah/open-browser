@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Provider types
-export const SandboxProviderSchema = z.enum(["cloudflare", "daytona", "vercel", "docker"]);
+export const SandboxProviderSchema = z.enum(["cloudflare", "daytona", "vercel", "docker", "local"]);
 export type SandboxProvider = z.infer<typeof SandboxProviderSchema>;
 
 // Integration types

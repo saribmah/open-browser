@@ -3,8 +3,9 @@ import { CloudflareSandbox } from "./cloudflare";
 import { DaytonaSandbox } from "./daytona";
 import { VercelSandbox } from "./vercel";
 import { DockerSandbox } from "./docker";
+import { LocalSandbox } from "./local";
 
-export type SandboxProvider = "cloudflare" | "daytona" | "vercel" | "docker";
+export type SandboxProvider = "cloudflare" | "daytona" | "vercel" | "docker" | "local";
 export type IntegrationType = "GITHUB" | "ARXIV";
 export type SdkType = "OPENCODE" | "CLAUDE_CODE";
 
@@ -63,6 +64,8 @@ export class SandboxManager extends DurableObject {
                 return new VercelSandbox();
             case "docker":
                 return new DockerSandbox();
+            case "local":
+                return new LocalSandbox();
             default:
                 throw new Error(`Unknown provider: ${provider}`);
         }

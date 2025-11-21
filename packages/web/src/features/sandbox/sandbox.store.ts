@@ -1,6 +1,7 @@
 import { createStore } from "zustand/vanilla"
 import { postSandbox } from "@/client/api/sdk.gen"
 import { client } from "@/client/api/client.gen"
+import { client as sandboxClient } from "@/client/sandbox/client.gen"
 import type { PostSandboxResponses, PostSandboxData } from "@/client/api/types.gen"
 
 // Extract types from generated API types
@@ -20,10 +21,9 @@ export interface CreateSandboxParams {
 
 export interface SandboxState {
   sandbox: Sandbox | null
+  sandboxClient: typeof sandboxClient | null
   status: SandboxStatus
   error: string | null
-  setupComplete: boolean
-  setupSteps: string[]
 }
 
 export interface SandboxActions {
@@ -31,8 +31,6 @@ export interface SandboxActions {
   setSandbox: (sandbox: Sandbox | null) => void
   setStatus: (status: SandboxStatus) => void
   setError: (error: string | null) => void
-  setSetupComplete: (complete: boolean) => void
-  addSetupStep: (step: string) => void
   reset: () => void
 }
 
@@ -40,10 +38,9 @@ export type SandboxStore = SandboxState & SandboxActions
 
 const initialState: SandboxState = {
   sandbox: null,
+  sandboxClient: null,
   status: "idle",
   error: null,
-  setupComplete: false,
-  setupSteps: [],
 }
 
 // Configure the API client base URL
@@ -52,12 +49,19 @@ client.setConfig({
 })
 
 export function createSandboxStore(initialSandbox?: Sandbox) {
-  return createStore<SandboxStore>((set) => ({
+  // Initialize sandbox client if we have a sandbox URL
+  let initialClient: typeof sandboxClient | null = null
+  if (initialSandbox?.url) {
+    const client = sandboxClient
+    client.setConfig({ baseUrl: initialSandbox.url })
+    initialClient = client
+  }
+
+  return createStore<SandboxStore>((set, get) => ({
     ...initialState,
     sandbox: initialSandbox ?? null,
+    sandboxClient: initialClient,
     status: initialSandbox ? "ready" : "idle",
-    setupComplete: initialSandbox ? true : false,
-    setupSteps: [],
 
     createSandbox: async (params) => {
       set({ status: "creating", error: null })
@@ -76,7 +80,15 @@ export function createSandboxStore(initialSandbox?: Sandbox) {
 
         const data = result.data as PostSandboxResponses[200]
         if (data?.sandbox) {
-          set({ sandbox: data.sandbox, status: "ready" })
+          // Configure sandbox client with the sandbox URL
+          const client = sandboxClient
+          client.setConfig({ baseUrl: data.sandbox.url })
+          
+          set({ 
+            sandbox: data.sandbox, 
+            sandboxClient: client,
+            status: "ready" 
+          })
           return data.sandbox
         }
 
@@ -88,11 +100,18 @@ export function createSandboxStore(initialSandbox?: Sandbox) {
       }
     },
 
-    setSandbox: (sandbox) => set({ sandbox, status: sandbox ? "ready" : "idle" }),
+    setSandbox: (sandbox) => {
+      if (sandbox?.url) {
+        // Configure sandbox client when sandbox is set
+        const client = sandboxClient
+        client.setConfig({ baseUrl: sandbox.url })
+        set({ sandbox, sandboxClient: client, status: "ready" })
+      } else {
+        set({ sandbox, sandboxClient: null, status: "idle" })
+      }
+    },
     setStatus: (status) => set({ status }),
     setError: (error) => set({ error }),
-    setSetupComplete: (complete) => set({ setupComplete: complete }),
-    addSetupStep: (step) => set((state) => ({ setupSteps: [...state.setupSteps, step] })),
     reset: () => set(initialState),
   }))
 }

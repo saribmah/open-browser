@@ -23,3 +23,7 @@ export function useSandboxContext() {
   }
   return store
 }
+
+export function useSandboxClient() {
+  return useSandboxStore((state) => state.sandboxClient)
+}
