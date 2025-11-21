@@ -1,24 +1,24 @@
 import { useRef, useEffect, type ReactNode } from "react"
-import { useParams } from "react-router"
 import { SandboxContext } from "./sandbox.context"
 import { createSandboxStore, type SandboxStore, type Sandbox, type SdkType } from "./sandbox.store"
+import { ProjectProvider } from "@/features/project"
 import { InstanceProvider } from "@/features/instance"
 import { getSandboxId } from "@/client/api/sdk.gen"
 import type { GetSandboxIdResponses } from "@/client/api/types.gen"
 
 interface SandboxProviderProps {
   children: ReactNode
+  sandboxId?: string
   initialSandbox?: Sandbox
   sdkType?: SdkType
 }
 
 export function SandboxProvider({ 
-  children, 
+  children,
+  sandboxId,
   initialSandbox,
   sdkType = "OPENCODE" 
 }: SandboxProviderProps) {
-  const params = useParams<{ sandboxId?: string }>()
-  const sandboxId = params.sandboxId
   const storeRef = useRef<SandboxStore>(createSandboxStore(initialSandbox))
 
   // Load sandbox if sandboxId is in URL
@@ -71,7 +71,9 @@ export function SandboxProvider({
   return (
     <SandboxContext.Provider value={storeRef.current}>
       <InstanceProvider sdkType={sdkType}>
-        {children}
+        <ProjectProvider>
+          {children}
+        </ProjectProvider>
       </InstanceProvider>
     </SandboxContext.Provider>
   )
