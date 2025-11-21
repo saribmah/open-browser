@@ -56,7 +56,7 @@ export type GetSandboxResponses = {
     200: {
         sandboxes: Array<{
             id: string;
-            provider: 'cloudflare' | 'daytona' | 'vercel';
+            provider: 'cloudflare' | 'daytona' | 'vercel' | 'docker';
             status: 'pending' | 'running' | 'stopped' | 'error';
             url?: string;
             createdAt: string;
@@ -75,7 +75,7 @@ export type PostSandboxData = {
         type: 'GITHUB' | 'ARXIV';
         directory: string;
         sdkType: 'OPENCODE' | 'CLAUDE_CODE';
-        provider: 'cloudflare' | 'daytona' | 'vercel';
+        provider: 'cloudflare' | 'daytona' | 'vercel' | 'docker';
     };
     path?: never;
     query?: never;
@@ -102,7 +102,7 @@ export type PostSandboxResponses = {
         message?: string;
         sandbox?: {
             id: string;
-            provider: 'cloudflare' | 'daytona' | 'vercel';
+            provider: 'cloudflare' | 'daytona' | 'vercel' | 'docker';
             status: 'pending' | 'running' | 'stopped' | 'error';
             url?: string;
             createdAt: string;
@@ -144,7 +144,7 @@ export type DeleteSandboxIdResponses = {
         message?: string;
         sandbox?: {
             id: string;
-            provider: 'cloudflare' | 'daytona' | 'vercel';
+            provider: 'cloudflare' | 'daytona' | 'vercel' | 'docker';
             status: 'pending' | 'running' | 'stopped' | 'error';
             url?: string;
             createdAt: string;
@@ -183,7 +183,7 @@ export type GetSandboxIdResponses = {
      */
     200: {
         id: string;
-        provider: 'cloudflare' | 'daytona' | 'vercel';
+        provider: 'cloudflare' | 'daytona' | 'vercel' | 'docker';
         status: 'pending' | 'running' | 'stopped' | 'error';
         url?: string;
         createdAt: string;

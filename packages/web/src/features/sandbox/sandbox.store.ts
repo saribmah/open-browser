@@ -1,21 +1,14 @@
 import { createStore } from "zustand/vanilla"
 import { postSandbox } from "@/client/api/sdk.gen"
 import { client } from "@/client/api/client.gen"
-import type { PostSandboxResponses } from "@/client/api/types.gen"
+import type { PostSandboxResponses, PostSandboxData } from "@/client/api/types.gen"
 
-export type SandboxProviderType = "cloudflare" | "daytona" | "vercel"
-export type IntegrationType = "GITHUB" | "ARXIV"
-export type SdkType = "OPENCODE" | "CLAUDE_CODE"
+// Extract types from generated API types
+export type Sandbox = NonNullable<PostSandboxResponses[200]["sandbox"]>
+export type SandboxProviderType = Sandbox["provider"]
+export type IntegrationType = NonNullable<PostSandboxData["body"]>["type"]
+export type SdkType = NonNullable<PostSandboxData["body"]>["sdkType"]
 export type SandboxStatus = "idle" | "setting-up" | "creating" | "ready" | "error"
-
-export interface Sandbox {
-  id: string
-  provider: SandboxProviderType
-  status: string
-  url?: string
-  createdAt: string
-  metadata?: Record<string, unknown>
-}
 
 export interface CreateSandboxParams {
   url: string

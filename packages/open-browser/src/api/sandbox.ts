@@ -1,7 +1,13 @@
 import { Hono } from "hono";
 import { describeRoute, resolver, validator } from 'hono-openapi';
-import { z } from "zod";
 import type { SandboxManager } from "../sandbox/manager";
+import {
+    ErrorSchema,
+    SandboxSchema,
+    CreateSandboxSchema,
+    SandboxesResponseSchema,
+    SuccessSchema
+} from "./schemas";
 
 const route = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -9,37 +15,6 @@ function getSandboxManager(env: Cloudflare.Env): DurableObjectStub<SandboxManage
     const id = env.SANDBOX_MANAGER.idFromName("global");
     return env.SANDBOX_MANAGER.get(id);
 }
-
-const ErrorSchema = z.object({
-    error: z.string()
-});
-
-const SandboxSchema = z.object({
-    id: z.string(),
-    provider: z.enum(["cloudflare", "daytona", "vercel", "docker"]),
-    status: z.enum(["pending", "running", "stopped", "error"]),
-    url: z.string().optional(),
-    createdAt: z.string(),
-    metadata: z.record(z.string(), z.any()).optional()
-});
-
-const CreateSandboxSchema = z.object({
-    url: z.string(),
-    type: z.enum(["GITHUB", "ARXIV"]),
-    directory: z.string(),
-    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
-    provider: z.enum(["cloudflare", "daytona", "vercel", "docker"])
-});
-
-const SandboxesResponseSchema = z.object({
-    sandboxes: z.array(SandboxSchema)
-});
-
-const SuccessSchema = z.object({
-    success: z.boolean(),
-    message: z.string().optional(),
-    sandbox: SandboxSchema.optional()
-});
 
 // GET /sandbox - Get all sandboxes
 route.get(

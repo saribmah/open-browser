@@ -12,6 +12,14 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "containers": [
+    {
+      "class_name": "CloudflareSandbox",
+      "image": "../sandbox/Dockerfile",
+      "instance_type": "standard-1",
+      "max_instances": 100
+    }
+  ],
   "durable_objects": {
     "bindings": [
       {
@@ -26,7 +34,7 @@
   },
   "migrations": [
     {
-      "new_sqlite_classes": ["SandboxManager"],
+      "new_sqlite_classes": ["SandboxManager", "CloudflareSandbox"],
       "tag": "v1"
     }
   ]
