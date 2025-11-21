@@ -1,9 +1,3 @@
-import { Hono } from 'hono'
+import { Api } from './api/api'
 
-const app = new Hono()
-
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
-
-export default app
+export default Api.routes
