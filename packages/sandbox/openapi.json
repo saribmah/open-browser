@@ -1,0 +1,899 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Open Browser Sandbox API",
+    "description": "API documentation for Open Browser Sandbox service",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "description": "Health Check",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "timestamp"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "operationId": "getIndex",
+        "description": "Service Information",
+        "responses": {
+          "200": {
+            "description": "Service details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "service": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "service",
+                    "version"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session": {
+      "get": {
+        "operationId": "getSession",
+        "description": "Get All Sessions",
+        "responses": {
+          "200": {
+            "description": "Sessions retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ],
+                        "additionalProperties": {}
+                      }
+                    }
+                  },
+                  "required": [
+                    "sessions"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "postSession",
+        "description": "Create New Session",
+        "responses": {
+          "200": {
+            "description": "Session created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sdk": {
+      "get": {
+        "operationId": "getSdk",
+        "description": "Get Available SDKs",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "description",
+                      "version"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instance/current": {
+      "get": {
+        "operationId": "getInstanceCurrent",
+        "description": "Get Current Instance State",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "GITHUB",
+                        "ARXIV"
+                      ]
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "directory": {
+                      "type": "string"
+                    },
+                    "sdkType": {
+                      "type": "string",
+                      "enum": [
+                        "OPENCODE",
+                        "CLAUDE_CODE"
+                      ]
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "type",
+                    "url",
+                    "directory",
+                    "sdkType"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instance/available": {
+      "get": {
+        "operationId": "getInstanceAvailable",
+        "description": "Get All Available Instances",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "GITHUB",
+                          "ARXIV"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "directory": {
+                        "type": "string"
+                      },
+                      "sdkType": {
+                        "type": "string",
+                        "enum": [
+                          "OPENCODE",
+                          "CLAUDE_CODE"
+                        ]
+                      },
+                      "metadata": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "type",
+                      "url",
+                      "directory",
+                      "sdkType"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instance/init": {
+      "post": {
+        "operationId": "postInstanceInit",
+        "description": "Initialize Current Instance",
+        "responses": {
+          "200": {
+            "description": "Instance initialized successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "directory": {
+                      "type": "string"
+                    },
+                    "instance": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "GITHUB",
+                            "ARXIV"
+                          ]
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "directory": {
+                          "type": "string"
+                        },
+                        "sdkType": {
+                          "type": "string",
+                          "enum": [
+                            "OPENCODE",
+                            "CLAUDE_CODE"
+                          ]
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "type",
+                        "url",
+                        "directory",
+                        "sdkType"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "GITHUB",
+                      "ARXIV"
+                    ]
+                  },
+                  "directory": {
+                    "type": "string"
+                  },
+                  "sdkType": {
+                    "type": "string",
+                    "enum": [
+                      "OPENCODE",
+                      "CLAUDE_CODE"
+                    ]
+                  }
+                },
+                "required": [
+                  "url",
+                  "type",
+                  "directory",
+                  "sdkType"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instance/add": {
+      "post": {
+        "operationId": "postInstanceAdd",
+        "description": "Add New Instance",
+        "responses": {
+          "200": {
+            "description": "Instance added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "directory": {
+                      "type": "string"
+                    },
+                    "instance": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "GITHUB",
+                            "ARXIV"
+                          ]
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "directory": {
+                          "type": "string"
+                        },
+                        "sdkType": {
+                          "type": "string",
+                          "enum": [
+                            "OPENCODE",
+                            "CLAUDE_CODE"
+                          ]
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "type",
+                        "url",
+                        "directory",
+                        "sdkType"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "GITHUB",
+                      "ARXIV"
+                    ]
+                  },
+                  "directory": {
+                    "type": "string"
+                  },
+                  "sdkType": {
+                    "type": "string",
+                    "enum": [
+                      "OPENCODE",
+                      "CLAUDE_CODE"
+                    ]
+                  }
+                },
+                "required": [
+                  "url",
+                  "type",
+                  "directory",
+                  "sdkType"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instance/switch": {
+      "post": {
+        "operationId": "postInstanceSwitch",
+        "description": "Switch to Different Instance",
+        "responses": {
+          "200": {
+            "description": "Instance switched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "directory": {
+                      "type": "string"
+                    },
+                    "instance": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "GITHUB",
+                            "ARXIV"
+                          ]
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "directory": {
+                          "type": "string"
+                        },
+                        "sdkType": {
+                          "type": "string",
+                          "enum": [
+                            "OPENCODE",
+                            "CLAUDE_CODE"
+                          ]
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "type",
+                        "url",
+                        "directory",
+                        "sdkType"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "instanceId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "instanceId"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instance/remove": {
+      "post": {
+        "operationId": "postInstanceRemove",
+        "description": "Remove Instance",
+        "responses": {
+          "200": {
+            "description": "Instance removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "directory": {
+                      "type": "string"
+                    },
+                    "instance": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "GITHUB",
+                            "ARXIV"
+                          ]
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "directory": {
+                          "type": "string"
+                        },
+                        "sdkType": {
+                          "type": "string",
+                          "enum": [
+                            "OPENCODE",
+                            "CLAUDE_CODE"
+                          ]
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "type",
+                        "url",
+                        "directory",
+                        "sdkType"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "instanceId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "instanceId"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config/providers": {
+      "get": {
+        "operationId": "getConfigProviders",
+        "description": "Get All Providers",
+        "responses": {
+          "200": {
+            "description": "Providers retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "models": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {}
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": {}
+                      }
+                    },
+                    "default": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "providers",
+                    "default"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {}
+}

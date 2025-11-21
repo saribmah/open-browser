@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "bun --hot run ./src/index.ts",
     "build": "bun run build",
-    "build:image:dev": "scripts/build.sh build dev"
+    "build:image:dev": "scripts/build.sh build dev",
+    "generate:openapi": "bun run scripts/openapi.ts",
+    "generate:client": "bun run scripts/generate.ts",
+    "generate": "bun run generate:openapi && bun run generate:client"
   },
   "devDependencies": {
     "@types/bun": "latest"

@@ -138,4 +138,6 @@ export namespace Router {
             fetch: app().fetch,
         });
     }
+
+    export const routes = app();
 }
