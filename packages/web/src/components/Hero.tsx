@@ -2,17 +2,50 @@ import { useState } from "react"
 import { useNavigate } from "react-router"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Search } from "lucide-react"
+import { Search, Loader2 } from "lucide-react"
 import type { FormEvent } from "react"
+import { useSandboxStore } from "@/store/sandbox"
+
+function parseUrl(url: string): { type: 'GITHUB' | 'ARXIV'; directory: string } | null {
+  if (url.includes('github.com')) {
+    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (match && match[2]) {
+      return { type: 'GITHUB', directory: match[2] };
+    }
+  }
+  if (url.includes('arxiv.org')) {
+    const match = url.match(/arxiv\.org\/abs\/([^/]+)/);
+    if (match && match[1]) {
+      return { type: 'ARXIV', directory: match[1] };
+    }
+  }
+  return null;
+}
 
 export function Hero() {
   const navigate = useNavigate()
   const [url, setUrl] = useState("")
+  const { createSandbox, isCreating, error } = useSandboxStore()
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (url) {
-      navigate(`/chat?url=${encodeURIComponent(url)}`)
+    if (!url) return
+
+    const parsed = parseUrl(url)
+    if (!parsed) {
+      return
+    }
+
+    const sandbox = await createSandbox({
+      url,
+      type: parsed.type,
+      directory: parsed.directory,
+      sdkType: 'OPENCODE',
+      provider: 'daytona',
+    })
+
+    if (sandbox) {
+      navigate(`/chat?sandbox=${sandbox.id}`)
     }
   }
 
@@ -39,16 +72,21 @@ export function Hero() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="Paste a GitHub or Arxiv URL..."
+              disabled={isCreating}
               className="h-12 pl-10 pr-24 rounded-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-blue-500 focus-visible:border-blue-500"
             />
           </div>
           <Button
             type="submit"
-            className="absolute right-1 h-10 rounded-full bg-white text-black hover:bg-zinc-200 px-6"
+            disabled={isCreating}
+            className="absolute right-1 h-10 rounded-full bg-white text-black hover:bg-zinc-200 px-6 disabled:opacity-50"
           >
-            Open
+            {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Open'}
           </Button>
         </form>
+        {error && (
+          <p className="mt-2 text-sm text-red-400">{error}</p>
+        )}
         <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm text-zinc-500">
           <span>Try:</span>
           <button
