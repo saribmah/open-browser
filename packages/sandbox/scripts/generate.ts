@@ -8,5 +8,5 @@ createClient({
 
 createClient({
     input: resolve(import.meta.dir, '../openapi.json'),
-    output: resolve(import.meta.dir, '../../open-browser/src/client/sandbox'),
+    output: resolve(import.meta.dir, '../../open-browser/src/sandbox/client'),
 });
