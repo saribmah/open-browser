@@ -1,5 +1,5 @@
 import { Log } from "../util/log";
-import { Project } from "../instance/project";
+import { Instance } from "../instance/instance";
 import * as fs from "fs/promises";
 import * as path from "path";
 
@@ -30,22 +30,11 @@ export namespace File {
         log.info("Listing files", { dirPath });
 
         try {
-            // Get current project
-            const currentProject = Project.getCurrent();
-            
-            if (!currentProject) {
-                log.error("No current project set");
-                return {
-                    success: false,
-                    error: "No current project set"
-                };
-            }
-
-            const basePath = currentProject.directory;
+            // Get instance directory
+            const basePath = Instance.getDirectory();
             const fullPath = path.join(basePath, dirPath);
 
             log.info("Reading directory", {
-                projectId: currentProject.id,
                 basePath,
                 fullPath
             });
@@ -79,7 +68,6 @@ export namespace File {
             }
 
             log.info("Files listed successfully", {
-                projectId: currentProject.id,
                 count: files.length
             });
 
@@ -106,22 +94,11 @@ export namespace File {
         log.info("Getting file tree", { dirPath, maxDepth });
 
         try {
-            // Get current project
-            const currentProject = Project.getCurrent();
-            
-            if (!currentProject) {
-                log.error("No current project set");
-                return {
-                    success: false,
-                    error: "No current project set"
-                };
-            }
-
-            const basePath = currentProject.directory;
+            // Get instance directory
+            const basePath = Instance.getDirectory();
             const fullPath = path.join(basePath, dirPath);
 
             log.info("Building file tree", {
-                projectId: currentProject.id,
                 basePath,
                 fullPath,
                 maxDepth
@@ -129,9 +106,7 @@ export namespace File {
 
             const tree = await buildTree(fullPath, dirPath, 0, maxDepth);
 
-            log.info("File tree built successfully", {
-                projectId: currentProject.id
-            });
+            log.info("File tree built successfully");
 
             return {
                 success: true,
@@ -217,22 +192,11 @@ export namespace File {
         log.info("Reading file", { filePath });
 
         try {
-            // Get current project
-            const currentProject = Project.getCurrent();
-            
-            if (!currentProject) {
-                log.error("No current project set");
-                return {
-                    success: false,
-                    error: "No current project set"
-                };
-            }
-
-            const basePath = currentProject.directory;
+            // Get instance directory
+            const basePath = Instance.getDirectory();
             const fullPath = path.join(basePath, filePath);
 
             log.info("Reading file content", {
-                projectId: currentProject.id,
                 basePath,
                 fullPath
             });
@@ -257,7 +221,6 @@ export namespace File {
             const content = await fs.readFile(fullPath, 'utf-8');
 
             log.info("File read successfully", {
-                projectId: currentProject.id,
                 size: content.length
             });
 

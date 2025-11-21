@@ -1,6 +1,5 @@
 import { Log } from "../util/log";
 import { Instance } from "../instance/instance";
-import { Project } from "../instance/project";
 import { SDK } from "../sdk/sdk";
 
 const log = Log.create({ service: "session" });
@@ -13,34 +12,22 @@ export namespace Session {
         log.info("Getting all sessions");
 
         try {
-            // Get current project
-            const currentProject = Project.getCurrent();
-            
-            if (!currentProject) {
-                log.error("No current project set");
-                return {
-                    success: false,
-                    error: "No current project set"
-                };
-            }
-
-            // Get SDK type from state
+            // Get instance state
             const state = Instance.getState();
+            const directory = Instance.getDirectory();
 
-            log.info("Getting sessions for project", {
-                projectId: currentProject.id,
+            log.info("Getting sessions for instance", {
                 sdkType: state.sdkType,
-                directory: currentProject.directory
+                directory
             });
 
             // Get sessions from SDK
             const sessions = await SDK.getSessions({
                 type: state.sdkType,
-                directory: currentProject.directory
+                directory
             });
 
             log.info("Sessions retrieved successfully", {
-                projectId: currentProject.id,
                 count: sessions.length
             });
 
@@ -66,34 +53,22 @@ export namespace Session {
         log.info("Creating new session");
 
         try {
-            // Get current project
-            const currentProject = Project.getCurrent();
-            
-            if (!currentProject) {
-                log.error("No current project set");
-                return {
-                    success: false,
-                    error: "No current project set"
-                };
-            }
-
-            // Get SDK type from state
+            // Get instance state
             const state = Instance.getState();
+            const directory = Instance.getDirectory();
 
-            log.info("Creating session for project", {
-                projectId: currentProject.id,
+            log.info("Creating session for instance", {
                 sdkType: state.sdkType,
-                directory: currentProject.directory
+                directory
             });
 
             // Create session in SDK
             const session = await SDK.createSession({
                 type: state.sdkType,
-                directory: currentProject.directory
+                directory
             });
 
             log.info("Session created successfully", {
-                projectId: currentProject.id,
                 sessionId: session.id
             });
 

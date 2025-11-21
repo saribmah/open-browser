@@ -18,12 +18,10 @@ export namespace Project {
     }
 
     export interface State {
-        currentProject: Item | null;
         projects: Item[];
     }
 
     let state: State = {
-        currentProject: null,
         projects: []
     };
 
@@ -39,13 +37,6 @@ export namespace Project {
      */
     export function getState(): State {
         return state;
-    }
-
-    /**
-     * Get the current active project
-     */
-    export function getCurrent(): Item | null {
-        return state.currentProject;
     }
 
     /**
@@ -118,14 +109,6 @@ export namespace Project {
 
             state.projects.push(project);
 
-            // If this is the first project, make it current
-            if (state.projects.length === 1) {
-                state.currentProject = project;
-                log.info("Set as current project (first project added)", {
-                    projectId: project.id
-                });
-            }
-
             log.info("Project added successfully", {
                 projectId: project.id,
                 directory: fullDirectory,
@@ -146,44 +129,6 @@ export namespace Project {
                 error: error.message
             };
         }
-    }
-
-    /**
-     * Switch to a different project
-     */
-    export function switchTo(projectId: string): { success: boolean; error?: string; project?: Item } {
-        log.info("Attempting to switch project", { targetId: projectId });
-
-        // Check if trying to switch to current project
-        if (state.currentProject && state.currentProject.id === projectId) {
-            return {
-                success: false,
-                error: "Already on this project"
-            };
-        }
-
-        // Find the target project
-        const targetProject = state.projects.find(p => p.id === projectId);
-
-        if (!targetProject) {
-            log.warn("Project not found", { projectId });
-            return {
-                success: false,
-                error: "Project not found"
-            };
-        }
-
-        // Set the new current project
-        state.currentProject = targetProject;
-
-        log.info("Project switched successfully", {
-            newProject: state.currentProject.id
-        });
-
-        return {
-            success: true,
-            project: state.currentProject
-        };
     }
 
     /**
@@ -213,14 +158,6 @@ export namespace Project {
             const index = state.projects.findIndex(p => p.id === projectId);
             if (index !== -1) {
                 state.projects.splice(index, 1);
-            }
-
-            // If we removed the current project, switch to another or set to null
-            if (state.currentProject && state.currentProject.id === projectId) {
-                state.currentProject = state.projects.length > 0 ? (state.projects[0] || null) : null;
-                log.info("Current project removed, switched to", {
-                    newCurrentProject: state.currentProject?.id || "none"
-                });
             }
 
             log.info("Project removed successfully", {
@@ -255,7 +192,6 @@ export namespace Project {
      */
     export async function cleanup(): Promise<void> {
         log.info("Starting project cleanup", {
-            currentProject: state.currentProject?.id,
             projectsCount: state.projects.length
         });
 
@@ -285,7 +221,6 @@ export namespace Project {
 
         // Clear all state
         state = {
-            currentProject: null,
             projects: []
         };
 
@@ -297,7 +232,6 @@ export namespace Project {
      */
     export function reset(): void {
         state = {
-            currentProject: null,
             projects: []
         };
     }

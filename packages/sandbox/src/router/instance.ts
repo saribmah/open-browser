@@ -16,10 +16,7 @@ const InstanceStateSchema = z.object({
     sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
 });
 
-const ProjectStateSchema = z.object({
-    currentProject: ProjectSchema.nullable(),
-    projects: z.array(ProjectSchema)
-});
+
 
 const InitInstanceSchema = z.object({
     sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
@@ -31,9 +28,7 @@ const AddProjectSchema = z.object({
     directory: z.string()
 });
 
-const SwitchProjectSchema = z.object({
-    projectId: z.string()
-});
+
 
 const RemoveProjectSchema = z.object({
     projectId: z.string()
@@ -112,38 +107,6 @@ route.get(
     async (c) => {
         const state = Instance.getState();
         return c.json(state);
-    });
-
-// GET /instance/current - Get the current active project
-route.get(
-    "/current",
-    describeRoute({
-        description: 'Get Current Project',
-        responses: {
-            200: {
-                description: 'Current project retrieved successfully',
-                content: {
-                    'application/json': { schema: resolver(ProjectSchema) },
-                },
-            },
-            404: {
-                description: 'No current project set',
-                content: {
-                    'application/json': { schema: resolver(ErrorSchema) },
-                },
-            },
-        },
-    }),
-    async (c) => {
-        const current = Project.getCurrent();
-
-        if (!current) {
-            return c.json({
-                error: "No current project set"
-            }, 404);
-        }
-
-        return c.json(current);
     });
 
 // GET /instance/projects - Get all projects
@@ -228,52 +191,6 @@ route.post(
         return c.json({
             success: true,
             message: "Project added successfully",
-            project: result.project
-        });
-    });
-
-// POST /instance/project/switch - Switch to a different project
-route.post(
-    "/project/switch",
-    describeRoute({
-        description: 'Switch to Different Project',
-        responses: {
-            200: {
-                description: 'Project switched successfully',
-                content: {
-                    'application/json': { schema: resolver(SuccessSchema) },
-                },
-            },
-            400: {
-                description: 'Bad request',
-                content: {
-                    'application/json': { schema: resolver(ErrorSchema) },
-                },
-            },
-        },
-    }),
-    validator('json', SwitchProjectSchema),
-    async (c) => {
-        const body = await c.req.json();
-        const { projectId } = body;
-
-        if (!projectId) {
-            return c.json({
-                error: "projectId is required"
-            }, 400);
-        }
-
-        const result = Project.switchTo(projectId);
-
-        if (!result.success) {
-            return c.json({
-                error: result.error || "Failed to switch project"
-            }, 400);
-        }
-
-        return c.json({
-            success: true,
-            message: "Project switched successfully",
             project: result.project
         });
     });
