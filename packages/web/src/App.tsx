@@ -8,7 +8,7 @@ export default function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/chat" element={<Chat />} />
+        <Route path="/chat/:sandboxId" element={<Chat />} />
       </Routes>
     </Layout>
   )

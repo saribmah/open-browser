@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Search, Loader2 } from "lucide-react"
 import type { FormEvent } from "react"
-import { useSandboxStore } from "@/store/sandbox"
+import { useSandbox } from "@/features/sandbox"
 
 function parseUrl(url: string): { type: 'GITHUB' | 'ARXIV'; directory: string } | null {
   if (url.includes('github.com')) {
@@ -25,7 +25,8 @@ function parseUrl(url: string): { type: 'GITHUB' | 'ARXIV'; directory: string } 
 export function Hero() {
   const navigate = useNavigate()
   const [url, setUrl] = useState("")
-  const { createSandbox, isCreating, error } = useSandboxStore()
+  const { createSandbox, status, error } = useSandbox()
+  const isCreating = status === "creating"
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -45,7 +46,7 @@ export function Hero() {
     })
 
     if (sandbox) {
-      navigate(`/chat?sandbox=${sandbox.id}`)
+      navigate(`/chat/${sandbox.id}`)
     }
   }
 

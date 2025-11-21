@@ -11,6 +11,24 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "durable_objects": {
+    "bindings": [
+//      {
+//        "class_name": "Sandbox",
+//        "name": "Sandbox"
+//      },
+      {
+        "class_name": "SandboxManager",
+        "name": "SANDBOX_MANAGER"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "new_sqlite_classes": ["SandboxManager"],
+      "tag": "v1"
+    }
   ]
   // "vars": {
   //   "MY_VAR": "my-variable"

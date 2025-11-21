@@ -1,9 +1,14 @@
 import { Hono } from "hono";
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from "zod";
-import { SandboxManager } from "../sandbox/manager";
+import type { SandboxManager } from "../sandbox/manager";
 
-const route = new Hono();
+const route = new Hono<{ Bindings: Cloudflare.Env }>();
+
+function getSandboxManager(env: Cloudflare.Env): DurableObjectStub<SandboxManager> {
+    const id = env.SANDBOX_MANAGER.idFromName("global");
+    return env.SANDBOX_MANAGER.get(id);
+}
 
 const ErrorSchema = z.object({
     error: z.string()
@@ -51,9 +56,17 @@ route.get(
         },
     }),
     async (c) => {
-        // TODO: Implement sandbox listing
+        const manager = getSandboxManager(c.env);
+        const sandboxes = await manager.list();
         return c.json({
-            sandboxes: []
+            sandboxes: sandboxes.map(s => ({
+                id: s.id,
+                provider: s.provider,
+                status: s.status,
+                url: s.url,
+                createdAt: s.createdAt,
+                metadata: s.config
+            }))
         });
     },
 );
@@ -84,7 +97,8 @@ route.post(
         const { url, type, directory, sdkType, provider } = body;
 
         try {
-            const session = await SandboxManager.create({
+            const manager = getSandboxManager(c.env);
+            const session = await manager.create({
                 url,
                 type,
                 directory,
@@ -133,11 +147,21 @@ route.get(
     }),
     async (c) => {
         const id = c.req.param('id');
+        const manager = getSandboxManager(c.env);
+        const sandbox = await manager.get(id);
         
-        // TODO: Implement sandbox retrieval
+        if (!sandbox) {
+            return c.json({ error: `Sandbox ${id} not found` }, 404);
+        }
+
         return c.json({
-            error: `Sandbox ${id} not found`
-        }, 404);
+            id: sandbox.id,
+            provider: sandbox.provider,
+            status: sandbox.status,
+            url: sandbox.url,
+            createdAt: sandbox.createdAt,
+            metadata: sandbox.config
+        });
     },
 );
 
@@ -163,11 +187,16 @@ route.delete(
     }),
     async (c) => {
         const id = c.req.param('id');
+        const manager = getSandboxManager(c.env);
+        const deleted = await manager.delete(id);
         
-        // TODO: Implement sandbox deletion
+        if (!deleted) {
+            return c.json({ error: `Sandbox ${id} not found` }, 404);
+        }
+
         return c.json({
             success: true,
-            message: `Sandbox ${id} deletion not yet implemented`
+            message: `Sandbox ${id} deleted`
         });
     },
 );

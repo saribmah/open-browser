@@ -1,0 +1,97 @@
+import { createStore } from "zustand/vanilla"
+import { postSandbox } from "@/client/api/sdk.gen"
+import { client } from "@/client/api/client.gen"
+import type { PostSandboxResponses } from "@/client/api/types.gen"
+
+export type SandboxProviderType = "cloudflare" | "daytona" | "vercel"
+export type IntegrationType = "GITHUB" | "ARXIV"
+export type SdkType = "OPENCODE" | "CLAUDE_CODE"
+export type SandboxStatus = "idle" | "creating" | "ready" | "error"
+
+export interface Sandbox {
+  id: string
+  provider: SandboxProviderType
+  status: string
+  url?: string
+  createdAt: string
+  metadata?: Record<string, unknown>
+}
+
+export interface CreateSandboxParams {
+  url: string
+  type: IntegrationType
+  directory: string
+  sdkType: SdkType
+  provider: SandboxProviderType
+}
+
+export interface SandboxState {
+  sandbox: Sandbox | null
+  status: SandboxStatus
+  error: string | null
+}
+
+export interface SandboxActions {
+  createSandbox: (params: CreateSandboxParams) => Promise<Sandbox | null>
+  setSandbox: (sandbox: Sandbox | null) => void
+  setStatus: (status: SandboxStatus) => void
+  setError: (error: string | null) => void
+  reset: () => void
+}
+
+export type SandboxStore = SandboxState & SandboxActions
+
+const initialState: SandboxState = {
+  sandbox: null,
+  status: "idle",
+  error: null,
+}
+
+// Configure the API client base URL
+client.setConfig({
+  baseUrl: "/api",
+})
+
+export function createSandboxStore(initialSandbox?: Sandbox) {
+  return createStore<SandboxStore>((set) => ({
+    ...initialState,
+    sandbox: initialSandbox ?? null,
+    status: initialSandbox ? "ready" : "idle",
+
+    createSandbox: async (params) => {
+      set({ status: "creating", error: null })
+
+      try {
+        const result = await postSandbox({
+          body: params,
+        })
+
+        if (result.error) {
+          const errorMsg =
+            (result.error as { error?: string })?.error || "Failed to create sandbox"
+          set({ error: errorMsg, status: "error" })
+          return null
+        }
+
+        const data = result.data as PostSandboxResponses[200]
+        if (data?.sandbox) {
+          set({ sandbox: data.sandbox, status: "ready" })
+          return data.sandbox
+        }
+
+        set({ error: "No sandbox returned", status: "error" })
+        return null
+      } catch (err: any) {
+        set({ error: err.message || "Failed to create sandbox", status: "error" })
+        return null
+      }
+    },
+
+    setSandbox: (sandbox) => set({ sandbox, status: sandbox ? "ready" : "idle" }),
+    setStatus: (status) => set({ status }),
+    setError: (error) => set({ error }),
+    reset: () => set(initialState),
+  }))
+}
+
+export type SandboxStoreApi = ReturnType<typeof createSandboxStore>

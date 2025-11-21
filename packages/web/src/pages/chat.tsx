@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { SandboxProvider } from "@/features/sandbox"
 import { Sidebar } from "@/components/Sidebar"
 import { ContextItem } from "@/components/ContextItem"
 import { ChatInput } from "@/components/ChatInput"
@@ -99,7 +100,7 @@ export default function Chat() {
   const activeTab = tabs.find((tab) => tab.id === activeTabId)
 
   return (
-    <>
+    <SandboxProvider>
       <CommandDialog
         open={commandOpen}
         onOpenChange={setCommandOpen}
@@ -173,6 +174,6 @@ export default function Chat() {
         </div>
       </div>
       </div>
-    </>
+    </SandboxProvider>
   )
 }
