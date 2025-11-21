@@ -13,6 +13,7 @@
     "@daytonaio/sdk": "^0.115.2",
     "hono": "^4.10.6",
     "hono-openapi": "^1.1.1",
+    "node-docker-api": "^1.1.22",
     "zod": "^4.1.12"
   },
   "devDependencies": {
