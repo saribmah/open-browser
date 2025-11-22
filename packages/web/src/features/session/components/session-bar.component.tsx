@@ -28,6 +28,7 @@ export function SessionBar() {
     const newSession: UISession = {
       id: Date.now().toString(),
       title: "new session",
+      type: "chat",
       ephemeral: true,
     }
     addSession(newSession)

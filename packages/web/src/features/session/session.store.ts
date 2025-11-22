@@ -39,7 +39,9 @@ export interface SessionState {
 export interface SessionActions {
   getAllSessions: () => Promise<void>
   createSession: () => Promise<Session | null>
+  convertEphemeralToReal: (ephemeralId: string) => Promise<Session | null>
   addUISession: (session: UISession) => void
+  updateUISession: (sessionId: string, updates: Partial<UISession>) => void
   removeUISession: (sessionId: string) => void
   setActiveSession: (id: string) => void
   getMessages: (sessionId: string) => Promise<void>
@@ -90,9 +92,15 @@ export const createSessionStore = () => {
 
             const data = result.data as GetSessionResponses[200]
             if (data) {
-              set({
-                sessions: data.sessions || [],
-                isLoading: false,
+              set((state) => {
+                // Preserve ephemeral sessions and merge with backend sessions
+                const ephemeralSessions = state.sessions.filter((s) => s.ephemeral)
+                const backendSessions = data.sessions || []
+                
+                return {
+                  sessions: [...ephemeralSessions, ...backendSessions],
+                  isLoading: false,
+                }
               })
             }
           } catch (err: any) {
@@ -144,6 +152,54 @@ export const createSessionStore = () => {
           }
         },
 
+        convertEphemeralToReal: async (ephemeralId: string) => {
+          set({ isLoading: true, error: null })
+
+          const { sandboxClient } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isLoading: false })
+            return null
+          }
+
+          try {
+            // Create a real session in the backend
+            const result = await postSession({
+              client: sandboxClient,
+            })
+
+            if (result.error) {
+              const errorMsg = (result.error as { error?: string })?.error || "Failed to create session"
+              set({ error: errorMsg, isLoading: false })
+              return null
+            }
+
+            const data = result.data as PostSessionResponses[200]
+            if (data) {
+              // Replace the ephemeral session with the real session
+              set((state) => {
+                const ephemeralSession = state.sessions.find((s) => s.id === ephemeralId)
+                const otherSessions = state.sessions.filter((s) => s.id !== ephemeralId)
+                
+                return {
+                  sessions: [...otherSessions, { ...data, title: ephemeralSession?.title || data.title }],
+                  activeSessionId: data.id,
+                  isLoading: false,
+                }
+              })
+              return data
+            }
+
+            set({ isLoading: false })
+            return null
+          } catch (err: any) {
+            set({
+              error: err.message || "Failed to convert session",
+              isLoading: false,
+            })
+            return null
+          }
+        },
+
         addUISession: (session: UISession) => {
           set((state) => ({
             sessions: [...state.sessions, session],
@@ -151,8 +207,21 @@ export const createSessionStore = () => {
           }))
         },
 
+        updateUISession: (sessionId: string, updates: Partial<UISession>) => {
+          set((state) => ({
+            sessions: state.sessions.map((s) =>
+              s.id === sessionId ? { ...s, ...updates } : s
+            ),
+          }))
+        },
+
         removeUISession: (sessionId: string) => {
           set((state) => {
+            // Don't allow closing the last session
+            if (state.sessions.length <= 1) {
+              return state
+            }
+
             const newSessions = state.sessions.filter((s) => s.id !== sessionId)
             let newActiveSessionId = state.activeSessionId
 

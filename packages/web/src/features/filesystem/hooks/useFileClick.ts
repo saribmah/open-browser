@@ -4,7 +4,7 @@ import type { UISession } from "@/features/session/session.store"
 import {
   useSessions,
   useAddUISession,
-  useRemoveUISession,
+  useUpdateUISession,
   useSetActiveSession,
 } from "@/features/session"
 import { useReadFile, useCurrentFile } from "@/features/filesystem"
@@ -19,7 +19,7 @@ export function useFileClick() {
   // Get session state and actions
   const sessions = useSessions()
   const addSession = useAddUISession()
-  const removeSession = useRemoveUISession()
+  const updateSession = useUpdateUISession()
   const setActiveSession = useSetActiveSession()
 
   // Get filesystem actions
@@ -30,23 +30,16 @@ export function useFileClick() {
   useEffect(() => {
     if (!loadingFile || !currentFile || currentFile.path !== loadingFile) return
 
-    // File has loaded, update the tab
+    // File has loaded, update the tab with actual content
     const existingSession = sessions.find((sess) => sess.id === loadingFile)
     if (existingSession && existingSession.fileContent === "Loading...") {
-      // Remove and re-add with updated content
-      removeSession(loadingFile)
-      const updatedSession: UISession = {
-        id: currentFile.path,
-        title: existingSession.title,
-        type: "file",
+      updateSession(loadingFile, {
         fileContent: currentFile.content,
-        filePath: currentFile.path,
-      }
-      addSession(updatedSession)
+      })
     }
 
     setLoadingFile(null)
-  }, [currentFile, loadingFile, sessions, removeSession, addSession])
+  }, [currentFile, loadingFile, sessions, updateSession])
 
   const handleFileClick = async (file: FileNode) => {
     // Use the file path directly (already includes full path from root)
