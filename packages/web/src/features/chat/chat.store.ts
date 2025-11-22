@@ -2,7 +2,7 @@ import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import type { FileItem } from "@/features/filesystem"
 import type { FileItemData } from "@/features/filesystem/filesystem.store"
-import type { Session } from "@/features/session"
+import type { Session } from "@/features/session/components/session-bar.component"
 
 export interface ChatMessage {
   id: string

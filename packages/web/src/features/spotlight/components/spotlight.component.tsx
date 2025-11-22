@@ -20,7 +20,7 @@ import {
   useSetSpotlightSearch,
   usePushSpotlightPage,
   usePopSpotlightPage,
-} from "./spotlight.context"
+} from "@/features/spotlight/spotlight.context"
 import { useFileClick } from "@/features/filesystem/hooks/useFileClick"
 import { useFileList } from "@/features/filesystem/hooks/useFileList"
 import { useSessions } from "@/features/session"
@@ -29,7 +29,7 @@ import {
   useAddSession,
   useSetActiveSession,
 } from "@/features/chat/chat.context"
-import type { Session } from "@/features/session/session-bar.component"
+import type { Session } from "@/features/session/components/session-bar.component"
 import type { FileNode, FileItem } from "@/features/filesystem"
 
 export function SpotlightComponent() {

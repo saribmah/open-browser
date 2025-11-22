@@ -1,4 +1,3 @@
-export { SpotlightComponent } from "./spotlight.component"
 export { useSpotlightStore } from "./spotlight.store"
 export {
   useSpotlightOpen,

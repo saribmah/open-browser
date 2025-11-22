@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import type { FileNode } from "@/features/filesystem"
-import type { Session } from "@/features/session"
-import { 
+import type { Session } from "@/features/session/components/session-bar.component"
+import {
   useChatSessions,
   useAddSession,
   useRemoveSession,
@@ -15,13 +15,13 @@ import { useReadFile, useCurrentFile } from "@/features/filesystem"
  */
 export function useFileClick() {
   const [loadingFile, setLoadingFile] = useState<string | null>(null)
-  
+
   // Get chat state and actions
   const sessions = useChatSessions()
   const addSession = useAddSession()
   const removeSession = useRemoveSession()
   const setActiveSession = useSetActiveSession()
-  
+
   // Get filesystem actions
   const readFile = useReadFile()
   const currentFile = useCurrentFile()
@@ -44,14 +44,14 @@ export function useFileClick() {
       }
       addSession(updatedSession)
     }
-    
+
     setLoadingFile(null)
   }, [currentFile, loadingFile, sessions, removeSession, addSession])
 
   const handleFileClick = async (file: FileNode) => {
     // Use the file path directly (already includes full path from root)
     const filePath = file.path
-    
+
     // Check if tab already exists for this file
     const existingSession = sessions.find((sess) => sess.id === filePath)
     if (existingSession) {

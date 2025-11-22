@@ -20,6 +20,3 @@ export type {
   Session as SessionData,
   Message,
 } from "./session.store"
-export { SessionBar } from "./session-bar.component.tsx"
-export { SessionContent } from "./session.component"
-export type { Session } from "./session-bar.component.tsx"

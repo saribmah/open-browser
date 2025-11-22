@@ -1,7 +1,7 @@
 import { useParams } from "react-router"
 import { SandboxProvider } from "@/features/sandbox"
 import { ChatProvider, ChatComponent } from "@/features/chat"
-import {SpotlightComponent} from "@/features/spotlight";
+import {SpotlightComponent} from "@/features/spotlight/components/spotlight.component";
 
 export default function Chat() {
   const params = useParams<{ sandboxId?: string }>()

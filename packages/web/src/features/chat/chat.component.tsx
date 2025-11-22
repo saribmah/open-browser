@@ -1,7 +1,7 @@
 import { ChatInput } from "./chat-input.component"
 import { ChatSidebar } from "./chat-sidebar.component"
-import { SessionBar } from "@/features/session"
-import { SessionContent } from "@/features/session/session.component"
+import { SessionBar } from "@/features/session/components/session-bar.component"
+import { SessionContent } from "@/features/session/components/session.component"
 
 export function ChatComponent() {
 
