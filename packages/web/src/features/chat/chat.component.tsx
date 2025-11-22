@@ -21,7 +21,6 @@ import {
   useGetAllProjects,
   useAddProject,
 } from "@/features/project"
-import { type FileTreeNode } from "@/features/filesystem"
 import { FileTreeManager, useFileList, useFileClick } from "@/features/file"
 import { 
   useCreateSession,
@@ -35,7 +34,6 @@ import {
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
   const [commandInitialPage, setCommandInitialPage] = useState<string | undefined>()
-  const [fileTree, setFileTree] = useState<FileTreeNode | null>(null)
   
   // Get state from chat store
   const sessions = useChatSessions()
@@ -65,8 +63,9 @@ export function ChatComponent() {
   const getAllProjects = useGetAllProjects()
   const addProject = useAddProject()
 
-  // Get file click handler
+  // Get file click handler and file list for mentions
   const { handleFileClick } = useFileClick()
+  const availableFiles = useFileList()
 
   // Load projects on mount
   useEffect(() => {
@@ -124,9 +123,6 @@ export function ChatComponent() {
     // For now, just call the existing sendMessage
     sendMessage(message, mentionedFiles)
   }
-
-  // Get flat file list from the file tree
-  const availableFiles = useFileList({ fileTree })
 
   // Map API sessions to Session format for CommandDialog
   const availableApiSessions = useMemo(() => {
@@ -207,9 +203,7 @@ export function ChatComponent() {
               no projects added yet. click "add context" to get started.
             </div>
           ) : (
-            <FileTreeManager 
-              onFileTreesLoaded={setFileTree}
-            />
+            <FileTreeManager />
           )}
         </Sidebar>
 

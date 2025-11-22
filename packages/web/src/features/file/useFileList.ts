@@ -1,22 +1,20 @@
 import { useMemo } from "react"
 import type { MentionFile } from "@/components/FileMention"
 import type { FileTreeNode } from "@/features/filesystem"
-
-interface UseFileListOptions {
-  fileTree: FileTreeNode | null
-}
+import { useFileTree } from "@/features/filesystem"
 
 /**
  * Hook to get a flat list of all files from the file tree
  * 
  * This hook:
- * 1. Takes the file tree loaded by FileTreeManager
- * 2. Flattens it into a searchable MentionFile[] format
+ * 1. Reads the file tree from the filesystem store
+ * 2. Flattens it into a searchable MentionFile[] format for file mentions/autocomplete
  * 
- * @param fileTree - The file tree from the root directory
  * @returns Array of MentionFile objects for all files
  */
-export function useFileList({ fileTree }: UseFileListOptions): MentionFile[] {
+export function useFileList(): MentionFile[] {
+  const fileTree = useFileTree()
+  
   return useMemo(() => {
     if (!fileTree) return []
     

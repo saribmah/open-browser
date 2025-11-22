@@ -1,49 +1,21 @@
-import { useEffect, useMemo } from "react"
+import { useMemo } from "react"
 import { ContextItem } from "@/components/ContextItem"
 import type { Context } from "@/components/ContextItem"
-import { 
-  useGetFileTree, 
-  useFileTree,
-  type FileTreeNode 
-} from "@/features/filesystem"
+import { useFileTree, type FileTreeNode } from "@/features/filesystem"
 import { useProjects, useRemoveProject } from "@/features/project"
 import { useFileClick } from "./useFileClick"
 
-interface FileTreeManagerProps {
-  onFileTreesLoaded?: (tree: FileTreeNode | null) => void
-}
-
 /**
  * Manages file tree for the workspace
- * Loads all files from the root directory
+ * Uses the file tree loaded by FilesystemProvider
  */
-export function FileTreeManager({ onFileTreesLoaded }: FileTreeManagerProps) {
+export function FileTreeManager() {
   const projects = useProjects()
   const removeProject = useRemoveProject()
   const { handleFileClick } = useFileClick()
   
-  // Get filesystem state and actions
-  const getFileTree = useGetFileTree()
+  // Get file tree from filesystem store (already loaded by FilesystemProvider)
   const fileTree = useFileTree()
-
-  // Load file tree from root directory
-  useEffect(() => {
-    const loadFileTree = async () => {
-      try {
-        // Load from root directory with depth of 3
-        await getFileTree("/", 3)
-      } catch (error) {
-        console.error("Failed to load file tree:", error)
-      }
-    }
-
-    loadFileTree()
-  }, [getFileTree])
-
-  // Notify parent when file tree is loaded
-  useEffect(() => {
-    onFileTreesLoaded?.(fileTree)
-  }, [fileTree, onFileTreesLoaded])
 
   // Helper function to convert FileTreeNode to flat file list
   const flattenFileTree = (node: FileTreeNode): Array<{ path: string; name: string }> => {
