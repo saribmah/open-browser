@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import type { FileItem } from "@/features/filesystem"
-import type { FileItemData } from "@/components/FileItem"
+import type { FileItemData } from "@/features/filesystem/filesystem.store"
 import type { Session } from "@/features/session"
 
 export interface ChatMessage {
