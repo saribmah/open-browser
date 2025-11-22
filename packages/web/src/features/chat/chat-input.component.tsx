@@ -1,7 +1,7 @@
 import { useState, useRef } from "react"
 import { ArrowUp, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/Button"
-import { FileMention } from "@/components/FileMention"
+import { FileMention } from "@/features/filesystem/components/file-mention.component.tsx"
 import { cn } from "@/lib/utils"
 import type { FormEvent, KeyboardEvent } from "react"
 import type { FileItem } from "@/features/filesystem"
