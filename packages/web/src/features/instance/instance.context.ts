@@ -11,10 +11,3 @@ export function useInstanceContext<T>(selector: (state: InstanceStoreState) => T
   }
   return useStore(store, selector)
 }
-
-// Helper selectors
-export const useInstanceStatus = () => useInstanceContext(state => state.status)
-export const useInstanceError = () => useInstanceContext(state => state.error)
-export const useInstanceInitialized = () => useInstanceContext(state => state.initialized)
-export const useInstanceSdkType = () => useInstanceContext(state => state.sdkType)
-export const useInitializeInstance = () => useInstanceContext(state => state.initialize)

@@ -11,10 +11,3 @@ export function useSandboxContext<T>(selector: (state: SandboxStoreState) => T):
   }
   return useStore(store, selector)
 }
-
-// Helper selectors
-export const useSandboxData = () => useSandboxContext(state => state.sandbox)
-export const useSandboxClient = () => useSandboxContext(state => state.sandboxClient)
-export const useSandboxStatus = () => useSandboxContext(state => state.status)
-export const useSandboxError = () => useSandboxContext(state => state.error)
-export const useSetSandbox = () => useSandboxContext(state => state.setSandbox)
