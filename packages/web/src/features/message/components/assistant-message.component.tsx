@@ -1,5 +1,6 @@
 import type { MessageWithParts } from "@/client/sandbox"
 import { Tool } from "@/features/tool"
+import { Markdown } from "@/components/markdown"
 
 interface AssistantMessageProps {
   message: MessageWithParts
@@ -21,10 +22,8 @@ export function AssistantMessage({
         // Render text parts
         if (part.type === 'text' && 'text' in part) {
           return (
-            <div key={part.id || idx} className="flex gap-2 pl-6 border-l border-zinc-800">
-              <div className="text-zinc-300 text-sm leading-relaxed">
-                {part.text}
-              </div>
+            <div key={part.id || idx} className="pl-6 border-l border-zinc-800">
+              <Markdown content={part.text} className="text-zinc-300 text-sm leading-relaxed" />
             </div>
           )
         }

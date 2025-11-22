@@ -1,6 +1,7 @@
 import { Minimize2, Maximize2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { MessageWithParts } from "@/client/sandbox"
+import { Markdown } from "@/components/markdown"
 
 interface UserMessageProps {
   message: MessageWithParts
@@ -93,7 +94,7 @@ export function UserMessage({
           <div className="text-zinc-400 text-sm leading-relaxed">
             {parts.map((part, idx) => {
               if (part.type === 'text' && 'text' in part && !part.synthetic) {
-                return <div key={idx}>{part.text}</div>
+                return <Markdown key={idx} content={part.text} />
               }
               return null
             })}
