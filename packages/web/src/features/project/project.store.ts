@@ -1,7 +1,6 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import {
-  getInstanceCurrent,
   getInstanceProjects,
   postInstanceProjectAdd,
   postInstanceProjectRemove,
@@ -9,7 +8,6 @@ import {
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
 import type {
   GetInstanceProjectsResponses,
-  GetInstanceCurrentResponses,
   PostInstanceProjectAddResponses,
   PostInstanceProjectRemoveResponses,
 } from "@/client/sandbox/types.gen"
@@ -28,12 +26,10 @@ export type Project = {
 
 export interface AddProjectParams {
   url: string
-  type: ProjectType
-  directory: string
+  directory?: string
 }
 
 export interface ProjectState {
-  currentProject: Project | null
   projects: Project[]
   isLoading: boolean
   isLoadingProjects: boolean
@@ -41,11 +37,9 @@ export interface ProjectState {
 }
 
 export interface ProjectActions {
-  getCurrentProject: (sandboxClient: typeof sandboxClientType) => Promise<void>
   getAllProjects: (sandboxClient: typeof sandboxClientType) => Promise<void>
   addProject: (params: AddProjectParams, sandboxClient: typeof sandboxClientType) => Promise<boolean>
   removeProject: (projectId: string, sandboxClient: typeof sandboxClientType) => Promise<boolean>
-  setCurrentProject: (project: Project | null) => void
   clearProject: () => void
   setError: (error: string | null) => void
 }
@@ -54,7 +48,6 @@ export type ProjectStoreState = ProjectState & ProjectActions
 
 export const createProjectStore = () => {
   const initialState: ProjectState = {
-    currentProject: null,
     projects: [],
     isLoading: false,
     isLoadingProjects: false,
@@ -68,42 +61,6 @@ export const createProjectStore = () => {
         ...initialState,
 
         // Actions
-        getCurrentProject: async (sandboxClient: typeof sandboxClientType) => {
-          set({ isLoading: true, error: null })
-
-          try {
-            const result = await getInstanceCurrent({
-              client: sandboxClient,
-            })
-
-            if (result.error) {
-              const errorMsg = (result.error as { error?: string })?.error || "Failed to get current project"
-              set({ error: errorMsg, isLoading: false, currentProject: null })
-              return
-            }
-
-            const data = result.data as GetInstanceCurrentResponses[200]
-            if (data) {
-              set({
-                currentProject: {
-                  id: data.id,
-                  type: data.type,
-                  url: data.url,
-                  directory: data.directory,
-                  metadata: data.metadata,
-                },
-                isLoading: false,
-              })
-            }
-          } catch (err: any) {
-            set({
-              error: err.message || "Failed to get current project",
-              isLoading: false,
-              currentProject: null,
-            })
-          }
-        },
-
         getAllProjects: async (sandboxClient: typeof sandboxClientType) => {
           set({ isLoadingProjects: true, error: null })
 
@@ -185,7 +142,6 @@ export const createProjectStore = () => {
             if (data?.success) {
               set((state) => ({
                 projects: state.projects.filter((p) => p.id !== projectId),
-                currentProject: state.currentProject?.id === projectId ? null : state.currentProject,
                 isLoading: false,
               }))
             } else {
@@ -200,10 +156,6 @@ export const createProjectStore = () => {
             })
             return false
           }
-        },
-
-        setCurrentProject: (project: Project | null) => {
-          set({ currentProject: project, error: null })
         },
 
         clearProject: () => {

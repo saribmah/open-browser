@@ -24,7 +24,6 @@ import {
   useGetAllProjects,
   useAddProject,
   useRemoveProject,
-  type ProjectType,
 } from "@/features/project"
 import { useSandboxClient } from "@/features/sandbox"
 import { useGetFileTree, useFileTree, type FileTreeNode } from "@/features/filesystem"
@@ -128,17 +127,10 @@ export function ChatComponent() {
     }
 
     console.log("Adding project:", url)
-    
-    // Parse URL to determine type
-    // TODO: Better URL parsing logic
-    const type: ProjectType = url.includes("github.com") ? "GITHUB" : "ARXIV"
-    const directory = url.split("/").pop() || "project"
 
     const success = await addProject(
       {
         url,
-        type,
-        directory: `/workspace/${directory}`,
       },
       sandboxClient
     )

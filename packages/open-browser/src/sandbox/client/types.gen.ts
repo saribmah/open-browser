@@ -134,6 +134,7 @@ export type GetSdkResponse = GetSdkResponses[keyof GetSdkResponses];
 export type PostInstanceInitData = {
     body?: {
         sdkType: 'OPENCODE' | 'CLAUDE_CODE';
+        directory?: string;
     };
     path?: never;
     query?: never;
@@ -185,63 +186,11 @@ export type GetInstanceStateResponses = {
      */
     200: {
         sdkType: 'OPENCODE' | 'CLAUDE_CODE';
-        currentProject: {
-            id: string;
-            type: 'GITHUB' | 'ARXIV';
-            url: string;
-            directory: string;
-            metadata?: {
-                [key: string]: unknown;
-            };
-        } | null;
-        projects: Array<{
-            id: string;
-            type: 'GITHUB' | 'ARXIV';
-            url: string;
-            directory: string;
-            metadata?: {
-                [key: string]: unknown;
-            };
-        }>;
+        directory: string;
     };
 };
 
 export type GetInstanceStateResponse = GetInstanceStateResponses[keyof GetInstanceStateResponses];
-
-export type GetInstanceCurrentData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/instance/current';
-};
-
-export type GetInstanceCurrentErrors = {
-    /**
-     * No current project set
-     */
-    404: {
-        error: string;
-    };
-};
-
-export type GetInstanceCurrentError = GetInstanceCurrentErrors[keyof GetInstanceCurrentErrors];
-
-export type GetInstanceCurrentResponses = {
-    /**
-     * Current project retrieved successfully
-     */
-    200: {
-        id: string;
-        type: 'GITHUB' | 'ARXIV';
-        url: string;
-        directory: string;
-        metadata?: {
-            [key: string]: unknown;
-        };
-    };
-};
-
-export type GetInstanceCurrentResponse = GetInstanceCurrentResponses[keyof GetInstanceCurrentResponses];
 
 export type GetInstanceProjectsData = {
     body?: never;
@@ -270,8 +219,7 @@ export type GetInstanceProjectsResponse = GetInstanceProjectsResponses[keyof Get
 export type PostInstanceProjectAddData = {
     body?: {
         url: string;
-        type: 'GITHUB' | 'ARXIV';
-        directory: string;
+        directory?: string;
     };
     path?: never;
     query?: never;
@@ -309,47 +257,6 @@ export type PostInstanceProjectAddResponses = {
 };
 
 export type PostInstanceProjectAddResponse = PostInstanceProjectAddResponses[keyof PostInstanceProjectAddResponses];
-
-export type PostInstanceProjectSwitchData = {
-    body?: {
-        projectId: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/instance/project/switch';
-};
-
-export type PostInstanceProjectSwitchErrors = {
-    /**
-     * Bad request
-     */
-    400: {
-        error: string;
-    };
-};
-
-export type PostInstanceProjectSwitchError = PostInstanceProjectSwitchErrors[keyof PostInstanceProjectSwitchErrors];
-
-export type PostInstanceProjectSwitchResponses = {
-    /**
-     * Project switched successfully
-     */
-    200: {
-        success: boolean;
-        message?: string;
-        project?: {
-            id: string;
-            type: 'GITHUB' | 'ARXIV';
-            url: string;
-            directory: string;
-            metadata?: {
-                [key: string]: unknown;
-            };
-        };
-    };
-};
-
-export type PostInstanceProjectSwitchResponse = PostInstanceProjectSwitchResponses[keyof PostInstanceProjectSwitchResponses];
 
 export type PostInstanceProjectRemoveData = {
     body?: {

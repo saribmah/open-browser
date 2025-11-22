@@ -315,6 +315,9 @@
                       "OPENCODE",
                       "CLAUDE_CODE"
                     ]
+                  },
+                  "directory": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -345,156 +348,13 @@
                         "CLAUDE_CODE"
                       ]
                     },
-                    "currentProject": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string",
-                              "enum": [
-                                "GITHUB",
-                                "ARXIV"
-                              ]
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "directory": {
-                              "type": "string"
-                            },
-                            "metadata": {
-                              "type": "object",
-                              "propertyNames": {
-                                "type": "string"
-                              },
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "type",
-                            "url",
-                            "directory"
-                          ]
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "projects": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "GITHUB",
-                              "ARXIV"
-                            ]
-                          },
-                          "url": {
-                            "type": "string"
-                          },
-                          "directory": {
-                            "type": "string"
-                          },
-                          "metadata": {
-                            "type": "object",
-                            "propertyNames": {
-                              "type": "string"
-                            },
-                            "additionalProperties": {}
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "type",
-                          "url",
-                          "directory"
-                        ]
-                      }
+                    "directory": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "sdkType",
-                    "currentProject",
-                    "projects"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instance/current": {
-      "get": {
-        "operationId": "getInstanceCurrent",
-        "description": "Get Current Project",
-        "responses": {
-          "200": {
-            "description": "Current project retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "type": {
-                      "type": "string",
-                      "enum": [
-                        "GITHUB",
-                        "ARXIV"
-                      ]
-                    },
-                    "url": {
-                      "type": "string"
-                    },
-                    "directory": {
-                      "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "propertyNames": {
-                        "type": "string"
-                      },
-                      "additionalProperties": {}
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "type",
-                    "url",
                     "directory"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No current project set",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
                   ]
                 }
               }
@@ -643,119 +503,12 @@
                   "url": {
                     "type": "string"
                   },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "GITHUB",
-                      "ARXIV"
-                    ]
-                  },
                   "directory": {
                     "type": "string"
                   }
                 },
                 "required": [
-                  "url",
-                  "type",
-                  "directory"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instance/project/switch": {
-      "post": {
-        "operationId": "postInstanceProjectSwitch",
-        "description": "Switch to Different Project",
-        "responses": {
-          "200": {
-            "description": "Project switched successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "project": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "GITHUB",
-                            "ARXIV"
-                          ]
-                        },
-                        "url": {
-                          "type": "string"
-                        },
-                        "directory": {
-                          "type": "string"
-                        },
-                        "metadata": {
-                          "type": "object",
-                          "propertyNames": {
-                            "type": "string"
-                          },
-                          "additionalProperties": {}
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "type",
-                        "url",
-                        "directory"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "projectId": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "projectId"
+                  "url"
                 ]
               }
             }

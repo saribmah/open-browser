@@ -3,6 +3,7 @@ import { SandboxContext } from "./sandbox.context"
 import { createSandboxStore, type SandboxStore, type Sandbox, type SdkType } from "./sandbox.store"
 import { ProjectProvider } from "@/features/project"
 import { InstanceProvider } from "@/features/instance"
+import { FilesystemProvider } from "@/features/filesystem"
 import { getSandboxId } from "@/client/api/sdk.gen"
 import type { GetSandboxIdResponses } from "@/client/api/types.gen"
 
@@ -72,7 +73,9 @@ export function SandboxProvider({
     <SandboxContext.Provider value={storeRef.current}>
       <InstanceProvider sdkType={sdkType}>
         <ProjectProvider>
-          {children}
+          <FilesystemProvider>
+            {children}
+          </FilesystemProvider>
         </ProjectProvider>
       </InstanceProvider>
     </SandboxContext.Provider>

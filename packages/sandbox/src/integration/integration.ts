@@ -63,10 +63,43 @@ export namespace Integration {
     }
 
     /**
+     * Detect integration type from URL
+     */
+    export function detectType(url: string): Type | null {
+        // Try each integration type
+        for (const type of getSupportedTypes()) {
+            if (validateUrl(url, type)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get all supported integration types
      */
     export function getSupportedTypes(): Type[] {
         return Object.keys(integrations) as Type[];
+    }
+
+    /**
+     * Generate a default directory name from a URL and type
+     */
+    export function generateDirectory(url: string, type: Type): string {
+        const parsed = parseUrl(url, type);
+        
+        // For GitHub: use the repo name
+        if (type === "GITHUB" && parsed.metadata?.repo) {
+            return parsed.metadata.repo;
+        }
+        
+        // For arXiv: use the paper ID
+        if (type === "ARXIV" && parsed.metadata?.paperId) {
+            return `arxiv-${parsed.metadata.paperId}`;
+        }
+        
+        // Fallback: use the ID
+        return parsed.id;
     }
 
     /**

@@ -33,6 +33,13 @@ export namespace Project {
     }
 
     /**
+     * Get full directory path for a project
+     */
+    function getFullDirectory(project: Item): string {
+        return path.join(WORKSPACE_DIR, project.directory);
+    }
+
+    /**
      * Get the current project state
      */
     export function getState(): State {
@@ -59,30 +66,32 @@ export namespace Project {
      */
     export async function add(opts: {
         url: string;
-        type: Integration.Type;
-        directory: string;
+        directory?: string;
     }): Promise<{ success: boolean; project?: Item; error?: string }> {
-        // Construct full directory path using WORKSPACE_DIR
-        const fullDirectory = path.join(WORKSPACE_DIR, opts.directory);
-
-        log.info("Adding project", {
-            url: opts.url,
-            type: opts.type,
-            directory: opts.directory,
-            fullDirectory,
-            baseDir: WORKSPACE_DIR
-        });
-
-        // Validate integration type
-        if (!validateType(opts.type)) {
+        // Detect integration type from URL
+        const type = Integration.detectType(opts.url);
+        
+        if (!type) {
             const supported = Integration.getSupportedTypes().join(", ");
             return {
                 success: false,
-                error: `Invalid project type: ${opts.type}. Must be one of: ${supported}`
+                error: `Could not detect integration type from URL. Supported types: ${supported}`
             };
         }
 
-        const project = createProjectFromUrl(opts.url, opts.type, fullDirectory);
+        // Generate directory name if not provided
+        const directoryName = opts.directory || Integration.generateDirectory(opts.url, type);
+
+        log.info("Adding project", {
+            url: opts.url,
+            type,
+            typeDetected: true,
+            directory: directoryName,
+            directoryProvided: !!opts.directory,
+            baseDir: WORKSPACE_DIR
+        });
+
+        const project = createProjectFromUrl(opts.url, type, directoryName);
         
         // Check if project already exists
         const exists = state.projects.find(p => p.id === project.id);
@@ -94,10 +103,13 @@ export namespace Project {
         }
 
         try {
+            const fullDirectory = getFullDirectory(project);
+            
             // Setup the integration
             log.info("Setting up project integration", {
                 projectId: project.id,
-                directory: fullDirectory
+                directory: project.directory,
+                fullDirectory
             });
 
             await Integration.setup({
@@ -111,7 +123,8 @@ export namespace Project {
 
             log.info("Project added successfully", {
                 projectId: project.id,
-                directory: fullDirectory,
+                directory: project.directory,
+                fullDirectory,
                 totalProjects: state.projects.length
             });
 
@@ -147,10 +160,12 @@ export namespace Project {
         }
 
         try {
+            const fullDirectory = getFullDirectory(project);
+            
             // Remove integration
             await Integration.remove({
                 type: project.type,
-                directory: project.directory,
+                directory: fullDirectory,
                 metadata: project.metadata
             });
 
@@ -163,6 +178,7 @@ export namespace Project {
             log.info("Project removed successfully", {
                 projectId,
                 directory: project.directory,
+                fullDirectory,
                 remainingProjects: state.projects.length
             });
 
@@ -203,15 +219,22 @@ export namespace Project {
         // Clean up all projects
         const cleanupPromises = state.projects.map(async (project) => {
             try {
+                const fullDirectory = getFullDirectory(project);
+                
                 await Integration.remove({
                     type: project.type,
-                    directory: project.directory,
+                    directory: fullDirectory,
                     metadata: project.metadata
                 });
-                log.info("Project cleaned up", { projectId: project.id });
+                log.info("Project cleaned up", { 
+                    projectId: project.id,
+                    directory: project.directory,
+                    fullDirectory
+                });
             } catch (error: any) {
                 log.error("Failed to cleanup project", {
                     projectId: project.id,
+                    directory: project.directory,
                     error: error.message
                 });
             }

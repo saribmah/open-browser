@@ -13,19 +13,18 @@ const ProjectSchema = z.object({
 });
 
 const InstanceStateSchema = z.object({
-    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
+    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
+    directory: z.string()
 });
 
-
-
 const InitInstanceSchema = z.object({
-    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"])
+    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
+    directory: z.string().optional()
 });
 
 const AddProjectSchema = z.object({
     url: z.string(),
-    type: z.enum(["GITHUB", "ARXIV"]),
-    directory: z.string()
+    directory: z.string().optional()
 });
 
 
@@ -69,7 +68,7 @@ route.post(
     validator('json', InitInstanceSchema),
     async (c) => {
         const body = await c.req.json();
-        const { sdkType } = body;
+        const { sdkType, directory } = body;
 
         if (!sdkType) {
             return c.json({
@@ -78,7 +77,7 @@ route.post(
         }
 
         try {
-            await Instance.init({ sdkType });
+            await Instance.init({ sdkType, directory });
             return c.json({
                 success: true,
                 message: "SDK initialized successfully"
@@ -153,23 +152,11 @@ route.post(
     validator('json', AddProjectSchema),
     async (c) => {
         const body = await c.req.json();
-        const { url, type, directory } = body;
+        const { url, directory } = body;
 
         if (!url) {
             return c.json({
                 error: "url is required"
-            }, 400);
-        }
-
-        if (!type) {
-            return c.json({
-                error: "type is required (GITHUB or ARXIV)"
-            }, 400);
-        }
-
-        if (!directory) {
-            return c.json({
-                error: "directory is required"
             }, 400);
         }
 
@@ -180,7 +167,7 @@ route.post(
             }, 400);
         }
 
-        const result = await Project.add({ url, type, directory });
+        const result = await Project.add({ url, directory });
 
         if (!result.success) {
             return c.json({
