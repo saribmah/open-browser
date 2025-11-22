@@ -1,23 +1,23 @@
 export { ChatProvider } from "./chat.provider"
-export { ChatComponent } from "./chat.component"
-export { 
-  ChatContext, 
+export {
+  ChatContext,
   useChatContext,
-  useTabs,
-  useActiveTabId,
-  useActiveTab,
+  useChatSessions,
+  useActiveSessionId,
+  useActiveSession,
   useContexts,
   useMessages,
   useChatLoading,
   useChatError,
-  useAddTab,
-  useRemoveTab,
-  useSetActiveTab,
+  useAddSession,
+  useRemoveSession,
+  useSetActiveSession,
+  useUpdateSessionId,
   useAddContext,
   useRemoveContext,
   useSendMessage,
   useAddMessage,
-  useClearMessages
+  useClearMessages,
 } from "./chat.context"
 export { createChatStore } from "./chat.store"
 export type { 
@@ -27,3 +27,4 @@ export type {
   ChatStoreState,
   ChatStore
 } from "./chat.store"
+export { ChatComponent } from "./chat.component"

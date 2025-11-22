@@ -14,5 +14,7 @@ export type {
   SessionActions,
   SessionStoreState,
   SessionStore,
-  Session,
+  Session as SessionData,
 } from "./session.store"
+export { SessionBar } from "./SessionBar"
+export type { Session } from "./SessionBar"

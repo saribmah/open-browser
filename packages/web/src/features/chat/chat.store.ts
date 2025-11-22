@@ -2,7 +2,7 @@ import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import type { MentionFile } from "@/components/FileMention"
 import type { Context } from "@/components/ContextItem"
-import type { Tab } from "@/components/TabBar"
+import type { Session } from "@/features/session"
 
 export interface ChatMessage {
   id: string
@@ -13,8 +13,8 @@ export interface ChatMessage {
 }
 
 export interface ChatState {
-  tabs: Tab[]
-  activeTabId: string
+  sessions: Session[]
+  activeSessionId: string
   contexts: Context[]
   messages: ChatMessage[]
   isLoading: boolean
@@ -22,11 +22,11 @@ export interface ChatState {
 }
 
 export interface ChatActions {
-  // Tab management
-  addTab: (tab: Tab) => void
-  removeTab: (id: string) => void
-  setActiveTab: (id: string) => void
-  updateTabSession: (tabId: string, sessionId: string) => void
+  // Session management
+  addSession: (session: Session) => void
+  removeSession: (id: string) => void
+  setActiveSession: (id: string) => void
+  updateSessionId: (sessionId: string, apiSessionId: string) => void
   
   // Context management
   addContext: (context: Context) => void
@@ -47,8 +47,8 @@ export type ChatStoreState = ChatState & ChatActions
 
 export const createChatStore = () => {
   const initialState: ChatState = {
-    tabs: [{ id: "1", title: "new session", type: "chat" }],
-    activeTabId: "1",
+    sessions: [{ id: "1", title: "new session", type: "chat" }],
+    activeSessionId: "1",
     contexts: [],
     messages: [],
     isLoading: false,
@@ -61,40 +61,40 @@ export const createChatStore = () => {
         // Initial state
         ...initialState,
 
-        // Tab management
-        addTab: (tab: Tab) => {
+        // Session management
+        addSession: (session: Session) => {
           set((state) => ({
-            tabs: [...state.tabs, tab],
-            activeTabId: tab.id,
+            sessions: [...state.sessions, session],
+            activeSessionId: session.id,
           }))
         },
 
-        removeTab: (id: string) => {
+        removeSession: (id: string) => {
           set((state) => {
-            const newTabs = state.tabs.filter((tab) => tab.id !== id)
-            let newActiveTabId = state.activeTabId
+            const newSessions = state.sessions.filter((session) => session.id !== id)
+            let newActiveSessionId = state.activeSessionId
 
-            // If we're closing the active tab, switch to the last tab
-            if (state.activeTabId === id && newTabs.length > 0) {
-              const lastTab = newTabs[newTabs.length - 1]
-              newActiveTabId = lastTab?.id || state.activeTabId
+            // If we're closing the active session, switch to the last session
+            if (state.activeSessionId === id && newSessions.length > 0) {
+              const lastSession = newSessions[newSessions.length - 1]
+              newActiveSessionId = lastSession?.id || state.activeSessionId
             }
 
             return {
-              tabs: newTabs,
-              activeTabId: newActiveTabId,
+              sessions: newSessions,
+              activeSessionId: newActiveSessionId,
             }
           })
         },
 
-        setActiveTab: (id: string) => {
-          set({ activeTabId: id })
+        setActiveSession: (id: string) => {
+          set({ activeSessionId: id })
         },
 
-        updateTabSession: (tabId: string, sessionId: string) => {
+        updateSessionId: (sessionId: string, apiSessionId: string) => {
           set((state) => ({
-            tabs: state.tabs.map((tab) =>
-              tab.id === tabId ? { ...tab, sessionId } : tab
+            sessions: state.sessions.map((session) =>
+              session.id === sessionId ? { ...session, sessionId: apiSessionId } : session
             ),
           }))
         },

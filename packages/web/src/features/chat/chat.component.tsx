@@ -1,21 +1,20 @@
 import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { ChatInput } from "@/components/ChatInput"
-import { TabBar } from "@/components/TabBar"
 import { CommandDialog } from "@/components/CommandDialog"
 import { Code } from "@/components/Code"
-import type { Tab } from "@/components/TabBar"
 import type { MentionFile } from "@/components/FileMention"
 import type { FileNode } from "@/components/FileTree"
+import { SessionBar, type Session } from "@/features/session"
 import {
-  useTabs,
-  useActiveTabId,
-  useActiveTab,
-  useAddTab,
-  useRemoveTab,
-  useSetActiveTab,
+  useChatSessions,
+  useActiveSessionId,
+  useActiveSession,
+  useAddSession,
+  useRemoveSession,
+  useSetActiveSession,
   useSendMessage,
-  useUpdateTabSession,
+  useUpdateSessionId,
 } from "./chat.context"
 import {
   useProjects,
@@ -37,18 +36,18 @@ export function ChatComponent() {
   const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
   
   // Get state from chat store
-  const tabs = useTabs()
-  const activeTabId = useActiveTabId()
-  const activeTab = useActiveTab()
+  const sessions = useChatSessions()
+  const activeSessionId = useActiveSessionId()
+  const activeSession = useActiveSession()
   
   // Get actions from chat store
-  const addTab = useAddTab()
-  const removeTab = useRemoveTab()
-  const setActiveTab = useSetActiveTab()
+  const addSession = useAddSession()
+  const removeSession = useRemoveSession()
+  const setActiveSession = useSetActiveSession()
   const sendMessage = useSendMessage()
-  const updateTabSession = useUpdateTabSession()
+  const updateSessionId = useUpdateSessionId()
 
-  // Get session actions
+  // Get session API actions
   const createSession = useCreateSession()
 
   // Get project state and actions
@@ -71,22 +70,22 @@ export function ChatComponent() {
     if (!loadingFile || !currentFile || currentFile.path !== loadingFile) return
 
     // File has loaded, update the tab
-    const existingTab = tabs.find((tab) => tab.id === loadingFile)
-    if (existingTab && existingTab.fileContent === "Loading...") {
+    const existingSession = sessions.find((sess) => sess.id === loadingFile)
+    if (existingSession && existingSession.fileContent === "Loading...") {
       // We need an updateTab action - for now, remove and re-add
-      removeTab(loadingFile)
-      const updatedTab: Tab = {
+      removeSession(loadingFile)
+      const updatedSession: Session = {
         id: currentFile.path,
-        title: existingTab.title,
+        title: existingSession.title,
         type: "file",
         fileContent: currentFile.content,
         filePath: currentFile.path,
       }
-      addTab(updatedTab)
+      addSession(updatedSession)
     }
     
     setLoadingFile(null)
-  }, [currentFile, loadingFile, tabs, removeTab, addTab])
+  }, [currentFile, loadingFile, sessions, removeSession, addSession])
 
   const handleAddContext = async (url: string) => {
     console.log("Adding project:", url)
@@ -112,12 +111,12 @@ export function ChatComponent() {
 
   const handleSendMessage = async (message: string, mentionedFiles?: MentionFile[]) => {
     // Get the active tab
-    if (!activeTab) return
+    if (!activeSession) return
 
     // Check if the tab has a session
-    if (!activeTab.sessionId) {
+    if (!activeSession.sessionId) {
       // Create a session for this tab
-      console.log("Creating session for tab:", activeTab.id)
+      console.log("Creating session for tab:", activeSession.id)
       const session = await createSession()
       
       if (!session) {
@@ -126,14 +125,14 @@ export function ChatComponent() {
       }
 
       // Update the tab with the session ID
-      updateTabSession(activeTab.id, session.id)
+      updateSessionId(activeSession.id, session.id)
       console.log("Session created:", session.id)
       
       // TODO: Send message with session.id
     } else {
       // Session exists, send message
-      console.log("Sending message with existing session:", activeTab.sessionId)
-      // TODO: Send message with activeTab.sessionId
+      console.log("Sending message with existing session:", activeSession.sessionId)
+      // TODO: Send message with activeSession.sessionId
     }
 
     // For now, just call the existing sendMessage
@@ -143,16 +142,16 @@ export function ChatComponent() {
   // Get flat file list from all projects using the hook
   const availableFiles = useFileList({ projectFileTrees })
 
-  const handleNewTab = () => {
-    const newTab: Tab = {
+  const handleNewSession = () => {
+    const newSession: Session = {
       id: Date.now().toString(),
       title: "new session",
     }
-    addTab(newTab)
+    addSession(newSession)
   }
 
-  const handleCloseTab = (id: string) => {
-    removeTab(id)
+  const handleCloseSession = (id: string) => {
+    removeSession(id)
   }
 
   const handleFileClick = async (file: FileNode, directory?: string) => {
@@ -162,21 +161,21 @@ export function ChatComponent() {
     const fullPath = directory ? `${directory}/${relativePath}` : file.path
     
     // Check if tab already exists for this file
-    const existingTab = tabs.find((tab) => tab.id === fullPath)
-    if (existingTab) {
-      setActiveTab(existingTab.id)
+    const existingSession = sessions.find((sess) => sess.id === fullPath)
+    if (existingSession) {
+      setActiveSession(existingSession.id)
       return
     }
 
     // Create tab with loading state
-    const newTab: Tab = {
+    const newSession: Session = {
       id: fullPath,
       title: file.name,
       type: "file",
       fileContent: "Loading...",
       filePath: fullPath,
     }
-    addTab(newTab)
+    addSession(newSession)
     setLoadingFile(fullPath)
 
     // Fetch file content with full path - useEffect will update the tab when loaded
@@ -188,7 +187,7 @@ export function ChatComponent() {
       <CommandDialog
         open={commandOpen}
         onOpenChange={setCommandOpen}
-        onNewSession={handleNewTab}
+        onNewSession={handleNewSession}
         onAddContext={() => {
           // Focus on the sidebar add context input
           setCommandOpen(false)
@@ -228,25 +227,25 @@ export function ChatComponent() {
         </Sidebar>
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Tab Bar */}
-          <TabBar
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabSelect={setActiveTab}
-            onTabClose={handleCloseTab}
-            onNewTab={handleNewTab}
+          {/* Session Bar */}
+          <SessionBar
+            sessions={sessions}
+            activeSessionId={activeSessionId}
+            onSessionSelect={setActiveSession}
+            onSessionClose={handleCloseSession}
+            onNewSession={handleNewSession}
           />
 
           {/* Content area */}
           <div className="flex-1 relative overflow-hidden">
             {/* Main content - scrollable */}
             <div className="absolute inset-0 overflow-y-auto pb-48">
-              {activeTab?.type === "file" && activeTab.fileContent ? (
+              {activeSession?.type === "file" && activeSession.fileContent ? (
                 /* File viewer */
                 <Code
                   file={{
-                    name: activeTab.title,
-                    contents: activeTab.fileContent,
+                    name: activeSession.title,
+                    contents: activeSession.fileContent,
                   }}
                 />
               ) : (
