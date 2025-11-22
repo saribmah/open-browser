@@ -20,8 +20,6 @@ export const useChatLoading = () => useChatContext(state => state.isLoading)
 export const useChatError = () => useChatContext(state => state.error)
 
 // Action hooks
-export const useAddContext = () => useChatContext(state => state.addContext)
-export const useRemoveContext = () => useChatContext(state => state.removeContext)
 export const useSendMessage = () => useChatContext(state => state.sendMessage)
 export const useAddMessage = () => useChatContext(state => state.addMessage)
 export const useClearMessages = () => useChatContext(state => state.clearMessages)

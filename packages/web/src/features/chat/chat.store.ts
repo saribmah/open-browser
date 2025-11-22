@@ -20,10 +20,6 @@ export interface ChatState {
 }
 
 export interface ChatActions {
-  // Context management
-  addContext: (context: FileItemData) => void
-  removeContext: (id: string) => void
-
   // Message management
   sendMessage: (content: string, mentionedFiles?: FileItem[]) => Promise<void>
   addMessage: (message: ChatMessage) => void
@@ -51,19 +47,6 @@ export const createChatStore = () => {
       (set) => ({
         // Initial state
         ...initialState,
-
-        // Context management
-        addContext: (context: FileItemData) => {
-          set((state) => ({
-            contexts: [...state.contexts, context],
-          }))
-        },
-
-        removeContext: (id: string) => {
-          set((state) => ({
-            contexts: state.contexts.filter((context) => context.id !== id),
-          }))
-        },
 
         // Message management
         sendMessage: async (content: string, mentionedFiles?: FileItem[]) => {

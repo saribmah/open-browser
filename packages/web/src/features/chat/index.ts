@@ -7,8 +7,6 @@ export {
   useChatMessages,
   useChatLoading,
   useChatError,
-  useAddContext,
-  useRemoveContext,
   useSendMessage,
   useAddMessage,
   useClearMessages,
