@@ -104,7 +104,9 @@ export namespace File {
                 maxDepth
             });
 
-            const tree = await buildTree(fullPath, dirPath, 0, maxDepth);
+            // Build tree starting from depth -1 so the requested directory itself is at depth 0
+            // This way its children will be included
+            const tree = await buildTree(fullPath, ".", -1, maxDepth);
 
             log.info("File tree built successfully");
 
@@ -156,7 +158,8 @@ export namespace File {
             }
 
             const entryFullPath = path.join(fullPath, entry.name);
-            const entryRelativePath = path.join(relativePath, entry.name);
+            // For the root level (depth -1), use entry name directly as relative path
+            const entryRelativePath = depth < 0 ? entry.name : path.join(relativePath, entry.name);
 
             try {
                 const child = await buildTree(entryFullPath, entryRelativePath, depth + 1, maxDepth);
