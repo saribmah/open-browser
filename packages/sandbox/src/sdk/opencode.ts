@@ -220,6 +220,15 @@ export const OPENCODE = {
                 return [];
             }
 
+            // Log first message structure for debugging
+            if (response.data.length > 0) {
+                log.info("Message structure (first message)", {
+                    directory,
+                    sessionId,
+                    firstMessage: JSON.stringify(response.data[0], null, 2)
+                });
+            }
+
             log.info("Messages retrieved successfully", { 
                 directory,
                 sessionId,
