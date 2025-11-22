@@ -28,3 +28,4 @@ export type {
   ChatStore
 } from "./chat.store"
 export { ChatComponent } from "./chat.component"
+export { SessionContent } from "./session.component"
