@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/Sidebar"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { useProjects, useGetAllProjects, useAddProject } from "@/features/project"
-import { FileTreeManager } from "@/features/filesystem/file-tree-manager.component"
+import { FileTreeManager } from "@/features/filesystem/components/file-tree-manager.component"
 import { cn } from "@/lib/utils"
 import type { FormEvent } from "react"
 
