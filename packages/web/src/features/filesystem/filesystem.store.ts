@@ -25,6 +25,19 @@ export type FileNode = BaseFileTreeNode & {
 
 export type FileContent = GetFileReadResponses[200] & { path: string }
 
+export interface FileItemFile {
+    name: string
+    path: string
+}
+
+export interface FileItemData {
+    id: string
+    name: string
+    directory?: string
+    files: FileItemFile[]
+    tree?: FileNode[]
+}
+
 export interface FilesystemState {
   files: FileItem[]
   tree: FileNode | null
