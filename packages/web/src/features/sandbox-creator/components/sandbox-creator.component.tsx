@@ -1,74 +1,36 @@
-import { useState } from "react"
 import { useNavigate } from "react-router"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Search, Loader2 } from "lucide-react"
 import type { FormEvent } from "react"
-import { postSandbox } from "@/client/api/sdk.gen"
-import type { PostSandboxResponses } from "@/client/api/types.gen"
+import {
+  useSandboxUrl,
+  useSandboxIsCreating,
+  useSandboxError,
+  useSetSandboxUrl,
+  useCreateSandbox,
+} from "../sandbox-creator.context"
 
-function parseUrl(url: string): { type: 'GITHUB' | 'ARXIV'; directory: string } | null {
-  if (url.includes('github.com')) {
-    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
-    if (match && match[2]) {
-      return { type: 'GITHUB', directory: match[2] };
-    }
-  }
-  if (url.includes('arxiv.org')) {
-    const match = url.match(/arxiv\.org\/abs\/([^/]+)/);
-    if (match && match[1]) {
-      return { type: 'ARXIV', directory: match[1] };
-    }
-  }
-  return null;
-}
-
-export function Hero() {
+export function SandboxCreatorComponent() {
   const navigate = useNavigate()
-  const [url, setUrl] = useState("")
-  const [isCreating, setIsCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  
+  // Get state from store
+  const url = useSandboxUrl()
+  const isCreating = useSandboxIsCreating()
+  const error = useSandboxError()
+  
+  // Get actions from store
+  const setUrl = useSetSandboxUrl()
+  const createSandbox = useCreateSandbox()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!url) return
 
-    const parsed = parseUrl(url)
-    if (!parsed) {
-      setError("Invalid URL. Please enter a valid GitHub or arXiv URL.")
-      return
-    }
-
-    setIsCreating(true)
-    setError(null)
-
-    try {
-      const result = await postSandbox({
-        body: {
-          url,
-          type: parsed.type,
-          directory: parsed.directory,
-          sdkType: 'OPENCODE',
-          provider: 'local',
-        }
-      })
-
-      if (result.error) {
-        setError((result.error as { error?: string })?.error || "Failed to create sandbox")
-        setIsCreating(false)
-        return
-      }
-
-      const data = result.data as PostSandboxResponses[200]
-      if (data?.sandbox) {
-        navigate(`/chat/${data.sandbox.id}`)
-      } else {
-        setError("No sandbox returned")
-        setIsCreating(false)
-      }
-    } catch (err: any) {
-      setError(err.message || "Failed to create sandbox")
-      setIsCreating(false)
+    const result = await createSandbox(url)
+    
+    if (result.success && result.sandboxId) {
+      navigate(`/chat/${result.sandboxId}`)
     }
   }
 
