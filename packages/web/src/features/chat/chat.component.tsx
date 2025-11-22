@@ -11,7 +11,7 @@ import {
 } from "./chat.context"
 import { useFileList, useFileClick } from "@/features/file"
 import { useSessions as useApiSessions } from "@/features/session"
-import { SessionContent } from "./session.component"
+import { SessionContent } from "@/features/session/session.component"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)

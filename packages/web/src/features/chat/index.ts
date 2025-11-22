@@ -20,7 +20,7 @@ export {
   useClearMessages,
 } from "./chat.context"
 export { createChatStore } from "./chat.store"
-export type { 
+export type {
   ChatMessage,
   ChatState,
   ChatActions,
@@ -28,5 +28,4 @@ export type {
   ChatStore
 } from "./chat.store"
 export { ChatComponent } from "./chat.component"
-export { SessionContent } from "./session.component"
 export { ChatSidebar } from "./chat-sidebar.component"

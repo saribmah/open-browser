@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { Code } from "@/components/Code"
 import { useMessages, useMessagesLoading, useGetMessages } from "@/features/session"
-import { useActiveSession } from "./chat.context"
+import { useActiveSession } from "@/features/chat/chat.context"
 
 /**
  * Session content component
@@ -56,18 +56,18 @@ export function SessionContent() {
           const summary = info.summary
           const time = info.time
           const role = info.role || message.role
-          
+
           // Debug logging for first few messages
           if (idx < 3) {
             console.log(`Message ${idx}:`, { message, info, parts, summary })
           }
-          
+
           // Extract text content from parts
           const textContent = parts
             .filter((part: any) => part.type === 'text' && part.text)
             .map((part: any) => part.text)
             .join('\n')
-          
+
           return (
             <div
               key={info.id || message.id || idx}
