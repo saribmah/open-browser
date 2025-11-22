@@ -13,6 +13,11 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
   useEffect(() => {
     const store = storeRef.current
     store.getState().setSandboxClient(sandboxClient)
+    
+    // Fetch all sessions when sandboxClient is available
+    if (sandboxClient) {
+      store.getState().getAllSessions()
+    }
   }, [sandboxClient])
 
   return (

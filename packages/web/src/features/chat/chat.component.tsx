@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { ChatInput } from "@/components/ChatInput"
 import { CommandDialog } from "@/components/CommandDialog"
@@ -28,7 +28,11 @@ import {
   type FileTreeNode,
 } from "@/features/filesystem"
 import { FileTreeManager, useFileList } from "@/features/file"
-import { useCreateSession } from "@/features/session"
+import { 
+  useCreateSession,
+  useSessions as useApiSessions,
+  type SessionData,
+} from "@/features/session"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
@@ -48,7 +52,8 @@ export function ChatComponent() {
   const sendMessage = useSendMessage()
   const updateSessionId = useUpdateSessionId()
 
-  // Get session API actions
+  // Get session API state and actions
+  const apiSessions = useApiSessions()
   const createSession = useCreateSession()
 
   // Get project state and actions
@@ -143,6 +148,16 @@ export function ChatComponent() {
   // Get flat file list from all projects using the hook
   const availableFiles = useFileList({ projectFileTrees })
 
+  // Map API sessions to Session format for CommandDialog
+  const availableApiSessions = useMemo(() => {
+    return apiSessions.map((apiSession): Session => ({
+      id: apiSession.id,
+      title: apiSession.title || apiSession.id,
+      type: "chat",
+      sessionId: apiSession.id,
+    }))
+  }, [apiSessions])
+
   const handleNewSession = () => {
     const newSession: Session = {
       id: Date.now().toString(),
@@ -217,11 +232,17 @@ export function ChatComponent() {
           handleFileClick(fileNode, projectDir)
         }}
         onSessionSelect={(session) => {
+          // Check if session already exists in local sessions
+          const existingSession = sessions.find((s) => s.id === session.id)
+          if (!existingSession) {
+            // Add the session to local sessions
+            addSession(session)
+          }
           setActiveSession(session.id)
           setCommandOpen(false)
         }}
         availableFiles={availableFiles}
-        availableSessions={sessions}
+        availableSessions={availableApiSessions}
         initialPage={commandInitialPage}
       />
       <div className="flex h-[calc(100vh-4rem)]">
