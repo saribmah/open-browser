@@ -8,9 +8,7 @@ import type { FileItem } from "@/features/filesystem"
 import { useSendMessage } from "@/features/chat/chat.context"
 import {
   useActiveSession,
-  useCreateSession,
-  useRemoveUISession,
-  useAddUISession,
+  useConvertEphemeralToReal,
 } from "@/features/session"
 import { useFileList } from "@/features/filesystem/hooks/useFileList"
 
@@ -46,9 +44,7 @@ export function ChatInput({
   // Get state and actions from stores
   const activeSession = useActiveSession()
   const sendMessage = useSendMessage()
-  const removeSession = useRemoveUISession()
-  const addSession = useAddUISession()
-  const createSession = useCreateSession()
+  const convertEphemeralToReal = useConvertEphemeralToReal()
   const availableFiles = useFileList()
 
   // Local state
@@ -65,31 +61,23 @@ export function ChatInput({
     e.preventDefault()
     if (!message.trim() || disabled || !activeSession) return
 
-    // Check if the session is ephemeral
-    if (activeSession.ephemeral) {
-      // Create a backend session for this ephemeral tab
-      const backendSession = await createSession()
+    // Check if the session is ephemeral and convert it to a real session
+    if (activeSession.ephemeral && activeSession.type === "chat") {
+      const backendSession = await convertEphemeralToReal(activeSession.id)
 
       if (!backendSession) {
+        console.error("Failed to convert ephemeral session to real session")
         return
       }
 
-      // Replace the ephemeral session with the backend session
-      removeSession(activeSession.id)
-      addSession({
-        ...activeSession,
-        id: backendSession.id,
-        ephemeral: false,
-      })
-
-      // TODO: Send message with backendSession.id
+      // The active session has been updated to the new backend session
+      // Send message with the new session ID
+      sendMessage(message.trim(), mentionedFiles.length > 0 ? mentionedFiles : undefined)
     } else {
-      // Session exists, send message
-      // TODO: Send message with activeSession.id
+      // Session already exists, send message normally
+      sendMessage(message.trim(), mentionedFiles.length > 0 ? mentionedFiles : undefined)
     }
 
-    // For now, just call the existing sendMessage
-    sendMessage(message.trim(), mentionedFiles.length > 0 ? mentionedFiles : undefined)
     setMessage("")
     setMentionedFiles([])
   }
