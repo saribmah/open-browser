@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
-import { Sidebar } from "@/components/Sidebar"
 import { ChatInput } from "./chat-input.component"
+import { ChatSidebar } from "./chat-sidebar.component"
 import { CommandDialog } from "@/components/CommandDialog"
 import type { FileNode } from "@/components/FileTree"
 import { SessionBar, type Session } from "@/features/session"
@@ -9,12 +9,7 @@ import {
   useAddSession,
   useSetActiveSession,
 } from "./chat.context"
-import {
-  useProjects,
-  useGetAllProjects,
-  useAddProject,
-} from "@/features/project"
-import { FileTreeManager, useFileList, useFileClick } from "@/features/file"
+import { useFileList, useFileClick } from "@/features/file"
 import { useSessions as useApiSessions } from "@/features/session"
 import { SessionContent } from "./session.component"
 
@@ -32,27 +27,9 @@ export function ChatComponent() {
   // Get session API state and actions
   const apiSessions = useApiSessions()
 
-  // Get project state and actions
-  const projects = useProjects()
-  const getAllProjects = useGetAllProjects()
-  const addProject = useAddProject()
-
   // Get file click handler and file list for mentions
   const { handleFileClick } = useFileClick()
   const availableFiles = useFileList()
-
-  const handleAddContext = async (url: string) => {
-    console.log("Adding project:", url)
-
-    const success = await addProject({
-      url,
-    })
-
-    if (success) {
-      // Refresh projects list
-      getAllProjects()
-    }
-  }
 
   // Map API sessions to Session format for CommandDialog
   const availableApiSessions = useMemo(() => {
@@ -117,18 +94,7 @@ export function ChatComponent() {
         initialPage={commandInitialPage}
       />
       <div className="flex h-[calc(100vh-4rem)]">
-        <Sidebar
-          onAddContext={handleAddContext}
-          contexts={projects.map(p => ({ id: p.id, name: p.directory }))}
-        >
-          {projects.length === 0 ? (
-            <div className="p-4 text-sm text-zinc-500">
-              no projects added yet. click "add context" to get started.
-            </div>
-          ) : (
-            <FileTreeManager />
-          )}
-        </Sidebar>
+        <ChatSidebar />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Session Bar */}
