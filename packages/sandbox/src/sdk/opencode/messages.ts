@@ -1,3 +1,54 @@
+export type SessionMessagesData = {
+    body?: never
+    path: {
+        /**
+         * Session ID
+         */
+        id: string
+    }
+    query?: {
+        directory?: string
+        limit?: number
+    }
+    url: "/session/{id}/message"
+}
+
+export type SessionMessagesErrors = {
+    /**
+     * Bad request
+     */
+    400: BadRequestError
+    /**
+     * Not found
+     */
+    404: NotFoundError
+}
+
+export type SessionMessagesError = SessionMessagesErrors[keyof SessionMessagesErrors]
+
+export type SessionMessagesResponses = {
+    /**
+     * List of messages
+     */
+    200: Array<{
+        info: Message
+        parts: Array<Part>
+    }>
+}
+
+export type SessionMessagesResponse = SessionMessagesResponses[keyof SessionMessagesResponses]
+/**
+ * List messages for a session
+ */
+class Session {
+    public messages<ThrowOnError extends boolean = false>(options: Options<SessionMessagesData, ThrowOnError>) {
+        return (options.client ?? this._client).get<SessionMessagesResponses, SessionMessagesErrors, ThrowOnError>({
+            url: "/session/{id}/message",
+            ...options,
+        })
+    }
+}
+
 export type EventInstallationUpdated = {
     type: "installation.updated"
     properties: {

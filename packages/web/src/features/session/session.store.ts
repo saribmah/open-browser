@@ -14,7 +14,7 @@ import type {
 
 // Use generated types from the API
 export type Session = GetSessionResponses[200]['sessions'][number]
-export type Message = GetSessionIdMessagesResponses[200]['messages'][number]
+export type Message = GetSessionIdMessagesResponses[200][number]
 
 // UISession extends Session with UI-specific fields for sessions
 // that are created locally (e.g., via "new tab") before being persisted
@@ -283,7 +283,7 @@ export const createSessionStore = () => {
               set((state) => ({
                 messages: {
                   ...state.messages,
-                  [sessionId]: data.messages || [],
+                  [sessionId]: data || [],
                 },
                 isLoadingMessages: false,
               }))

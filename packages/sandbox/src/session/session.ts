@@ -90,7 +90,7 @@ export namespace Session {
     /**
      * Get messages for a session
      */
-    export async function getMessages(sessionId: string): Promise<{ success: boolean; messages?: SDK.Message[]; error?: string }> {
+    export async function getMessages(sessionId: string): Promise<{ success: boolean; messages?: SDK.MessageWithParts[]; error?: string }> {
         log.info("Getting messages for session", { sessionId });
 
         try {

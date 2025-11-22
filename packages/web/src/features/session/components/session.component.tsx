@@ -60,23 +60,23 @@ export function SessionContent() {
         </div>
       ) : (
         messages.map((message, idx) => {
-          // The API returns messages with various fields
-          const msg = message as any
-          const info = msg.info || message
-          const parts = msg.parts || []
-          const summary = info.summary
-          const time = info.time
-          const role = info.role || message.role
+          // Message now has a well-defined structure with info and parts
+          const { info, parts } = message
+          const { time, role } = info
 
           // Extract text content from parts
           const textContent = parts
-            .filter((part: any) => part.type === 'text' && part.text)
-            .map((part: any) => part.text)
+            .filter((part) => part.type === 'text' && 'text' in part)
+            .map((part) => 'text' in part ? part.text : '')
             .join('\n')
+
+          // Check if this is a user message with summary
+          const isUserMessage = role === 'user'
+          const summary = isUserMessage && 'summary' in info ? info.summary : undefined
 
           return (
             <div
-              key={info.id || message.id || idx}
+              key={info.id || idx}
               className="py-4"
             >
               <div className="flex items-center gap-2 mb-2">

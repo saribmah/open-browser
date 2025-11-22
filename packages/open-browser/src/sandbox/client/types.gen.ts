@@ -140,14 +140,339 @@ export type GetSessionIdMessagesResponses = {
     /**
      * Messages retrieved successfully
      */
-    200: {
-        messages: Array<{
+    200: Array<{
+        info: {
             id: string;
             sessionID: string;
-            role: 'user' | 'assistant';
-            [key: string]: unknown | string | 'user' | 'assistant';
+            role: 'user';
+            time: {
+                created: number;
+            };
+            summary?: {
+                title?: string;
+                body?: string;
+                diffs: Array<{
+                    file: string;
+                    before: string;
+                    after: string;
+                    additions: number;
+                    deletions: number;
+                }>;
+            };
+            agent: string;
+            model: {
+                providerID: string;
+                modelID: string;
+            };
+            system?: string;
+            tools?: {
+                [key: string]: boolean;
+            };
+        } | {
+            id: string;
+            sessionID: string;
+            role: 'assistant';
+            time: {
+                created: number;
+                completed?: number;
+            };
+            error?: {
+                name: 'ProviderAuthError';
+                data: {
+                    providerID: string;
+                    message: string;
+                };
+            } | {
+                name: 'UnknownError';
+                data: {
+                    message: string;
+                };
+            } | {
+                name: 'MessageOutputLengthError';
+                data: {
+                    [key: string]: unknown;
+                };
+            } | {
+                name: 'MessageAbortedError';
+                data: {
+                    message: string;
+                };
+            } | {
+                name: 'APIError';
+                data: {
+                    message: string;
+                    statusCode?: number;
+                    isRetryable: boolean;
+                    responseHeaders?: {
+                        [key: string]: string;
+                    };
+                    responseBody?: string;
+                };
+            };
+            parentID: string;
+            modelID: string;
+            providerID: string;
+            mode: string;
+            path: {
+                cwd: string;
+                root: string;
+            };
+            summary?: boolean;
+            cost: number;
+            tokens: {
+                input: number;
+                output: number;
+                reasoning: number;
+                cache: {
+                    read: number;
+                    write: number;
+                };
+            };
+            finish?: string;
+        };
+        parts: Array<{
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'text';
+            text: string;
+            synthetic?: boolean;
+            ignored?: boolean;
+            time?: {
+                start: number;
+                end?: number;
+            };
+            metadata?: {
+                [key: string]: unknown;
+            };
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'reasoning';
+            text: string;
+            metadata?: {
+                [key: string]: unknown;
+            };
+            time: {
+                start: number;
+                end?: number;
+            };
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'file';
+            mime: string;
+            filename?: string;
+            url: string;
+            source?: {
+                type: 'file';
+                text: {
+                    value: string;
+                    start: number;
+                    end: number;
+                };
+                path: string;
+            } | {
+                type: 'symbol';
+                text: {
+                    value: string;
+                    start: number;
+                    end: number;
+                };
+                path: string;
+                range: {
+                    start: {
+                        line: number;
+                        character: number;
+                    };
+                    end: {
+                        line: number;
+                        character: number;
+                    };
+                };
+                name: string;
+                kind: number;
+            };
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'tool';
+            callID: string;
+            tool: string;
+            state: {
+                status: 'pending';
+                input: {
+                    [key: string]: unknown;
+                };
+                raw: string;
+            } | {
+                status: 'running';
+                input: {
+                    [key: string]: unknown;
+                };
+                title?: string;
+                metadata?: {
+                    [key: string]: unknown;
+                };
+                time: {
+                    start: number;
+                };
+            } | {
+                status: 'completed';
+                input: {
+                    [key: string]: unknown;
+                };
+                output: string;
+                title: string;
+                metadata: {
+                    [key: string]: unknown;
+                };
+                time: {
+                    start: number;
+                    end: number;
+                    compacted?: number;
+                };
+                attachments?: Array<{
+                    id: string;
+                    sessionID: string;
+                    messageID: string;
+                    type: 'file';
+                    mime: string;
+                    filename?: string;
+                    url: string;
+                    source?: {
+                        type: 'file';
+                        text: {
+                            value: string;
+                            start: number;
+                            end: number;
+                        };
+                        path: string;
+                    } | {
+                        type: 'symbol';
+                        text: {
+                            value: string;
+                            start: number;
+                            end: number;
+                        };
+                        path: string;
+                        range: {
+                            start: {
+                                line: number;
+                                character: number;
+                            };
+                            end: {
+                                line: number;
+                                character: number;
+                            };
+                        };
+                        name: string;
+                        kind: number;
+                    };
+                }>;
+            } | {
+                status: 'error';
+                input: {
+                    [key: string]: unknown;
+                };
+                error: string;
+                metadata?: {
+                    [key: string]: unknown;
+                };
+                time: {
+                    start: number;
+                    end: number;
+                };
+            };
+            metadata?: {
+                [key: string]: unknown;
+            };
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'step-start';
+            snapshot?: string;
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'step-finish';
+            reason: string;
+            snapshot?: string;
+            cost: number;
+            tokens: {
+                input: number;
+                output: number;
+                reasoning: number;
+                cache: {
+                    read: number;
+                    write: number;
+                };
+            };
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'snapshot';
+            snapshot: string;
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'patch';
+            hash: string;
+            files: Array<string>;
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'agent';
+            name: string;
+            source?: {
+                value: string;
+                start: number;
+                end: number;
+            };
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'subtask';
+            prompt: string;
+            description: string;
+            agent: string;
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'retry';
+            attempt: number;
+            error: {
+                name: 'APIError';
+                data: {
+                    message: string;
+                    statusCode?: number;
+                    isRetryable: boolean;
+                    responseHeaders?: {
+                        [key: string]: string;
+                    };
+                    responseBody?: string;
+                };
+            };
+            time: {
+                created: number;
+            };
+        } | {
+            id: string;
+            sessionID: string;
+            messageID: string;
+            type: 'compaction';
         }>;
-    };
+    }>;
 };
 
 export type GetSessionIdMessagesResponse = GetSessionIdMessagesResponses[keyof GetSessionIdMessagesResponses];

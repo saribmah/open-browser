@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { describeRoute, resolver } from 'hono-openapi';
 import { z } from "zod";
 import { Session } from "../session/session";
+import { Message } from "../message/message";
 
 const route = new Hono();
 
@@ -20,15 +21,8 @@ const SessionsResponseSchema = z.object({
     sessions: z.array(SessionSchema)
 });
 
-const MessageSchema = z.object({
-    id: z.string(),
-    sessionID: z.string(),
-    role: z.enum(["user", "assistant"])
-}).passthrough();
-
-const MessagesResponseSchema = z.object({
-    messages: z.array(MessageSchema)
-});
+// Use the comprehensive message schemas from Message namespace
+const MessagesResponseSchema = Message.MessagesResponseSchema;
 
 // GET /session - Get all sessions for current instance
 route.get(
@@ -141,9 +135,7 @@ route.get(
             }, 400);
         }
 
-        return c.json({
-            messages: result.messages || []
-        });
+        return c.json(result.messages || []);
     },
 );
 

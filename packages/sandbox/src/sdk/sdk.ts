@@ -1,5 +1,6 @@
 import { OPENCODE } from "./opencode.ts";
 import { CLAUDE_CODE } from "./claude-code.ts";
+import { Message } from "../message/message";
 
 export namespace SDK {
     /**
@@ -37,21 +38,12 @@ export namespace SDK {
     }
 
     /**
-     * Message data structure
+     * Export message types from Message namespace
      */
-    export interface Message {
-        id: string;
-        sessionID: string;
-        role: "user" | "assistant";
-        [key: string]: any;
-    }
-
-    /**
-     * Messages response structure
-     */
-    export interface MessagesResponse {
-        messages: Message[];
-    }
+    export type MessageInfo = Message.MessageInfo;
+    export type Part = Message.Part;
+    export type MessageWithParts = Message.MessageWithParts;
+    export type MessagesResponse = Message.MessagesResponse;
 
     /**
      * SDK configuration for each type
@@ -64,7 +56,7 @@ export namespace SDK {
         getSessions: (opts: { directory: string }) => Promise<Session[]>;
         createSession: (opts: { directory: string }) => Promise<Session>;
         getProviders: (opts: { directory: string }) => Promise<ProvidersResponse>;
-        getMessages: (opts: { directory: string; sessionId: string }) => Promise<Message[]>;
+        getMessages: (opts: { directory: string; sessionId: string }) => Promise<MessageWithParts[]>;
     }
 
     /**
@@ -172,7 +164,7 @@ export namespace SDK {
         type: Type;
         directory: string;
         sessionId: string;
-    }): Promise<Message[]> {
+    }): Promise<MessageWithParts[]> {
         const config = getConfig(opts.type);
         return await config.getMessages({
             directory: opts.directory,
