@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetConfigProvidersData, GetConfigProvidersErrors, GetConfigProvidersResponses, GetFileListData, GetFileListErrors, GetFileListResponses, GetFileReadData, GetFileReadErrors, GetFileReadResponses, GetFileTreeData, GetFileTreeErrors, GetFileTreeResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetInstanceProjectsData, GetInstanceProjectsResponses, GetInstanceStateData, GetInstanceStateResponses, GetSdkData, GetSdkResponses, GetSessionData, GetSessionErrors, GetSessionResponses, PostInstanceInitData, PostInstanceInitErrors, PostInstanceInitResponses, PostInstanceProjectAddData, PostInstanceProjectAddErrors, PostInstanceProjectAddResponses, PostInstanceProjectRemoveData, PostInstanceProjectRemoveErrors, PostInstanceProjectRemoveResponses, PostSessionData, PostSessionErrors, PostSessionResponses } from './types.gen';
+import type { GetConfigProvidersData, GetConfigProvidersErrors, GetConfigProvidersResponses, GetFileListData, GetFileListErrors, GetFileListResponses, GetFileReadData, GetFileReadErrors, GetFileReadResponses, GetFileTreeData, GetFileTreeErrors, GetFileTreeResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetInstanceProjectsData, GetInstanceProjectsResponses, GetInstanceStateData, GetInstanceStateResponses, GetSdkData, GetSdkResponses, GetSessionData, GetSessionErrors, GetSessionIdMessagesData, GetSessionIdMessagesErrors, GetSessionIdMessagesResponses, GetSessionResponses, PostInstanceInitData, PostInstanceInitErrors, PostInstanceInitResponses, PostInstanceProjectAddData, PostInstanceProjectAddErrors, PostInstanceProjectAddResponses, PostInstanceProjectRemoveData, PostInstanceProjectRemoveErrors, PostInstanceProjectRemoveResponses, PostSessionData, PostSessionErrors, PostSessionResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -37,6 +37,11 @@ export const getSession = <ThrowOnError extends boolean = false>(options?: Optio
  * Create New Session
  */
 export const postSession = <ThrowOnError extends boolean = false>(options?: Options<PostSessionData, ThrowOnError>) => (options?.client ?? client).post<PostSessionResponses, PostSessionErrors, ThrowOnError>({ url: '/session', ...options });
+
+/**
+ * Get Messages for Session
+ */
+export const getSessionIdMessages = <ThrowOnError extends boolean = false>(options: Options<GetSessionIdMessagesData, ThrowOnError>) => (options.client ?? client).get<GetSessionIdMessagesResponses, GetSessionIdMessagesErrors, ThrowOnError>({ url: '/session/{id}/messages', ...options });
 
 /**
  * Get Available SDKs

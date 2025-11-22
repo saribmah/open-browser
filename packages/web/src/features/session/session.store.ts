@@ -3,11 +3,13 @@ import { devtools } from "zustand/middleware"
 import {
   getSession,
   postSession,
+  getSessionIdMessages,
 } from "@/client/sandbox/sdk.gen"
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
 import type {
   GetSessionResponses,
   PostSessionResponses,
+  GetSessionIdMessagesResponses,
 } from "@/client/sandbox/types.gen"
 
 export type Session = {
@@ -17,9 +19,14 @@ export type Session = {
   updatedAt?: string
 }
 
+// Use the generated message type from the API
+export type Message = GetSessionIdMessagesResponses[200]['messages'][number]
+
 export interface SessionState {
   sessions: Session[]
+  messages: Record<string, Message[]> // sessionId -> messages
   isLoading: boolean
+  isLoadingMessages: boolean
   error: string | null
   sandboxClient: typeof sandboxClientType | null
 }
@@ -27,6 +34,7 @@ export interface SessionState {
 export interface SessionActions {
   getAllSessions: () => Promise<void>
   createSession: () => Promise<Session | null>
+  getMessages: (sessionId: string) => Promise<void>
   setError: (error: string | null) => void
   setSandboxClient: (client: typeof sandboxClientType | null) => void
   reset: () => void
@@ -37,7 +45,9 @@ export type SessionStoreState = SessionState & SessionActions
 export const createSessionStore = () => {
   const initialState: SessionState = {
     sessions: [],
+    messages: {},
     isLoading: false,
+    isLoadingMessages: false,
     error: null,
     sandboxClient: null,
   }
@@ -122,6 +132,47 @@ export const createSessionStore = () => {
               isLoading: false,
             })
             return null
+          }
+        },
+
+        getMessages: async (sessionId: string) => {
+          set({ isLoadingMessages: true, error: null })
+
+          const { sandboxClient } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isLoadingMessages: false })
+            return
+          }
+
+          try {
+            const result = await getSessionIdMessages({
+              client: sandboxClient,
+              path: { id: sessionId },
+            })
+
+            if (result.error) {
+              const errorMsg = (result.error as { error?: string })?.error || "Failed to get messages"
+              set({ error: errorMsg, isLoadingMessages: false })
+              return
+            }
+
+            const data = result.data as GetSessionIdMessagesResponses[200]
+            if (data) {
+              set((state) => ({
+                messages: {
+                  ...state.messages,
+                  [sessionId]: data.messages || [],
+                },
+                isLoadingMessages: false,
+              }))
+            } else {
+              set({ isLoadingMessages: false })
+            }
+          } catch (err: any) {
+            set({
+              error: err.message || "Failed to get messages",
+              isLoadingMessages: false,
+            })
           }
         },
 

@@ -110,6 +110,48 @@ export type PostSessionResponses = {
 
 export type PostSessionResponse = PostSessionResponses[keyof PostSessionResponses];
 
+export type GetSessionIdMessagesData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/session/{id}/messages';
+};
+
+export type GetSessionIdMessagesErrors = {
+    /**
+     * Bad request
+     */
+    400: {
+        error: string;
+    };
+    /**
+     * Session not found
+     */
+    404: {
+        error: string;
+    };
+};
+
+export type GetSessionIdMessagesError = GetSessionIdMessagesErrors[keyof GetSessionIdMessagesErrors];
+
+export type GetSessionIdMessagesResponses = {
+    /**
+     * Messages retrieved successfully
+     */
+    200: {
+        messages: Array<{
+            id: string;
+            sessionID: string;
+            role: 'user' | 'assistant';
+            [key: string]: unknown | string | 'user' | 'assistant';
+        }>;
+    };
+};
+
+export type GetSessionIdMessagesResponse = GetSessionIdMessagesResponses[keyof GetSessionIdMessagesResponses];
+
 export type GetSdkData = {
     body?: never;
     path?: never;

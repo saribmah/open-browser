@@ -5,8 +5,11 @@ export {
   useSessions,
   useSessionLoading,
   useSessionError,
+  useMessages,
+  useMessagesLoading,
   useGetAllSessions,
   useCreateSession,
+  useGetMessages,
 } from "./session.context"
 export { createSessionStore } from "./session.store"
 export type {
@@ -15,6 +18,7 @@ export type {
   SessionStoreState,
   SessionStore,
   Session as SessionData,
+  Message,
 } from "./session.store"
 export { SessionBar } from "./SessionBar"
 export type { Session } from "./SessionBar"

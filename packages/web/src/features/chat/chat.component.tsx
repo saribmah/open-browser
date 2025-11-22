@@ -31,6 +31,8 @@ import { FileTreeManager, useFileList } from "@/features/file"
 import { 
   useCreateSession,
   useSessions as useApiSessions,
+  useGetMessages,
+  useMessages,
   type SessionData,
 } from "@/features/session"
 
@@ -55,6 +57,12 @@ export function ChatComponent() {
   // Get session API state and actions
   const apiSessions = useApiSessions()
   const createSession = useCreateSession()
+  const getMessages = useGetMessages()
+  
+  // Get the sessionId and type separately to avoid object reference issues
+  const activeSessionApiId = activeSession?.sessionId
+  const activeSessionType = activeSession?.type
+  const messages = useMessages(activeSessionApiId)
 
   // Get project state and actions
   const projects = useProjects()
@@ -70,6 +78,15 @@ export function ChatComponent() {
   useEffect(() => {
     getAllProjects()
   }, [getAllProjects])
+
+  // Fetch messages when a session with sessionId becomes active
+  useEffect(() => {
+    if (activeSessionApiId && activeSessionType !== "file") {
+      console.log("Fetching messages for session:", activeSessionApiId)
+      getMessages(activeSessionApiId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSessionApiId, activeSessionType])
 
   // Watch for file loading completion and update tab
   useEffect(() => {
