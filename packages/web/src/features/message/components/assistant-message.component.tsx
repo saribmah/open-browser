@@ -33,8 +33,7 @@ export function AssistantMessage({
         // Render text parts
         if (part.type === 'text' && 'text' in part) {
           return (
-            <div key={part.id || idx} className="flex gap-2">
-              <Terminal className="h-4 w-4 text-zinc-500 mt-0.5 shrink-0" />
+            <div key={part.id || idx} className="flex gap-2 pl-6 border-l border-zinc-800">
               <div className="text-zinc-300 text-sm leading-relaxed">
                 {part.text}
               </div>
@@ -72,12 +71,9 @@ export function AssistantMessage({
                                   : "text-zinc-400"
                           )}
                         />
-                        <span className="text-sm font-mono text-zinc-300">
-                          {filePath}
-                        </span>
+                          <span className="text-sm font-mono text-zinc-400">{title}</span>
                       </div>
                       <div className="flex items-center gap-3 text-xs font-mono">
-                        <span className="text-zinc-400">{title}</span>
                         <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400" />
                       </div>
                     </div>
