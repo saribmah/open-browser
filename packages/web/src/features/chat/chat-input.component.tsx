@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button"
 import { FileMention } from "@/components/FileMention"
 import { cn } from "@/lib/utils"
 import type { FormEvent, KeyboardEvent } from "react"
-import type { MentionFile } from "@/features/filesystem"
+import type { FileItem } from "@/features/filesystem"
 import {
   useActiveSession,
   useSendMessage,
@@ -34,8 +34,8 @@ interface ChatInputProps {
   onSdkChange?: (sdkId: string) => void
 }
 
-export function ChatInput({ 
-  placeholder = "ask anything...", 
+export function ChatInput({
+  placeholder = "ask anything...",
   disabled = false,
   selectedModel = "claude-sonnet-4",
   onModelChange,
@@ -56,7 +56,7 @@ export function ChatInput({
   const [showFileMention, setShowFileMention] = useState(false)
   const [mentionQuery, setMentionQuery] = useState("")
   const [mentionIndex, setMentionIndex] = useState(0)
-  const [mentionedFiles, setMentionedFiles] = useState<MentionFile[]>([])
+  const [mentionedFiles, setMentionedFiles] = useState<FileItem[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = async (e: FormEvent) => {
@@ -149,7 +149,7 @@ export function ChatInput({
     setMentionQuery("")
   }
 
-  const handleFileSelect = (file: MentionFile) => {
+  const handleFileSelect = (file: FileItem) => {
     const textarea = textareaRef.current
     if (textarea) {
       const cursorPos = textarea.selectionStart
@@ -240,7 +240,7 @@ export function ChatInput({
             target.style.height = `${Math.min(target.scrollHeight, 192)}px`
           }}
         />
-        
+
         {/* Bottom bar with selectors */}
         <div className="flex items-center justify-between px-3 pb-3">
           <div className="flex items-center gap-2">

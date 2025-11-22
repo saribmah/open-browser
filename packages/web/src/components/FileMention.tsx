@@ -1,11 +1,11 @@
 import { File, Folder, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { MentionFile } from "@/features/filesystem"
+import type { FileItem } from "@/features/filesystem"
 
 interface FileMentionProps {
-  files: MentionFile[]
+  files: FileItem[]
   selectedIndex: number
-  onSelect: (file: MentionFile) => void
+  onSelect: (file: FileItem) => void
   onClose: () => void
   searchQuery: string
 }

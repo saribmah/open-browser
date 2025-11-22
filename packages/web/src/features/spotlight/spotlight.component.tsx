@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react"
 import { Command } from "cmdk"
-import { 
-  Plus, 
-  FileText, 
-  Github, 
-  MessageSquare, 
+import {
+  Plus,
+  FileText,
+  Github,
+  MessageSquare,
   Trash2,
   HelpCircle,
   File,
@@ -23,29 +23,29 @@ import {
 } from "./spotlight.context"
 import { useFileList, useFileClick } from "@/features/file"
 import { useSessions } from "@/features/session"
-import { 
+import {
   useChatSessions,
   useAddSession,
   useSetActiveSession,
 } from "@/features/chat/chat.context"
 import type { Session } from "@/features/session/session-bar.component"
-import type { FileNode, MentionFile } from "@/features/filesystem"
+import type { FileNode, FileItem } from "@/features/filesystem"
 
 export function SpotlightComponent() {
   const inputRef = useRef<HTMLInputElement>(null)
-  
+
   // State
   const isOpen = useSpotlightOpen()
   const search = useSpotlightSearch()
   const currentPage = useSpotlightCurrentPage()
-  
+
   // Actions
   const closeSpotlight = useCloseSpotlight()
   const toggleSpotlight = useToggleSpotlight()
   const setSearch = useSetSpotlightSearch()
   const pushPage = usePushSpotlightPage()
   const popPage = usePopSpotlightPage()
-  
+
   // Integration with other features
   const availableFiles = useFileList()
   const apiSessions = useSessions()
@@ -102,7 +102,7 @@ export function SpotlightComponent() {
     addSession(newSession)
   }
 
-  const handleFileSelect = (file: MentionFile) => {
+  const handleFileSelect = (file: FileItem) => {
     const fileNode: FileNode = {
       name: file.name,
       path: file.path,
@@ -124,14 +124,14 @@ export function SpotlightComponent() {
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={closeSpotlight}
       />
-      
+
       {/* Dialog */}
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg">
-        <Command 
+        <Command
           className="bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden"
           loop
           onKeyDown={(e) => {
@@ -147,7 +147,7 @@ export function SpotlightComponent() {
             }
           }}
         >
-          <Command.Input 
+          <Command.Input
             ref={inputRef}
             value={search}
             onValueChange={setSearch}

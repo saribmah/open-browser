@@ -20,7 +20,6 @@ export type {
   FileItem,
   FileContent,
   FileNode,
-  MentionFile,
   FilesystemState,
   FilesystemActions,
   FilesystemStoreState,

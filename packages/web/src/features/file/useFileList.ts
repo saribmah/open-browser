@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import type { MentionFile, FileNode } from "@/features/filesystem"
+import type { FileItem, FileNode } from "@/features/filesystem"
 import { useFileTree } from "@/features/filesystem"
 
 /**
@@ -11,13 +11,13 @@ import { useFileTree } from "@/features/filesystem"
  *
  * @returns Array of MentionFile objects for all files
  */
-export function useFileList(): MentionFile[] {
+export function useFileList(): FileItem[] {
   const fileTree = useFileTree()
 
   return useMemo(() => {
     if (!fileTree) return []
 
-    const allFiles: MentionFile[] = []
+    const allFiles: FileItem[] = []
 
     // Flatten the tree recursively
     const flattenTree = (node: FileNode): void => {
