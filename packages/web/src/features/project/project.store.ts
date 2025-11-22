@@ -34,14 +34,16 @@ export interface ProjectState {
   isLoading: boolean
   isLoadingProjects: boolean
   error: string | null
+  sandboxClient: typeof sandboxClientType | null
 }
 
 export interface ProjectActions {
-  getAllProjects: (sandboxClient: typeof sandboxClientType) => Promise<void>
-  addProject: (params: AddProjectParams, sandboxClient: typeof sandboxClientType) => Promise<boolean>
-  removeProject: (projectId: string, sandboxClient: typeof sandboxClientType) => Promise<boolean>
+  getAllProjects: () => Promise<void>
+  addProject: (params: AddProjectParams) => Promise<boolean>
+  removeProject: (projectId: string) => Promise<boolean>
   clearProject: () => void
   setError: (error: string | null) => void
+  setSandboxClient: (client: typeof sandboxClientType | null) => void
 }
 
 export type ProjectStoreState = ProjectState & ProjectActions
@@ -52,17 +54,24 @@ export const createProjectStore = () => {
     isLoading: false,
     isLoadingProjects: false,
     error: null,
+    sandboxClient: null,
   }
 
   return create<ProjectStoreState>()(
     devtools(
-      (set) => ({
+      (set, get) => ({
         // Initial state
         ...initialState,
 
         // Actions
-        getAllProjects: async (sandboxClient: typeof sandboxClientType) => {
+        getAllProjects: async () => {
           set({ isLoadingProjects: true, error: null })
+
+          const { sandboxClient } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isLoadingProjects: false })
+            return
+          }
 
           try {
             const result = await getInstanceProjects({
@@ -94,8 +103,14 @@ export const createProjectStore = () => {
           }
         },
 
-        addProject: async (params: AddProjectParams, sandboxClient: typeof sandboxClientType) => {
+        addProject: async (params: AddProjectParams) => {
           set({ isLoading: true, error: null })
+
+          const { sandboxClient } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isLoading: false })
+            return false
+          }
 
           try {
             const result = await postInstanceProjectAdd({
@@ -121,8 +136,14 @@ export const createProjectStore = () => {
           }
         },
 
-        removeProject: async (projectId: string, sandboxClient: typeof sandboxClientType) => {
+        removeProject: async (projectId: string) => {
           set({ isLoading: true, error: null })
+
+          const { sandboxClient } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isLoading: false })
+            return false
+          }
 
           try {
             const result = await postInstanceProjectRemove({
@@ -164,6 +185,10 @@ export const createProjectStore = () => {
 
         setError: (error: string | null) => {
           set({ error })
+        },
+
+        setSandboxClient: (client: typeof sandboxClientType | null) => {
+          set({ sandboxClient: client })
         },
       }),
       {

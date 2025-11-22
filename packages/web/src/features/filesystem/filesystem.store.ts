@@ -42,15 +42,17 @@ export interface FilesystemState {
   isLoadingTree: boolean
   isLoadingContent: boolean
   error: string | null
+  sandboxClient: typeof sandboxClientType | null
 }
 
 export interface FilesystemActions {
-  getFileList: (path: string, sandboxClient: typeof sandboxClientType) => Promise<void>
-  getFileTree: (path: string, maxDepth: number, sandboxClient: typeof sandboxClientType) => Promise<void>
-  readFile: (path: string, sandboxClient: typeof sandboxClientType) => Promise<void>
+  getFileList: (path: string) => Promise<void>
+  getFileTree: (path: string, maxDepth: number) => Promise<void>
+  readFile: (path: string) => Promise<void>
   clearCurrentFile: () => void
   setError: (error: string | null) => void
   reset: () => void
+  setSandboxClient: (client: typeof sandboxClientType | null) => void
 }
 
 export type FilesystemStoreState = FilesystemState & FilesystemActions
@@ -64,17 +66,24 @@ export const createFilesystemStore = () => {
     isLoadingTree: false,
     isLoadingContent: false,
     error: null,
+    sandboxClient: null,
   }
 
   return create<FilesystemStoreState>()(
     devtools(
-      (set) => ({
+      (set, get) => ({
         // Initial state
         ...initialState,
 
         // Actions
-        getFileList: async (path: string, sandboxClient: typeof sandboxClientType) => {
+        getFileList: async (path: string) => {
           set({ isLoadingFiles: true, error: null })
+
+          const { sandboxClient } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isLoadingFiles: false })
+            return
+          }
 
           try {
             const result = await getFileList({
@@ -103,8 +112,14 @@ export const createFilesystemStore = () => {
           }
         },
 
-        getFileTree: async (path: string, maxDepth: number, sandboxClient: typeof sandboxClientType) => {
+        getFileTree: async (path: string, maxDepth: number) => {
           set({ isLoadingTree: true, error: null })
+
+          const { sandboxClient } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isLoadingTree: false })
+            return
+          }
 
           try {
             const result = await getFileTree({
@@ -133,8 +148,14 @@ export const createFilesystemStore = () => {
           }
         },
 
-        readFile: async (path: string, sandboxClient: typeof sandboxClientType) => {
+        readFile: async (path: string) => {
           set({ isLoadingContent: true, error: null })
+
+          const { sandboxClient } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isLoadingContent: false })
+            return
+          }
 
           try {
             const result = await getFileRead({
@@ -176,6 +197,10 @@ export const createFilesystemStore = () => {
 
         reset: () => {
           set(initialState)
+        },
+
+        setSandboxClient: (client: typeof sandboxClientType | null) => {
+          set({ sandboxClient: client })
         },
       }),
       {

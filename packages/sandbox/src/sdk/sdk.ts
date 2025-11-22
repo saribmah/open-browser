@@ -47,6 +47,7 @@ export namespace SDK {
         getSessions: (opts: { directory: string }) => Promise<Session[]>;
         createSession: (opts: { directory: string }) => Promise<Session>;
         getProviders: (opts: { directory: string }) => Promise<ProvidersResponse>;
+        sendMessage: (opts: { directory: string; sessionId: string; content: string; onChunk?: (chunk: string) => void }) => Promise<string>;
     }
 
     /**

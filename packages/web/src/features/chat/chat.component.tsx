@@ -5,7 +5,6 @@ import { ChatInput } from "@/components/ChatInput"
 import { TabBar } from "@/components/TabBar"
 import { CommandDialog } from "@/components/CommandDialog"
 import { Code } from "@/components/Code"
-import { sampleFileContents } from "@/data/sampleData"
 import type { Context } from "@/components/ContextItem"
 import type { Tab } from "@/components/TabBar"
 import type { MentionFile } from "@/components/FileMention"
@@ -25,12 +24,18 @@ import {
   useAddProject,
   useRemoveProject,
 } from "@/features/project"
-import { useSandboxClient } from "@/features/sandbox"
-import { useGetFileTree, useFileTree, type FileTreeNode } from "@/features/filesystem"
+import { 
+  useGetFileTree, 
+  useFileTree, 
+  useReadFile, 
+  useCurrentFile,
+  type FileTreeNode 
+} from "@/features/filesystem"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
   const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
+  const [loadingFile, setLoadingFile] = useState<string | null>(null)
   
   // Get state from chat store
   const tabs = useTabs()
@@ -48,22 +53,21 @@ export function ChatComponent() {
   const getAllProjects = useGetAllProjects()
   const addProject = useAddProject()
   const removeProject = useRemoveProject()
-  const sandboxClient = useSandboxClient()
 
   // Get filesystem actions
   const getFileTree = useGetFileTree()
   const fileTree = useFileTree()
+  const readFile = useReadFile()
+  const currentFile = useCurrentFile()
 
   // Load projects on mount
   useEffect(() => {
-    if (sandboxClient) {
-      getAllProjects(sandboxClient)
-    }
-  }, [sandboxClient, getAllProjects])
+    getAllProjects()
+  }, [getAllProjects])
 
   // Load file trees for all projects
   useEffect(() => {
-    if (!sandboxClient || projects.length === 0) return
+    if (projects.length === 0) return
 
     const loadFileTrees = async () => {
       for (const project of projects) {
@@ -71,7 +75,7 @@ export function ChatComponent() {
         if (projectFileTrees.has(project.id)) continue
 
         try {
-          await getFileTree(project.directory, 3, sandboxClient)
+          await getFileTree(project.directory, 3)
           
           // Store the file tree for this project
           if (fileTree) {
@@ -84,7 +88,29 @@ export function ChatComponent() {
     }
 
     loadFileTrees()
-  }, [projects, sandboxClient, getFileTree, fileTree, projectFileTrees])
+  }, [projects, getFileTree, fileTree, projectFileTrees])
+
+  // Watch for file loading completion and update tab
+  useEffect(() => {
+    if (!loadingFile || !currentFile || currentFile.path !== loadingFile) return
+
+    // File has loaded, update the tab
+    const existingTab = tabs.find((tab) => tab.id === loadingFile)
+    if (existingTab && existingTab.fileContent === "Loading...") {
+      // We need an updateTab action - for now, remove and re-add
+      removeTab(loadingFile)
+      const updatedTab: Tab = {
+        id: currentFile.path,
+        title: existingTab.title,
+        type: "file",
+        fileContent: currentFile.content,
+        filePath: currentFile.path,
+      }
+      addTab(updatedTab)
+    }
+    
+    setLoadingFile(null)
+  }, [currentFile, loadingFile, tabs, removeTab, addTab])
 
   // Helper function to convert FileTreeNode to flat file list
   const flattenFileTree = (node: FileTreeNode, basePath = ""): Array<{ path: string; name: string }> => {
@@ -121,33 +147,20 @@ export function ChatComponent() {
   }, [projects, projectFileTrees])
 
   const handleAddContext = async (url: string) => {
-    if (!sandboxClient) {
-      console.error("Sandbox client not available")
-      return
-    }
-
     console.log("Adding project:", url)
 
-    const success = await addProject(
-      {
-        url,
-      },
-      sandboxClient
-    )
+    const success = await addProject({
+      url,
+    })
 
     if (success) {
       // Refresh projects list
-      getAllProjects(sandboxClient)
+      getAllProjects()
     }
   }
 
   const handleDeleteContext = async (id: string) => {
-    if (!sandboxClient) {
-      console.error("Sandbox client not available")
-      return
-    }
-
-    const success = await removeProject(id, sandboxClient)
+    const success = await removeProject(id)
     
     if (!success) {
       console.error("Failed to remove project")
@@ -183,7 +196,7 @@ export function ChatComponent() {
     removeTab(id)
   }
 
-  const handleFileClick = (file: FileNode) => {
+  const handleFileClick = async (file: FileNode) => {
     // Check if tab already exists for this file
     const existingTab = tabs.find((tab) => tab.id === file.path)
     if (existingTab) {
@@ -191,18 +204,19 @@ export function ChatComponent() {
       return
     }
 
-    // Get file content from sample data
-    const content = sampleFileContents[file.path] || `// content for ${file.path}`
-
-    // Create new tab for the file
+    // Create tab with loading state
     const newTab: Tab = {
       id: file.path,
       title: file.name,
       type: "file",
-      fileContent: content,
+      fileContent: "Loading...",
       filePath: file.path,
     }
     addTab(newTab)
+    setLoadingFile(file.path)
+
+    // Fetch file content - useEffect will update the tab when loaded
+    readFile(file.path)
   }
 
   return (
