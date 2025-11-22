@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { X, Plus, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  useSessions,
+  useVisibleSessions,
   useActiveSessionId,
   useAddUISession,
   useRemoveUISession,
@@ -13,7 +13,7 @@ import type { UISession } from "@/features/session/session.store"
 
 export function SessionBar() {
   // Get state and actions from session store
-  const sessions = useSessions()
+  const sessions = useVisibleSessions()
   const activeSessionId = useActiveSessionId()
   const addSession = useAddUISession()
   const removeSession = useRemoveUISession()

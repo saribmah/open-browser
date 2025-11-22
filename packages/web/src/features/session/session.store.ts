@@ -27,7 +27,8 @@ export interface UISession extends Partial<Session> {
 }
 
 export interface SessionState {
-  sessions: UISession[]
+  sessions: UISession[] // All sessions (including backend sessions)
+  visibleSessionIds: string[] // Only session IDs visible in the top bar
   activeSessionId: string
   messages: Record<string, Message[]> // sessionId -> messages
   isLoading: boolean
@@ -55,6 +56,7 @@ export type SessionStoreState = SessionState & SessionActions
 export const createSessionStore = () => {
   const initialState: SessionState = {
     sessions: [{ id: "1", title: "new session", type: "chat", ephemeral: true }],
+    visibleSessionIds: ["1"], // Store only IDs
     activeSessionId: "1",
     messages: {},
     isLoading: false,
@@ -99,6 +101,7 @@ export const createSessionStore = () => {
                 
                 return {
                   sessions: [...ephemeralSessions, ...backendSessions],
+                  // visibleSessions remain unchanged - only show what user has opened
                   isLoading: false,
                 }
               })
@@ -133,9 +136,10 @@ export const createSessionStore = () => {
 
             const data = result.data as PostSessionResponses[200]
             if (data) {
-              // Add to sessions list
+              // Add to both sessions and visible session IDs list
               set((state) => ({
                 sessions: [...state.sessions, data],
+                visibleSessionIds: [...state.visibleSessionIds, data.id],
                 isLoading: false,
               }))
               return data
@@ -175,13 +179,16 @@ export const createSessionStore = () => {
 
             const data = result.data as PostSessionResponses[200]
             if (data) {
-              // Replace the ephemeral session with the real session
+              // Replace the ephemeral session with the real session in both lists
               set((state) => {
                 const ephemeralSession = state.sessions.find((s) => s.id === ephemeralId)
                 const otherSessions = state.sessions.filter((s) => s.id !== ephemeralId)
+                const otherVisibleSessionIds = state.visibleSessionIds.filter((id) => id !== ephemeralId)
+                const newSession = { ...data, title: ephemeralSession?.title || data.title }
                 
                 return {
-                  sessions: [...otherSessions, { ...data, title: ephemeralSession?.title || data.title }],
+                  sessions: [...otherSessions, newSession],
+                  visibleSessionIds: [...otherVisibleSessionIds, data.id],
                   activeSessionId: data.id,
                   isLoading: false,
                 }
@@ -201,10 +208,17 @@ export const createSessionStore = () => {
         },
 
         addUISession: (session: UISession) => {
-          set((state) => ({
-            sessions: [...state.sessions, session],
-            activeSessionId: session.id,
-          }))
+          set((state) => {
+            // Check if session already exists in sessions list
+            const sessionExists = state.sessions.some((s) => s.id === session.id)
+            const visibleSessionExists = state.visibleSessionIds.includes(session.id)
+            
+            return {
+              sessions: sessionExists ? state.sessions : [...state.sessions, session],
+              visibleSessionIds: visibleSessionExists ? state.visibleSessionIds : [...state.visibleSessionIds, session.id],
+              activeSessionId: session.id,
+            }
+          })
         },
 
         updateUISession: (sessionId: string, updates: Partial<UISession>) => {
@@ -212,27 +226,28 @@ export const createSessionStore = () => {
             sessions: state.sessions.map((s) =>
               s.id === sessionId ? { ...s, ...updates } : s
             ),
+            // visibleSessionIds don't need updating since they're just IDs
           }))
         },
 
         removeUISession: (sessionId: string) => {
           set((state) => {
-            // Don't allow closing the last session
-            if (state.sessions.length <= 1) {
+            // Don't allow closing the last visible session
+            if (state.visibleSessionIds.length <= 1) {
               return state
             }
 
-            const newSessions = state.sessions.filter((s) => s.id !== sessionId)
+            const newVisibleSessionIds = state.visibleSessionIds.filter((id) => id !== sessionId)
             let newActiveSessionId = state.activeSessionId
 
-            // If we're closing the active session, switch to the last session
-            if (state.activeSessionId === sessionId && newSessions.length > 0) {
-              const lastSession = newSessions[newSessions.length - 1]
-              newActiveSessionId = lastSession?.id || state.activeSessionId
+            // If we're closing the active session, switch to the last visible session
+            if (state.activeSessionId === sessionId && newVisibleSessionIds.length > 0) {
+              const lastSessionId = newVisibleSessionIds[newVisibleSessionIds.length - 1]
+              newActiveSessionId = lastSessionId || state.activeSessionId
             }
 
             return {
-              sessions: newSessions,
+              visibleSessionIds: newVisibleSessionIds,
               activeSessionId: newActiveSessionId,
             }
           })

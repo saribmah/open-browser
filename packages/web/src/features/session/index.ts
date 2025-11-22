@@ -3,6 +3,8 @@ export {
   SessionContext,
   useSessionContext,
   useSessions,
+  useVisibleSessionIds,
+  useVisibleSessions,
   useActiveSessionId,
   useActiveSession,
   useSessionLoading,

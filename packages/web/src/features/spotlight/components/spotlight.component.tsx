@@ -25,6 +25,7 @@ import { useFileClick } from "@/features/filesystem/hooks/useFileClick"
 import { useFileList } from "@/features/filesystem/hooks/useFileList"
 import {
   useSessions,
+  useVisibleSessionIds,
   useAddUISession,
   useSetActiveSession,
 } from "@/features/session"
@@ -52,6 +53,7 @@ export function SpotlightComponent() {
   const addSession = useAddUISession()
   const setActiveSession = useSetActiveSession()
   const sessions = useSessions()
+  const visibleSessionIds = useVisibleSessionIds()
   const clearMessages = useClearMessages()
   const { handleFileClick } = useFileClick()
 
@@ -106,10 +108,14 @@ export function SpotlightComponent() {
   }
 
   const handleSessionSelect = (session: UISession) => {
-    const existingSession = sessions.find((s) => s.id === session.id)
-    if (!existingSession) {
+    // Check if session is already visible in the top bar
+    const isVisible = visibleSessionIds.includes(session.id)
+    
+    // If not visible, add it to visible sessions
+    if (!isVisible) {
       addSession(session)
     }
+    
     setActiveSession(session.id)
   }
 
