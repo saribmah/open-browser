@@ -15,6 +15,7 @@ export {
   useClearCurrentFile
 } from "./filesystem.context"
 export { createFilesystemStore } from "./filesystem.store"
+export { FileTreeManager } from "./file-tree-manager.component.tsx"
 export type {
   FileType,
   FileItem,

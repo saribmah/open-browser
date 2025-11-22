@@ -1,6 +1,6 @@
 import { FileTree } from "@/components/FileTree"
 import { useFileTree } from "@/features/filesystem"
-import { useFileClick } from "./useFileClick"
+import { useFileClick } from "@/features/filesystem/hooks/useFileClick"
 
 /**
  * Manages file tree for the workspace
@@ -8,7 +8,7 @@ import { useFileClick } from "./useFileClick"
  */
 export function FileTreeManager() {
   const { handleFileClick } = useFileClick()
-  
+
   // Get file tree from filesystem store (already loaded by FilesystemProvider)
   const fileTree = useFileTree()
 
@@ -30,9 +30,9 @@ export function FileTreeManager() {
 
   return (
     <div className="pb-2">
-      <FileTree 
-        nodes={fileTree.children} 
-        level={0} 
+      <FileTree
+        nodes={fileTree.children}
+        level={0}
         onFileClick={handleFileClick}
       />
     </div>

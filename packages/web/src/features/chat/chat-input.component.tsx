@@ -11,7 +11,7 @@ import {
   useUpdateSessionId,
 } from "./chat.context"
 import { useCreateSession } from "@/features/session"
-import { useFileList } from "@/features/file"
+import { useFileList } from "@/features/filesystem/hooks/useFileList"
 
 const sdks = [
   { id: "opencode", name: "opencode" },

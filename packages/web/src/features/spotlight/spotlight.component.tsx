@@ -21,7 +21,8 @@ import {
   usePushSpotlightPage,
   usePopSpotlightPage,
 } from "./spotlight.context"
-import { useFileList, useFileClick } from "@/features/file"
+import { useFileClick } from "@/features/filesystem/hooks/useFileClick"
+import { useFileList } from "@/features/filesystem/hooks/useFileList"
 import { useSessions } from "@/features/session"
 import {
   useChatSessions,
