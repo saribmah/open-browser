@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import type { MentionFile } from "@/components/FileMention"
-import type { Context } from "@/components/ContextItem"
+import type { FileItemData } from "@/components/FileItem"
 import type { Session } from "@/features/session"
 
 export interface ChatMessage {
@@ -15,7 +15,7 @@ export interface ChatMessage {
 export interface ChatState {
   sessions: Session[]
   activeSessionId: string
-  contexts: Context[]
+  contexts: FileItemData[]
   messages: ChatMessage[]
   isLoading: boolean
   error: string | null
@@ -29,7 +29,7 @@ export interface ChatActions {
   updateSessionId: (sessionId: string, apiSessionId: string) => void
   
   // Context management
-  addContext: (context: Context) => void
+  addContext: (context: FileItemData) => void
   removeContext: (id: string) => void
   
   // Message management
@@ -100,7 +100,7 @@ export const createChatStore = () => {
         },
 
         // Context management
-        addContext: (context: Context) => {
+        addContext: (context: FileItemData) => {
           set((state) => ({
             contexts: [...state.contexts, context],
           }))

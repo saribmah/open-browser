@@ -48,14 +48,12 @@ export function useFileClick() {
     setLoadingFile(null)
   }, [currentFile, loadingFile, sessions, removeSession, addSession])
 
-  const handleFileClick = async (file: FileNode, directory?: string) => {
-    // Construct the full path: directory/filePath
-    // Remove leading slash from file.path if present to avoid double slashes
-    const relativePath = file.path.startsWith('/') ? file.path.slice(1) : file.path
-    const fullPath = directory ? `${directory}/${relativePath}` : file.path
+  const handleFileClick = async (file: FileNode) => {
+    // Use the file path directly (already includes full path from root)
+    const filePath = file.path
     
     // Check if tab already exists for this file
-    const existingSession = sessions.find((sess) => sess.id === fullPath)
+    const existingSession = sessions.find((sess) => sess.id === filePath)
     if (existingSession) {
       setActiveSession(existingSession.id)
       return
@@ -63,17 +61,17 @@ export function useFileClick() {
 
     // Create tab with loading state
     const newSession: Session = {
-      id: fullPath,
+      id: filePath,
       title: file.name,
       type: "file",
       fileContent: "Loading...",
-      filePath: fullPath,
+      filePath: filePath,
     }
     addSession(newSession)
-    setLoadingFile(fullPath)
+    setLoadingFile(filePath)
 
-    // Fetch file content with full path - useEffect will update the tab when loaded
-    readFile(fullPath)
+    // Fetch file content - useEffect will update the tab when loaded
+    readFile(filePath)
   }
 
   return { handleFileClick }

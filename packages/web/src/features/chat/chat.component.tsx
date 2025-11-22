@@ -173,11 +173,10 @@ export function ChatComponent() {
           // Create file node from MentionFile to reuse handleFileClick
           const fileNode: FileNode = {
             name: file.name,
-            path: file.path.split('/').slice(1).join('/'), // Remove project dir from path
+            path: file.path,
             type: "file"
           }
-          const projectDir = file.path.split('/')[0] // Extract project directory
-          handleFileClick(fileNode, projectDir)
+          handleFileClick(fileNode)
         }}
         onSessionSelect={(session) => {
           // Check if session already exists in local sessions

@@ -1,4 +1,4 @@
-import type { Context } from "@/components/ContextItem"
+import type { FileItemData } from "@/components/FileItem"
 
 export const sampleFileContents: Record<string, string> = {
   "/README.md": `# Next.js
@@ -304,7 +304,7 @@ class MultiHeadAttention(nn.Module):
 `,
 }
 
-export const sampleContexts: Context[] = [
+export const sampleContexts: FileItemData[] = [
   {
     id: "1",
     name: "github.com/vercel/next.js",

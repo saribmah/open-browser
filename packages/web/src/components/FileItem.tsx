@@ -1,31 +1,31 @@
 import { useState } from "react"
-import { ChevronDown, ChevronRight, Trash2, Folder, Github, FileText } from "lucide-react"
+import { ChevronDown, ChevronRight, Trash2, Folder, FolderGit2, FileText } from "lucide-react"
 import { FileTree } from "@/components/FileTree"
 import type { FileNode } from "@/components/FileTree"
 
-export interface ContextFile {
+export interface FileItemFile {
   name: string
   path: string
 }
 
-export interface Context {
+export interface FileItemData {
   id: string
   name: string
   directory?: string
-  files: ContextFile[]
+  files: FileItemFile[]
   tree?: FileNode[]
 }
 
-interface ContextItemProps {
-  context: Context
+interface FileItemProps {
+  item: FileItemData
   onDelete: (id: string) => void
-  onFileClick?: (file: FileNode, directory?: string) => void
+  onFileClick?: (file: FileNode) => void
 }
 
-function getContextIcon(name: string) {
+function getItemIcon(name: string) {
   const lowerName = name.toLowerCase()
   if (lowerName.includes("github.com")) {
-    return <Github className="h-4 w-4 text-white" />
+    return <FolderGit2 className="h-4 w-4 text-white" />
   }
   if (lowerName.includes("arxiv.org")) {
     return <FileText className="h-4 w-4 text-orange-400" />
@@ -34,7 +34,7 @@ function getContextIcon(name: string) {
 }
 
 // Convert flat files to tree structure
-function buildFileTree(files: ContextFile[]): FileNode[] {
+function buildFileTree(files: FileItemFile[]): FileNode[] {
   interface TreeNode extends FileNode {
     _children: { [key: string]: TreeNode }
   }
@@ -93,14 +93,14 @@ function buildFileTree(files: ContextFile[]): FileNode[] {
   return sortNodes(convertToFileNodes(root))
 }
 
-export function ContextItem({ context, onDelete, onFileClick }: ContextItemProps) {
+export function FileItem({ item, onDelete, onFileClick }: FileItemProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const fileTree = context.tree || buildFileTree(context.files)
+  const fileTree = item.tree || buildFileTree(item.files)
 
   return (
     <div className="border-b border-white/5 last:border-b-0">
-      {/* Context Header */}
+      {/* Item Header */}
       <div className="flex items-center justify-between p-3 hover:bg-white/5 transition-colors group">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -111,13 +111,13 @@ export function ContextItem({ context, onDelete, onFileClick }: ContextItemProps
           ) : (
             <ChevronRight className="h-4 w-4 text-zinc-400" />
           )}
-          {getContextIcon(context.name)}
-          <span className="text-sm text-white truncate">{context.name}</span>
+          {getItemIcon(item.name)}
+          <span className="text-sm text-white truncate">{item.name}</span>
         </button>
         <button
-          onClick={() => onDelete(context.id)}
+          onClick={() => onDelete(item.id)}
           className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
-          aria-label="delete context"
+          aria-label="delete item"
         >
           <Trash2 className="h-4 w-4 text-red-400 hover:text-red-300" />
         </button>
@@ -132,7 +132,7 @@ export function ContextItem({ context, onDelete, onFileClick }: ContextItemProps
             <FileTree 
               nodes={fileTree} 
               level={0} 
-              onFileClick={onFileClick ? (file) => onFileClick(file, context.directory) : undefined} 
+              onFileClick={onFileClick} 
             />
           )}
         </div>
