@@ -15,6 +15,7 @@ import {
   useRemoveTab,
   useSetActiveTab,
   useSendMessage,
+  useUpdateTabSession,
 } from "./chat.context"
 import {
   useProjects,
@@ -28,6 +29,7 @@ import {
   type FileTreeNode,
 } from "@/features/filesystem"
 import { FileTreeManager, useFileList } from "@/features/file"
+import { useCreateSession } from "@/features/session"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
@@ -44,6 +46,10 @@ export function ChatComponent() {
   const removeTab = useRemoveTab()
   const setActiveTab = useSetActiveTab()
   const sendMessage = useSendMessage()
+  const updateTabSession = useUpdateTabSession()
+
+  // Get session actions
+  const createSession = useCreateSession()
 
   // Get project state and actions
   const projects = useProjects()
@@ -104,7 +110,33 @@ export function ChatComponent() {
     // Project list is automatically updated by the store
   }
 
-  const handleSendMessage = (message: string, mentionedFiles?: MentionFile[]) => {
+  const handleSendMessage = async (message: string, mentionedFiles?: MentionFile[]) => {
+    // Get the active tab
+    if (!activeTab) return
+
+    // Check if the tab has a session
+    if (!activeTab.sessionId) {
+      // Create a session for this tab
+      console.log("Creating session for tab:", activeTab.id)
+      const session = await createSession()
+      
+      if (!session) {
+        console.error("Failed to create session")
+        return
+      }
+
+      // Update the tab with the session ID
+      updateTabSession(activeTab.id, session.id)
+      console.log("Session created:", session.id)
+      
+      // TODO: Send message with session.id
+    } else {
+      // Session exists, send message
+      console.log("Sending message with existing session:", activeTab.sessionId)
+      // TODO: Send message with activeTab.sessionId
+    }
+
+    // For now, just call the existing sendMessage
     sendMessage(message, mentionedFiles)
   }
 

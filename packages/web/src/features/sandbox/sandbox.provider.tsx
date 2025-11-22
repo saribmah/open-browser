@@ -4,6 +4,7 @@ import { createSandboxStore, type SandboxStore, type Sandbox, type SdkType } fro
 import { ProjectProvider } from "@/features/project"
 import { InstanceProvider } from "@/features/instance"
 import { FilesystemProvider } from "@/features/filesystem"
+import { SessionProvider } from "@/features/session"
 import { getSandboxId } from "@/client/api/sdk.gen"
 import type { GetSandboxIdResponses } from "@/client/api/types.gen"
 
@@ -74,7 +75,9 @@ export function SandboxProvider({
       <InstanceProvider sdkType={sdkType}>
         <ProjectProvider>
           <FilesystemProvider>
-            {children}
+            <SessionProvider>
+              {children}
+            </SessionProvider>
           </FilesystemProvider>
         </ProjectProvider>
       </InstanceProvider>

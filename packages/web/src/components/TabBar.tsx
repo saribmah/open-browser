@@ -6,6 +6,7 @@ export interface Tab {
   id: string
   title: string
   type?: "chat" | "file"
+  sessionId?: string  // Session ID for chat tabs
   fileContent?: string
   filePath?: string
 }

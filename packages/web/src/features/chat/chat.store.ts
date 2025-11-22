@@ -26,6 +26,7 @@ export interface ChatActions {
   addTab: (tab: Tab) => void
   removeTab: (id: string) => void
   setActiveTab: (id: string) => void
+  updateTabSession: (tabId: string, sessionId: string) => void
   
   // Context management
   addContext: (context: Context) => void
@@ -88,6 +89,14 @@ export const createChatStore = () => {
 
         setActiveTab: (id: string) => {
           set({ activeTabId: id })
+        },
+
+        updateTabSession: (tabId: string, sessionId: string) => {
+          set((state) => ({
+            tabs: state.tabs.map((tab) =>
+              tab.id === tabId ? { ...tab, sessionId } : tab
+            ),
+          }))
         },
 
         // Context management
