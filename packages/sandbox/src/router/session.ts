@@ -20,6 +20,16 @@ const SessionsResponseSchema = z.object({
     sessions: z.array(SessionSchema)
 });
 
+const MessageSchema = z.object({
+    id: z.string(),
+    sessionID: z.string(),
+    role: z.enum(["user", "assistant"])
+}).passthrough();
+
+const MessagesResponseSchema = z.object({
+    messages: z.array(MessageSchema)
+});
+
 // GET /session - Get all sessions for current instance
 route.get(
     "/",
@@ -85,6 +95,55 @@ route.post(
         }
 
         return c.json(result.session);
+    },
+);
+
+// GET /session/:id/messages - Get all messages for a session
+route.get(
+    "/:id/messages",
+    describeRoute({
+        description: 'Get Messages for Session',
+        responses: {
+            200: {
+                description: 'Messages retrieved successfully',
+                content: {
+                    'application/json': { schema: resolver(MessagesResponseSchema) },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+            404: {
+                description: 'Session not found',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    async (c) => {
+        const sessionId = c.req.param("id");
+
+        if (!sessionId) {
+            return c.json({
+                error: "Session ID is required"
+            }, 400);
+        }
+
+        const result = await Session.getMessages(sessionId);
+
+        if (!result.success) {
+            return c.json({
+                error: result.error || "Failed to get messages"
+            }, 400);
+        }
+
+        return c.json({
+            messages: result.messages || []
+        });
     },
 );
 

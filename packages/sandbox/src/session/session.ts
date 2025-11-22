@@ -86,4 +86,49 @@ export namespace Session {
             };
         }
     }
+
+    /**
+     * Get messages for a session
+     */
+    export async function getMessages(sessionId: string): Promise<{ success: boolean; messages?: SDK.Message[]; error?: string }> {
+        log.info("Getting messages for session", { sessionId });
+
+        try {
+            // Get instance state
+            const state = Instance.getState();
+            const directory = Instance.getDirectory();
+
+            log.info("Getting messages for session", {
+                sdkType: state.sdkType,
+                directory,
+                sessionId
+            });
+
+            // Get messages from SDK
+            const messages = await SDK.getMessages({
+                type: state.sdkType,
+                directory,
+                sessionId
+            });
+
+            log.info("Messages retrieved successfully", {
+                sessionId,
+                count: messages.length
+            });
+
+            return {
+                success: true,
+                messages
+            };
+        } catch (error: any) {
+            log.error("Failed to get messages", {
+                error: error.message,
+                sessionId
+            });
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
 }

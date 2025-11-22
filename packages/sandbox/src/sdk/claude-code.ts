@@ -48,5 +48,12 @@ export const CLAUDE_CODE = {
         log.warn("Claude Code SDK not supported yet", { directory });
 
         throw new Error("Claude Code SDK is not supported yet. Please use OPENCODE instead.");
+    },
+    getMessages: async (opts: { directory: string; sessionId: string }) => {
+        const { directory, sessionId } = opts;
+        
+        log.warn("Claude Code SDK not supported yet", { directory, sessionId });
+
+        throw new Error("Claude Code SDK is not supported yet. Please use OPENCODE instead.");
     }
 };

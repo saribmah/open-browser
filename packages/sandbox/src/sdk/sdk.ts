@@ -37,6 +37,23 @@ export namespace SDK {
     }
 
     /**
+     * Message data structure
+     */
+    export interface Message {
+        id: string;
+        sessionID: string;
+        role: "user" | "assistant";
+        [key: string]: any;
+    }
+
+    /**
+     * Messages response structure
+     */
+    export interface MessagesResponse {
+        messages: Message[];
+    }
+
+    /**
      * SDK configuration for each type
      */
     export interface Config {
@@ -47,7 +64,7 @@ export namespace SDK {
         getSessions: (opts: { directory: string }) => Promise<Session[]>;
         createSession: (opts: { directory: string }) => Promise<Session>;
         getProviders: (opts: { directory: string }) => Promise<ProvidersResponse>;
-        sendMessage: (opts: { directory: string; sessionId: string; content: string; onChunk?: (chunk: string) => void }) => Promise<string>;
+        getMessages: (opts: { directory: string; sessionId: string }) => Promise<Message[]>;
     }
 
     /**
@@ -145,6 +162,21 @@ export namespace SDK {
         const config = getConfig(opts.type);
         return await config.getProviders({
             directory: opts.directory
+        });
+    }
+
+    /**
+     * Get messages for a session
+     */
+    export async function getMessages(opts: {
+        type: Type;
+        directory: string;
+        sessionId: string;
+    }): Promise<Message[]> {
+        const config = getConfig(opts.type);
+        return await config.getMessages({
+            directory: opts.directory,
+            sessionId: opts.sessionId
         });
     }
 }

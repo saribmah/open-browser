@@ -195,6 +195,46 @@ export const OPENCODE = {
             });
             throw new Error(`Failed to get providers: ${error.message}`);
         }
+    },
+    getMessages: async (opts: { directory: string; sessionId: string }) => {
+        const { directory, sessionId } = opts;
+        
+        log.info("Getting messages from OpenCode SDK", { directory, sessionId });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+            
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Get messages using the OpenCode client
+            const response = await opencode.client.session.messages({
+                path: { id: sessionId }
+            });
+            
+            if (!response.data) {
+                log.warn("No message data returned from OpenCode SDK", { directory, sessionId });
+                return [];
+            }
+
+            log.info("Messages retrieved successfully", { 
+                directory,
+                sessionId,
+                count: response.data.length
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to get messages from OpenCode SDK", { 
+                error: error.message,
+                directory,
+                sessionId
+            });
+            throw new Error(`Failed to get messages: ${error.message}`);
+        }
     }
 };
 
