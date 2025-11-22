@@ -4,6 +4,350 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type TimeCreated = {
+    created: number;
+};
+
+export type FileDiff = {
+    file: string;
+    before: string;
+    after: string;
+    additions: number;
+    deletions: number;
+};
+
+export type Model = {
+    providerID: string;
+    modelID: string;
+};
+
+export type UserMessage = {
+    id: string;
+    sessionID: string;
+    role: 'user';
+    time: TimeCreated;
+    summary?: {
+        title?: string;
+        body?: string;
+        diffs: Array<FileDiff>;
+    };
+    agent: string;
+    model: Model;
+    system?: string;
+    tools?: {
+        [key: string]: boolean;
+    };
+};
+
+export type TimeCompleted = {
+    created: number;
+    completed?: number;
+};
+
+export type ProviderAuthError = {
+    name: 'ProviderAuthError';
+    data: {
+        providerID: string;
+        message: string;
+    };
+};
+
+export type UnknownError = {
+    name: 'UnknownError';
+    data: {
+        message: string;
+    };
+};
+
+export type MessageOutputLengthError = {
+    name: 'MessageOutputLengthError';
+    data: {
+        [key: string]: unknown;
+    };
+};
+
+export type MessageAbortedError = {
+    name: 'MessageAbortedError';
+    data: {
+        message: string;
+    };
+};
+
+export type ApiError = {
+    name: 'APIError';
+    data: {
+        message: string;
+        statusCode?: number;
+        isRetryable: boolean;
+        responseHeaders?: {
+            [key: string]: string;
+        };
+        responseBody?: string;
+    };
+};
+
+export type AssistantMessage = {
+    id: string;
+    sessionID: string;
+    role: 'assistant';
+    time: TimeCompleted;
+    error?: ProviderAuthError | UnknownError | MessageOutputLengthError | MessageAbortedError | ApiError;
+    parentID: string;
+    modelID: string;
+    providerID: string;
+    mode: string;
+    path: {
+        cwd: string;
+        root: string;
+    };
+    summary?: boolean;
+    cost: number;
+    tokens: {
+        input: number;
+        output: number;
+        reasoning: number;
+        cache: {
+            read: number;
+            write: number;
+        };
+    };
+    finish?: string;
+};
+
+export type TextPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'text';
+    text: string;
+    synthetic?: boolean;
+    ignored?: boolean;
+    time?: {
+        start: number;
+        end?: number;
+    };
+    metadata?: {
+        [key: string]: unknown;
+    };
+};
+
+export type ReasoningPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'reasoning';
+    text: string;
+    metadata?: {
+        [key: string]: unknown;
+    };
+    time: {
+        start: number;
+        end?: number;
+    };
+};
+
+export type FilePartSourceText = {
+    value: string;
+    start: number;
+    end: number;
+};
+
+export type FileSource = {
+    type: 'file';
+    text: FilePartSourceText;
+    path: string;
+};
+
+export type Range = {
+    start: {
+        line: number;
+        character: number;
+    };
+    end: {
+        line: number;
+        character: number;
+    };
+};
+
+export type SymbolSource = {
+    type: 'symbol';
+    text: FilePartSourceText;
+    path: string;
+    range: Range;
+    name: string;
+    kind: number;
+};
+
+export type FilePart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'file';
+    mime: string;
+    filename?: string;
+    url: string;
+    source?: FileSource | SymbolSource;
+};
+
+export type ToolStatePending = {
+    status: 'pending';
+    input: {
+        [key: string]: unknown;
+    };
+    raw: string;
+};
+
+export type ToolStateRunning = {
+    status: 'running';
+    input: {
+        [key: string]: unknown;
+    };
+    title?: string;
+    metadata?: {
+        [key: string]: unknown;
+    };
+    time: {
+        start: number;
+    };
+};
+
+export type ToolStateCompleted = {
+    status: 'completed';
+    input: {
+        [key: string]: unknown;
+    };
+    output: string;
+    title: string;
+    metadata: {
+        [key: string]: unknown;
+    };
+    time: {
+        start: number;
+        end: number;
+        compacted?: number;
+    };
+    attachments?: Array<FilePart>;
+};
+
+export type ToolStateError = {
+    status: 'error';
+    input: {
+        [key: string]: unknown;
+    };
+    error: string;
+    metadata?: {
+        [key: string]: unknown;
+    };
+    time: {
+        start: number;
+        end: number;
+    };
+};
+
+export type ToolPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'tool';
+    callID: string;
+    tool: string;
+    state: ToolStatePending | ToolStateRunning | ToolStateCompleted | ToolStateError;
+    metadata?: {
+        [key: string]: unknown;
+    };
+};
+
+export type StepStartPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'step-start';
+    snapshot?: string;
+};
+
+export type StepFinishPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'step-finish';
+    reason: string;
+    snapshot?: string;
+    cost: number;
+    tokens: {
+        input: number;
+        output: number;
+        reasoning: number;
+        cache: {
+            read: number;
+            write: number;
+        };
+    };
+};
+
+export type SnapshotPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'snapshot';
+    snapshot: string;
+};
+
+export type PatchPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'patch';
+    hash: string;
+    files: Array<string>;
+};
+
+export type AgentPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'agent';
+    name: string;
+    source?: {
+        value: string;
+        start: number;
+        end: number;
+    };
+};
+
+export type SubtaskPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'subtask';
+    prompt: string;
+    description: string;
+    agent: string;
+};
+
+export type RetryPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'retry';
+    attempt: number;
+    error: ApiError;
+    time: {
+        created: number;
+    };
+};
+
+export type CompactionPart = {
+    id: string;
+    sessionID: string;
+    messageID: string;
+    type: 'compaction';
+};
+
+export type MessageWithParts = {
+    info: UserMessage | AssistantMessage;
+    parts: Array<TextPart | ReasoningPart | FilePart | ToolPart | StepStartPart | StepFinishPart | SnapshotPart | PatchPart | AgentPart | SubtaskPart | RetryPart | CompactionPart>;
+};
+
 export type GetHealthData = {
     body?: never;
     path?: never;
@@ -140,339 +484,7 @@ export type GetSessionIdMessagesResponses = {
     /**
      * Messages retrieved successfully
      */
-    200: Array<{
-        info: {
-            id: string;
-            sessionID: string;
-            role: 'user';
-            time: {
-                created: number;
-            };
-            summary?: {
-                title?: string;
-                body?: string;
-                diffs: Array<{
-                    file: string;
-                    before: string;
-                    after: string;
-                    additions: number;
-                    deletions: number;
-                }>;
-            };
-            agent: string;
-            model: {
-                providerID: string;
-                modelID: string;
-            };
-            system?: string;
-            tools?: {
-                [key: string]: boolean;
-            };
-        } | {
-            id: string;
-            sessionID: string;
-            role: 'assistant';
-            time: {
-                created: number;
-                completed?: number;
-            };
-            error?: {
-                name: 'ProviderAuthError';
-                data: {
-                    providerID: string;
-                    message: string;
-                };
-            } | {
-                name: 'UnknownError';
-                data: {
-                    message: string;
-                };
-            } | {
-                name: 'MessageOutputLengthError';
-                data: {
-                    [key: string]: unknown;
-                };
-            } | {
-                name: 'MessageAbortedError';
-                data: {
-                    message: string;
-                };
-            } | {
-                name: 'APIError';
-                data: {
-                    message: string;
-                    statusCode?: number;
-                    isRetryable: boolean;
-                    responseHeaders?: {
-                        [key: string]: string;
-                    };
-                    responseBody?: string;
-                };
-            };
-            parentID: string;
-            modelID: string;
-            providerID: string;
-            mode: string;
-            path: {
-                cwd: string;
-                root: string;
-            };
-            summary?: boolean;
-            cost: number;
-            tokens: {
-                input: number;
-                output: number;
-                reasoning: number;
-                cache: {
-                    read: number;
-                    write: number;
-                };
-            };
-            finish?: string;
-        };
-        parts: Array<{
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'text';
-            text: string;
-            synthetic?: boolean;
-            ignored?: boolean;
-            time?: {
-                start: number;
-                end?: number;
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'reasoning';
-            text: string;
-            metadata?: {
-                [key: string]: unknown;
-            };
-            time: {
-                start: number;
-                end?: number;
-            };
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'file';
-            mime: string;
-            filename?: string;
-            url: string;
-            source?: {
-                type: 'file';
-                text: {
-                    value: string;
-                    start: number;
-                    end: number;
-                };
-                path: string;
-            } | {
-                type: 'symbol';
-                text: {
-                    value: string;
-                    start: number;
-                    end: number;
-                };
-                path: string;
-                range: {
-                    start: {
-                        line: number;
-                        character: number;
-                    };
-                    end: {
-                        line: number;
-                        character: number;
-                    };
-                };
-                name: string;
-                kind: number;
-            };
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'tool';
-            callID: string;
-            tool: string;
-            state: {
-                status: 'pending';
-                input: {
-                    [key: string]: unknown;
-                };
-                raw: string;
-            } | {
-                status: 'running';
-                input: {
-                    [key: string]: unknown;
-                };
-                title?: string;
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                time: {
-                    start: number;
-                };
-            } | {
-                status: 'completed';
-                input: {
-                    [key: string]: unknown;
-                };
-                output: string;
-                title: string;
-                metadata: {
-                    [key: string]: unknown;
-                };
-                time: {
-                    start: number;
-                    end: number;
-                    compacted?: number;
-                };
-                attachments?: Array<{
-                    id: string;
-                    sessionID: string;
-                    messageID: string;
-                    type: 'file';
-                    mime: string;
-                    filename?: string;
-                    url: string;
-                    source?: {
-                        type: 'file';
-                        text: {
-                            value: string;
-                            start: number;
-                            end: number;
-                        };
-                        path: string;
-                    } | {
-                        type: 'symbol';
-                        text: {
-                            value: string;
-                            start: number;
-                            end: number;
-                        };
-                        path: string;
-                        range: {
-                            start: {
-                                line: number;
-                                character: number;
-                            };
-                            end: {
-                                line: number;
-                                character: number;
-                            };
-                        };
-                        name: string;
-                        kind: number;
-                    };
-                }>;
-            } | {
-                status: 'error';
-                input: {
-                    [key: string]: unknown;
-                };
-                error: string;
-                metadata?: {
-                    [key: string]: unknown;
-                };
-                time: {
-                    start: number;
-                    end: number;
-                };
-            };
-            metadata?: {
-                [key: string]: unknown;
-            };
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'step-start';
-            snapshot?: string;
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'step-finish';
-            reason: string;
-            snapshot?: string;
-            cost: number;
-            tokens: {
-                input: number;
-                output: number;
-                reasoning: number;
-                cache: {
-                    read: number;
-                    write: number;
-                };
-            };
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'snapshot';
-            snapshot: string;
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'patch';
-            hash: string;
-            files: Array<string>;
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'agent';
-            name: string;
-            source?: {
-                value: string;
-                start: number;
-                end: number;
-            };
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'subtask';
-            prompt: string;
-            description: string;
-            agent: string;
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'retry';
-            attempt: number;
-            error: {
-                name: 'APIError';
-                data: {
-                    message: string;
-                    statusCode?: number;
-                    isRetryable: boolean;
-                    responseHeaders?: {
-                        [key: string]: string;
-                    };
-                    responseBody?: string;
-                };
-            };
-            time: {
-                created: number;
-            };
-        } | {
-            id: string;
-            sessionID: string;
-            messageID: string;
-            type: 'compaction';
-        }>;
-    }>;
+    200: Array<MessageWithParts>;
 };
 
 export type GetSessionIdMessagesResponse = GetSessionIdMessagesResponses[keyof GetSessionIdMessagesResponses];

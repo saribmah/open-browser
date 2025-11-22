@@ -6,42 +6,42 @@ import { z } from "zod";
  */
 export namespace Message {
     // ============= Base Types =============
-    
+
     export const FileDiffSchema = z.object({
         file: z.string(),
         before: z.string(),
         after: z.string(),
         additions: z.number(),
         deletions: z.number()
-    });
+    }).meta({ ref: "FileDiff" });
     export type FileDiff = z.infer<typeof FileDiffSchema>;
 
     export const ModelSchema = z.object({
         providerID: z.string(),
         modelID: z.string()
-    });
+    }).meta({ ref: "Model" });
     export type Model = z.infer<typeof ModelSchema>;
 
     export const TimeCreatedSchema = z.object({
         created: z.number()
-    });
+    }).meta({ ref: "TimeCreated" });
     export type TimeCreated = z.infer<typeof TimeCreatedSchema>;
 
     export const TimeCompletedSchema = z.object({
         created: z.number(),
         completed: z.number().optional()
-    });
+    }).meta({ ref: "TimeCompleted" });
     export type TimeCompleted = z.infer<typeof TimeCompletedSchema>;
 
     // ============= Error Types =============
-    
+
     export const ProviderAuthErrorSchema = z.object({
         name: z.literal("ProviderAuthError"),
         data: z.object({
             providerID: z.string(),
             message: z.string()
         })
-    });
+    }).meta({ ref: "ProviderAuthError" });
     export type ProviderAuthError = z.infer<typeof ProviderAuthErrorSchema>;
 
     export const UnknownErrorSchema = z.object({
@@ -49,13 +49,13 @@ export namespace Message {
         data: z.object({
             message: z.string()
         })
-    });
+    }).meta({ ref: "UnknownError" });
     export type UnknownError = z.infer<typeof UnknownErrorSchema>;
 
     export const MessageOutputLengthErrorSchema = z.object({
         name: z.literal("MessageOutputLengthError"),
         data: z.record(z.string(), z.unknown())
-    });
+    }).meta({ ref: "MessageOutputLengthError" });
     export type MessageOutputLengthError = z.infer<typeof MessageOutputLengthErrorSchema>;
 
     export const MessageAbortedErrorSchema = z.object({
@@ -63,7 +63,7 @@ export namespace Message {
         data: z.object({
             message: z.string()
         })
-    });
+    }).meta({ ref: "MessageAbortedError" });
     export type MessageAbortedError = z.infer<typeof MessageAbortedErrorSchema>;
 
     export const ApiErrorSchema = z.object({
@@ -75,7 +75,7 @@ export namespace Message {
             responseHeaders: z.record(z.string(), z.string()).optional(),
             responseBody: z.string().optional()
         })
-    });
+    }).meta({ ref: "ApiError" });
     export type ApiError = z.infer<typeof ApiErrorSchema>;
 
     export const MessageErrorSchema = z.union([
@@ -88,7 +88,7 @@ export namespace Message {
     export type MessageError = z.infer<typeof MessageErrorSchema>;
 
     // ============= Message Info Types =============
-    
+
     export const UserMessageSchema = z.object({
         id: z.string(),
         sessionID: z.string(),
@@ -103,7 +103,7 @@ export namespace Message {
         model: ModelSchema,
         system: z.string().optional(),
         tools: z.record(z.string(), z.boolean()).optional()
-    });
+    }).meta({ ref: "UserMessage" });
     export type UserMessage = z.infer<typeof UserMessageSchema>;
 
     export const AssistantMessageSchema = z.object({
@@ -132,7 +132,7 @@ export namespace Message {
             })
         }),
         finish: z.string().optional()
-    });
+    }).meta({ ref: "AssistantMessage" });
     export type AssistantMessage = z.infer<typeof AssistantMessageSchema>;
 
     export const MessageInfoSchema = z.discriminatedUnion("role", [
@@ -142,7 +142,7 @@ export namespace Message {
     export type MessageInfo = z.infer<typeof MessageInfoSchema>;
 
     // ============= Part Types =============
-    
+
     export const TextPartSchema = z.object({
         id: z.string(),
         sessionID: z.string(),
@@ -156,7 +156,7 @@ export namespace Message {
             end: z.number().optional()
         }).optional(),
         metadata: z.record(z.string(), z.unknown()).optional()
-    });
+    }).meta({ ref: "TextPart" });
     export type TextPart = z.infer<typeof TextPartSchema>;
 
     export const ReasoningPartSchema = z.object({
@@ -170,7 +170,7 @@ export namespace Message {
             start: z.number(),
             end: z.number().optional()
         })
-    });
+    }).meta({ ref: "ReasoningPart" });
     export type ReasoningPart = z.infer<typeof ReasoningPartSchema>;
 
     export const RangeSchema = z.object({
@@ -182,21 +182,21 @@ export namespace Message {
             line: z.number(),
             character: z.number()
         })
-    });
+    }).meta({ ref: "Range" });
     export type Range = z.infer<typeof RangeSchema>;
 
     export const FilePartSourceTextSchema = z.object({
         value: z.string(),
         start: z.number(),
         end: z.number()
-    });
+    }).meta({ ref: "FilePartSourceText" });
     export type FilePartSourceText = z.infer<typeof FilePartSourceTextSchema>;
 
     export const FileSourceSchema = z.object({
         type: z.literal("file"),
         text: FilePartSourceTextSchema,
         path: z.string()
-    });
+    }).meta({ ref: "FileSource" });
     export type FileSource = z.infer<typeof FileSourceSchema>;
 
     export const SymbolSourceSchema = z.object({
@@ -206,7 +206,7 @@ export namespace Message {
         range: RangeSchema,
         name: z.string(),
         kind: z.number()
-    });
+    }).meta({ ref: "SymbolSource" });
     export type SymbolSource = z.infer<typeof SymbolSourceSchema>;
 
     export const FilePartSourceSchema = z.discriminatedUnion("type", [
@@ -224,14 +224,14 @@ export namespace Message {
         filename: z.string().optional(),
         url: z.string(),
         source: FilePartSourceSchema.optional()
-    });
+    }).meta({ ref: "FilePart" });
     export type FilePart = z.infer<typeof FilePartSchema>;
 
     export const ToolStatePendingSchema = z.object({
         status: z.literal("pending"),
         input: z.record(z.string(), z.unknown()),
         raw: z.string()
-    });
+    }).meta({ ref: "ToolStatePending" });
     export type ToolStatePending = z.infer<typeof ToolStatePendingSchema>;
 
     export const ToolStateRunningSchema = z.object({
@@ -242,7 +242,7 @@ export namespace Message {
         time: z.object({
             start: z.number()
         })
-    });
+    }).meta({ ref: "ToolStateRunning" });
     export type ToolStateRunning = z.infer<typeof ToolStateRunningSchema>;
 
     export const ToolStateCompletedSchema = z.object({
@@ -257,7 +257,7 @@ export namespace Message {
             compacted: z.number().optional()
         }),
         attachments: z.array(FilePartSchema).optional()
-    });
+    }).meta({ ref: "ToolStateCompleted" });
     export type ToolStateCompleted = z.infer<typeof ToolStateCompletedSchema>;
 
     export const ToolStateErrorSchema = z.object({
@@ -269,7 +269,7 @@ export namespace Message {
             start: z.number(),
             end: z.number()
         })
-    });
+    }).meta({ ref: "ToolStateError" });
     export type ToolStateError = z.infer<typeof ToolStateErrorSchema>;
 
     export const ToolStateSchema = z.discriminatedUnion("status", [
@@ -289,7 +289,7 @@ export namespace Message {
         tool: z.string(),
         state: ToolStateSchema,
         metadata: z.record(z.string(), z.unknown()).optional()
-    });
+    }).meta({ ref: "ToolPart" });
     export type ToolPart = z.infer<typeof ToolPartSchema>;
 
     export const StepStartPartSchema = z.object({
@@ -298,7 +298,7 @@ export namespace Message {
         messageID: z.string(),
         type: z.literal("step-start"),
         snapshot: z.string().optional()
-    });
+    }).meta({ ref: "StepStartPart" });
     export type StepStartPart = z.infer<typeof StepStartPartSchema>;
 
     export const StepFinishPartSchema = z.object({
@@ -318,7 +318,7 @@ export namespace Message {
                 write: z.number()
             })
         })
-    });
+    }).meta({ ref: "StepFinishPart" });
     export type StepFinishPart = z.infer<typeof StepFinishPartSchema>;
 
     export const SnapshotPartSchema = z.object({
@@ -327,7 +327,9 @@ export namespace Message {
         messageID: z.string(),
         type: z.literal("snapshot"),
         snapshot: z.string()
-    });
+    }).meta({
+        ref: "SnapshotPart",
+    })
     export type SnapshotPart = z.infer<typeof SnapshotPartSchema>;
 
     export const PatchPartSchema = z.object({
@@ -337,7 +339,7 @@ export namespace Message {
         type: z.literal("patch"),
         hash: z.string(),
         files: z.array(z.string())
-    });
+    }).meta({ ref: "PatchPart" });
     export type PatchPart = z.infer<typeof PatchPartSchema>;
 
     export const AgentPartSchema = z.object({
@@ -351,7 +353,7 @@ export namespace Message {
             start: z.number(),
             end: z.number()
         }).optional()
-    });
+    }).meta({ ref: "AgentPart" });
     export type AgentPart = z.infer<typeof AgentPartSchema>;
 
     export const SubtaskPartSchema = z.object({
@@ -362,7 +364,7 @@ export namespace Message {
         prompt: z.string(),
         description: z.string(),
         agent: z.string()
-    });
+    }).meta({ ref: "SubtaskPart" });
     export type SubtaskPart = z.infer<typeof SubtaskPartSchema>;
 
     export const RetryPartSchema = z.object({
@@ -375,7 +377,7 @@ export namespace Message {
         time: z.object({
             created: z.number()
         })
-    });
+    }).meta({ ref: "RetryPart" });
     export type RetryPart = z.infer<typeof RetryPartSchema>;
 
     export const CompactionPartSchema = z.object({
@@ -383,7 +385,7 @@ export namespace Message {
         sessionID: z.string(),
         messageID: z.string(),
         type: z.literal("compaction")
-    });
+    }).meta({ ref: "CompactionPart" });
     export type CompactionPart = z.infer<typeof CompactionPartSchema>;
 
     export const PartSchema = z.discriminatedUnion("type", [
@@ -403,11 +405,11 @@ export namespace Message {
     export type Part = z.infer<typeof PartSchema>;
 
     // ============= Complete Message Type =============
-    
+
     export const MessageWithPartsSchema = z.object({
         info: MessageInfoSchema,
         parts: z.array(PartSchema)
-    });
+    }).meta({ ref: "MessageWithParts" });
     export type MessageWithParts = z.infer<typeof MessageWithPartsSchema>;
 
     export const MessagesResponseSchema = z.array(MessageWithPartsSchema);
