@@ -1,17 +1,13 @@
 import { useState, useMemo } from "react"
 import { Sidebar } from "@/components/Sidebar"
-import { ChatInput } from "@/features/chat/chat-input.component.tsx"
+import { ChatInput } from "./chat-input.component"
 import { CommandDialog } from "@/components/CommandDialog"
-import type { MentionFile } from "@/components/FileMention"
 import type { FileNode } from "@/components/FileTree"
 import { SessionBar, type Session } from "@/features/session"
 import {
   useChatSessions,
-  useActiveSession,
   useAddSession,
   useSetActiveSession,
-  useSendMessage,
-  useUpdateSessionId,
 } from "./chat.context"
 import {
   useProjects,
@@ -19,10 +15,7 @@ import {
   useAddProject,
 } from "@/features/project"
 import { FileTreeManager, useFileList, useFileClick } from "@/features/file"
-import {
-  useCreateSession,
-  useSessions as useApiSessions,
-} from "@/features/session"
+import { useSessions as useApiSessions } from "@/features/session"
 import { SessionContent } from "./session.component"
 
 export function ChatComponent() {
@@ -31,17 +24,13 @@ export function ChatComponent() {
 
   // Get state from chat store
   const sessions = useChatSessions()
-  const activeSession = useActiveSession()
 
   // Get actions from chat store
   const addSession = useAddSession()
   const setActiveSession = useSetActiveSession()
-  const sendMessage = useSendMessage()
-  const updateSessionId = useUpdateSessionId()
 
   // Get session API state and actions
   const apiSessions = useApiSessions()
-  const createSession = useCreateSession()
 
   // Get project state and actions
   const projects = useProjects()
@@ -63,36 +52,6 @@ export function ChatComponent() {
       // Refresh projects list
       getAllProjects()
     }
-  }
-
-  const handleSendMessage = async (message: string, mentionedFiles?: MentionFile[]) => {
-    // Get the active tab
-    if (!activeSession) return
-
-    // Check if the tab has a session
-    if (!activeSession.sessionId) {
-      // Create a session for this tab
-      console.log("Creating session for tab:", activeSession.id)
-      const session = await createSession()
-
-      if (!session) {
-        console.error("Failed to create session")
-        return
-      }
-
-      // Update the tab with the session ID
-      updateSessionId(activeSession.id, session.id)
-      console.log("Session created:", session.id)
-
-      // TODO: Send message with session.id
-    } else {
-      // Session exists, send message
-      console.log("Sending message with existing session:", activeSession.sessionId)
-      // TODO: Send message with activeSession.sessionId
-    }
-
-    // For now, just call the existing sendMessage
-    sendMessage(message, mentionedFiles)
   }
 
   // Map API sessions to Session format for CommandDialog
@@ -185,7 +144,7 @@ export function ChatComponent() {
             {/* Floating chat input - always visible at bottom */}
             <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
               <div className="pointer-events-auto">
-                <ChatInput onSend={handleSendMessage} availableFiles={availableFiles} />
+                <ChatInput />
               </div>
             </div>
           </div>

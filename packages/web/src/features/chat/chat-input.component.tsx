@@ -5,6 +5,13 @@ import { FileMention } from "@/components/FileMention"
 import { cn } from "@/lib/utils"
 import type { FormEvent, KeyboardEvent } from "react"
 import type { MentionFile } from "@/components/FileMention"
+import {
+  useActiveSession,
+  useSendMessage,
+  useUpdateSessionId,
+} from "./chat.context"
+import { useCreateSession } from "@/features/session"
+import { useFileList } from "@/features/file"
 
 const sdks = [
   { id: "opencode", name: "opencode" },
@@ -19,26 +26,30 @@ const models = [
 ]
 
 interface ChatInputProps {
-  onSend: (message: string, mentionedFiles?: MentionFile[]) => void
   placeholder?: string
   disabled?: boolean
   selectedModel?: string
   onModelChange?: (modelId: string) => void
   selectedSdk?: string
   onSdkChange?: (sdkId: string) => void
-  availableFiles?: MentionFile[]
 }
 
 export function ChatInput({ 
-  onSend, 
   placeholder = "ask anything...", 
   disabled = false,
   selectedModel = "claude-sonnet-4",
   onModelChange,
   selectedSdk = "opencode",
   onSdkChange,
-  availableFiles = [],
 }: ChatInputProps) {
+  // Get state and actions from chat store
+  const activeSession = useActiveSession()
+  const sendMessage = useSendMessage()
+  const updateSessionId = useUpdateSessionId()
+  const createSession = useCreateSession()
+  const availableFiles = useFileList()
+
+  // Local state
   const [message, setMessage] = useState("")
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false)
   const [isSdkSelectorOpen, setIsSdkSelectorOpen] = useState(false)
@@ -48,13 +59,36 @@ export function ChatInput({
   const [mentionedFiles, setMentionedFiles] = useState<MentionFile[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (message.trim() && !disabled) {
-      onSend(message.trim(), mentionedFiles.length > 0 ? mentionedFiles : undefined)
-      setMessage("")
-      setMentionedFiles([])
+    if (!message.trim() || disabled || !activeSession) return
+
+    // Check if the tab has a session
+    if (!activeSession.sessionId) {
+      // Create a session for this tab
+      console.log("Creating session for tab:", activeSession.id)
+      const session = await createSession()
+
+      if (!session) {
+        console.error("Failed to create session")
+        return
+      }
+
+      // Update the tab with the session ID
+      updateSessionId(activeSession.id, session.id)
+      console.log("Session created:", session.id)
+
+      // TODO: Send message with session.id
+    } else {
+      // Session exists, send message
+      console.log("Sending message with existing session:", activeSession.sessionId)
+      // TODO: Send message with activeSession.sessionId
     }
+
+    // For now, just call the existing sendMessage
+    sendMessage(message.trim(), mentionedFiles.length > 0 ? mentionedFiles : undefined)
+    setMessage("")
+    setMentionedFiles([])
   }
 
   const filteredFiles = availableFiles.filter((file) =>
