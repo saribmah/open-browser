@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { Sidebar } from "@/components/Sidebar"
-import { ChatInput } from "@/components/ChatInput"
+import { ChatInput } from "@/features/chat/chat-input.component.tsx"
 import { CommandDialog } from "@/components/CommandDialog"
 import type { MentionFile } from "@/components/FileMention"
 import type { FileNode } from "@/components/FileTree"
@@ -173,9 +173,7 @@ export function ChatComponent() {
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Session Bar */}
-          <SessionBar
-            onSearchSessions={handleSearchSessions}
-          />
+          <SessionBar onSearchSessions={handleSearchSessions} />
 
           {/* Content area */}
           <div className="flex-1 relative overflow-hidden">
