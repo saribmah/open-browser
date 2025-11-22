@@ -1,6 +1,6 @@
 export { FilesystemProvider } from "./filesystem.provider"
-export { 
-  FilesystemContext, 
+export {
+  FilesystemContext,
   useFilesystemContext,
   useFiles,
   useFileTree,
@@ -15,10 +15,9 @@ export {
   useClearCurrentFile
 } from "./filesystem.context"
 export { createFilesystemStore } from "./filesystem.store"
-export type { 
+export type {
   FileType,
   FileItem,
-  FileTreeNode,
   FileContent,
   FileNode,
   MentionFile,

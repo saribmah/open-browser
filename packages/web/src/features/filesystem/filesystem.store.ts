@@ -19,15 +19,11 @@ export type FileType = FileItem['type']
 // FileTreeNode needs to be recursive, but the generated type from OpenAPI doesn't support this
 // So we extend it to make children recursive
 type BaseFileTreeNode = GetFileListResponses[200]['files'][number]
-export type FileTreeNode = BaseFileTreeNode & {
-  children?: FileTreeNode[]
+export type FileNode = BaseFileTreeNode & {
+  children?: FileNode[]
 }
 
 export type FileContent = GetFileReadResponses[200] & { path: string }
-
-// FileNode is used by the FileTree component - it's an alias for FileTreeNode
-// This type represents a node in the file tree structure
-export type FileNode = FileTreeNode
 
 // MentionFile is used for file mentions in chat
 // It's a direct alias of FileItem from the backend - no client extensions needed
@@ -36,7 +32,7 @@ export type MentionFile = FileItem
 
 export interface FilesystemState {
   files: FileItem[]
-  tree: FileTreeNode | null
+  tree: FileNode | null
   currentFile: FileContent | null
   isLoadingFiles: boolean
   isLoadingTree: boolean
