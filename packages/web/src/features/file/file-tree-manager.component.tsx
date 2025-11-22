@@ -1,64 +1,52 @@
-import { useState, useEffect, useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { ContextItem } from "@/components/ContextItem"
 import type { Context } from "@/components/ContextItem"
-import type { FileNode } from "@/components/FileTree"
 import { 
   useGetFileTree, 
   useFileTree,
   type FileTreeNode 
 } from "@/features/filesystem"
-import type { Project } from "@/features/project"
+import { useProjects, useRemoveProject } from "@/features/project"
+import { useFileClick } from "./useFileClick"
 
 interface FileTreeManagerProps {
-  projects: Project[]
-  onFileClick?: (file: FileNode, directory?: string) => void
-  onProjectDelete?: (projectId: string) => void
-  onFileTreesLoaded?: (trees: Map<string, FileTreeNode>) => void
+  onFileTreesLoaded?: (tree: FileTreeNode | null) => void
 }
 
 /**
- * Manages file trees for multiple projects
- * Handles loading, caching, and rendering of project file trees
+ * Manages file tree for the workspace
+ * Loads all files from the root directory
  */
-export function FileTreeManager({ projects, onFileClick, onProjectDelete, onFileTreesLoaded }: FileTreeManagerProps) {
-  const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
+export function FileTreeManager({ onFileTreesLoaded }: FileTreeManagerProps) {
+  const projects = useProjects()
+  const removeProject = useRemoveProject()
+  const { handleFileClick } = useFileClick()
   
-  // Get filesystem actions
+  // Get filesystem state and actions
   const getFileTree = useGetFileTree()
   const fileTree = useFileTree()
 
-  // Load file trees for all projects
+  // Load file tree from root directory
   useEffect(() => {
-    if (projects.length === 0) return
-
-    const loadFileTrees = async () => {
-      for (const project of projects) {
-        // Skip if we already loaded this project's files
-        if (projectFileTrees.has(project.id)) continue
-
-        try {
-          await getFileTree(project.directory, 3)
-          
-          // Store the file tree for this project
-          if (fileTree) {
-            setProjectFileTrees(prev => {
-              const newMap = new Map(prev).set(project.id, fileTree)
-              // Notify parent of updated file trees
-              onFileTreesLoaded?.(newMap)
-              return newMap
-            })
-          }
-        } catch (error) {
-          console.error(`Failed to load file tree for project ${project.id}:`, error)
-        }
+    const loadFileTree = async () => {
+      try {
+        // Load from root directory with depth of 3
+        await getFileTree("/", 3)
+      } catch (error) {
+        console.error("Failed to load file tree:", error)
       }
     }
 
-    loadFileTrees()
-  }, [projects, getFileTree, fileTree, projectFileTrees, onFileTreesLoaded])
+    loadFileTree()
+  }, [getFileTree])
+
+  // Notify parent when file tree is loaded
+  useEffect(() => {
+    onFileTreesLoaded?.(fileTree)
+  }, [fileTree, onFileTreesLoaded])
 
   // Helper function to convert FileTreeNode to flat file list
-  const flattenFileTree = (node: FileTreeNode, basePath = ""): Array<{ path: string; name: string }> => {
+  const flattenFileTree = (node: FileTreeNode): Array<{ path: string; name: string }> => {
     const files: Array<{ path: string; name: string }> = []
     
     if (node.type === "file") {
@@ -70,30 +58,36 @@ export function FileTreeManager({ projects, onFileClick, onProjectDelete, onFile
     
     if (node.children) {
       for (const child of node.children) {
-        files.push(...flattenFileTree(child, node.path))
+        files.push(...flattenFileTree(child))
       }
     }
     
     return files
   }
 
-  // Convert projects to Context format for UI
+  // Convert file tree and projects to Context format for UI
   const contexts = useMemo<Context[]>(() => {
+    if (!fileTree) return []
+    
+    const files = flattenFileTree(fileTree)
+    
     return projects.map((project) => {
-      const tree = projectFileTrees.get(project.id)
-      const files = tree ? flattenFileTree(tree) : []
-      
       return {
         id: project.id,
         name: project.directory,
-        directory: project.directory, // Include directory for file path resolution
+        directory: project.directory,
         files,
       }
     })
-  }, [projects, projectFileTrees])
+  }, [projects, fileTree])
 
-  const handleDelete = (id: string) => {
-    onProjectDelete?.(id)
+  const handleDelete = async (id: string) => {
+    const success = await removeProject(id)
+    
+    if (!success) {
+      console.error("Failed to remove project")
+    }
+    // Project list is automatically updated by the store
   }
 
   return (
@@ -103,7 +97,7 @@ export function FileTreeManager({ projects, onFileClick, onProjectDelete, onFile
           key={context.id}
           context={context}
           onDelete={handleDelete}
-          onFileClick={onFileClick}
+          onFileClick={handleFileClick}
         />
       ))}
     </div>

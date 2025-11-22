@@ -20,14 +20,9 @@ import {
   useProjects,
   useGetAllProjects,
   useAddProject,
-  useRemoveProject,
 } from "@/features/project"
-import { 
-  useReadFile, 
-  useCurrentFile,
-  type FileTreeNode,
-} from "@/features/filesystem"
-import { FileTreeManager, useFileList } from "@/features/file"
+import { type FileTreeNode } from "@/features/filesystem"
+import { FileTreeManager, useFileList, useFileClick } from "@/features/file"
 import { 
   useCreateSession,
   useSessions as useApiSessions,
@@ -40,8 +35,7 @@ import {
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
   const [commandInitialPage, setCommandInitialPage] = useState<string | undefined>()
-  const [loadingFile, setLoadingFile] = useState<string | null>(null)
-  const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
+  const [fileTree, setFileTree] = useState<FileTreeNode | null>(null)
   
   // Get state from chat store
   const sessions = useChatSessions()
@@ -70,11 +64,9 @@ export function ChatComponent() {
   const projects = useProjects()
   const getAllProjects = useGetAllProjects()
   const addProject = useAddProject()
-  const removeProject = useRemoveProject()
 
-  // Get filesystem actions
-  const readFile = useReadFile()
-  const currentFile = useCurrentFile()
+  // Get file click handler
+  const { handleFileClick } = useFileClick()
 
   // Load projects on mount
   useEffect(() => {
@@ -90,28 +82,6 @@ export function ChatComponent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSessionApiId, activeSessionType])
 
-  // Watch for file loading completion and update tab
-  useEffect(() => {
-    if (!loadingFile || !currentFile || currentFile.path !== loadingFile) return
-
-    // File has loaded, update the tab
-    const existingSession = sessions.find((sess) => sess.id === loadingFile)
-    if (existingSession && existingSession.fileContent === "Loading...") {
-      // We need an updateTab action - for now, remove and re-add
-      removeSession(loadingFile)
-      const updatedSession: Session = {
-        id: currentFile.path,
-        title: existingSession.title,
-        type: "file",
-        fileContent: currentFile.content,
-        filePath: currentFile.path,
-      }
-      addSession(updatedSession)
-    }
-    
-    setLoadingFile(null)
-  }, [currentFile, loadingFile, sessions, removeSession, addSession])
-
   const handleAddContext = async (url: string) => {
     console.log("Adding project:", url)
 
@@ -123,15 +93,6 @@ export function ChatComponent() {
       // Refresh projects list
       getAllProjects()
     }
-  }
-
-  const handleDeleteContext = async (id: string) => {
-    const success = await removeProject(id)
-    
-    if (!success) {
-      console.error("Failed to remove project")
-    }
-    // Project list is automatically updated by the store
   }
 
   const handleSendMessage = async (message: string, mentionedFiles?: MentionFile[]) => {
@@ -164,8 +125,8 @@ export function ChatComponent() {
     sendMessage(message, mentionedFiles)
   }
 
-  // Get flat file list from all projects using the hook
-  const availableFiles = useFileList({ projectFileTrees })
+  // Get flat file list from the file tree
+  const availableFiles = useFileList({ fileTree })
 
   // Map API sessions to Session format for CommandDialog
   const availableApiSessions = useMemo(() => {
@@ -192,34 +153,6 @@ export function ChatComponent() {
   const handleSearchSessions = () => {
     setCommandInitialPage('sessions')
     setCommandOpen(true)
-  }
-
-  const handleFileClick = async (file: FileNode, directory?: string) => {
-    // Construct the full path: directory/filePath
-    // Remove leading slash from file.path if present to avoid double slashes
-    const relativePath = file.path.startsWith('/') ? file.path.slice(1) : file.path
-    const fullPath = directory ? `${directory}/${relativePath}` : file.path
-    
-    // Check if tab already exists for this file
-    const existingSession = sessions.find((sess) => sess.id === fullPath)
-    if (existingSession) {
-      setActiveSession(existingSession.id)
-      return
-    }
-
-    // Create tab with loading state
-    const newSession: Session = {
-      id: fullPath,
-      title: file.name,
-      type: "file",
-      fileContent: "Loading...",
-      filePath: fullPath,
-    }
-    addSession(newSession)
-    setLoadingFile(fullPath)
-
-    // Fetch file content with full path - useEffect will update the tab when loaded
-    readFile(fullPath)
   }
 
   return (
@@ -275,10 +208,7 @@ export function ChatComponent() {
             </div>
           ) : (
             <FileTreeManager 
-              projects={projects}
-              onFileClick={handleFileClick}
-              onProjectDelete={handleDeleteContext}
-              onFileTreesLoaded={setProjectFileTrees}
+              onFileTreesLoaded={setFileTree}
             />
           )}
         </Sidebar>
