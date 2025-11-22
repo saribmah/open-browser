@@ -2,16 +2,14 @@ import { useEffect, useState, useRef } from "react"
 import { Command } from "cmdk"
 import { 
   Plus, 
-  Settings, 
   FileText, 
   Github, 
   MessageSquare, 
   Trash2,
-  Sun,
-  Moon,
-  LogOut,
-  HelpCircle
+  HelpCircle,
+  File
 } from "lucide-react"
+import type { MentionFile } from "@/components/FileMention"
 
 interface CommandDialogProps {
   open: boolean
@@ -20,6 +18,8 @@ interface CommandDialogProps {
   onNewSession?: () => void
   onClearChat?: () => void
   onShowHelp?: () => void
+  onFileSelect?: (file: MentionFile) => void
+  availableFiles?: MentionFile[]
 }
 
 export function CommandDialog({ 
@@ -29,6 +29,8 @@ export function CommandDialog({
   onNewSession,
   onClearChat,
   onShowHelp,
+  onFileSelect,
+  availableFiles = [],
 }: CommandDialogProps) {
   const [search, setSearch] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -145,6 +147,28 @@ export function CommandDialog({
             </Command.Group>
 
             <Command.Separator className="my-2 h-px bg-white/10" />
+
+            {availableFiles.length > 0 && (
+              <>
+                <Command.Group heading="files" className="px-2 py-1.5 text-xs text-zinc-500">
+                  {availableFiles.map((file) => (
+                    <Command.Item
+                      key={file.id}
+                      value={`${file.name} ${file.path}`}
+                      onSelect={() => runCommand(() => onFileSelect?.(file))}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                    >
+                      <File className="h-4 w-4" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate">{file.name}</span>
+                        <span className="text-xs text-zinc-500 truncate">{file.path}</span>
+                      </div>
+                    </Command.Item>
+                  ))}
+                </Command.Group>
+                <Command.Separator className="my-2 h-px bg-white/10" />
+              </>
+            )}
 
             <Command.Group heading="help" className="px-2 py-1.5 text-xs text-zinc-500">
               <Command.Item

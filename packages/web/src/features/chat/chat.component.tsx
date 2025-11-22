@@ -25,12 +25,14 @@ import {
 import { 
   useReadFile, 
   useCurrentFile,
+  type FileTreeNode,
 } from "@/features/filesystem"
-import { FileTreeManager } from "@/features/file"
+import { FileTreeManager, useFileList } from "@/features/file"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
   const [loadingFile, setLoadingFile] = useState<string | null>(null)
+  const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
   
   // Get state from chat store
   const tabs = useTabs()
@@ -106,8 +108,8 @@ export function ChatComponent() {
     sendMessage(message, mentionedFiles)
   }
 
-  // TODO: Convert project files to MentionFile format for chat input
-  const availableFiles: MentionFile[] = []
+  // Get flat file list from all projects using the hook
+  const availableFiles = useFileList({ projectFileTrees })
 
   const handleNewTab = () => {
     const newTab: Tab = {
@@ -162,6 +164,17 @@ export function ChatComponent() {
         onClearChat={() => {
           console.log("Clear chat")
         }}
+        onFileSelect={(file) => {
+          // Create file node from MentionFile to reuse handleFileClick
+          const fileNode: FileNode = {
+            name: file.name,
+            path: file.path.split('/').slice(1).join('/'), // Remove project dir from path
+            type: "file"
+          }
+          const projectDir = file.path.split('/')[0] // Extract project directory
+          handleFileClick(fileNode, projectDir)
+        }}
+        availableFiles={availableFiles}
       />
       <div className="flex h-[calc(100vh-4rem)]">
         <Sidebar
@@ -177,6 +190,7 @@ export function ChatComponent() {
               projects={projects}
               onFileClick={handleFileClick}
               onProjectDelete={handleDeleteContext}
+              onFileTreesLoaded={setProjectFileTrees}
             />
           )}
         </Sidebar>

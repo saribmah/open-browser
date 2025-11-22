@@ -13,13 +13,14 @@ interface FileTreeManagerProps {
   projects: Project[]
   onFileClick?: (file: FileNode, directory?: string) => void
   onProjectDelete?: (projectId: string) => void
+  onFileTreesLoaded?: (trees: Map<string, FileTreeNode>) => void
 }
 
 /**
  * Manages file trees for multiple projects
  * Handles loading, caching, and rendering of project file trees
  */
-export function FileTreeManager({ projects, onFileClick, onProjectDelete }: FileTreeManagerProps) {
+export function FileTreeManager({ projects, onFileClick, onProjectDelete, onFileTreesLoaded }: FileTreeManagerProps) {
   const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
   
   // Get filesystem actions
@@ -40,7 +41,12 @@ export function FileTreeManager({ projects, onFileClick, onProjectDelete }: File
           
           // Store the file tree for this project
           if (fileTree) {
-            setProjectFileTrees(prev => new Map(prev).set(project.id, fileTree))
+            setProjectFileTrees(prev => {
+              const newMap = new Map(prev).set(project.id, fileTree)
+              // Notify parent of updated file trees
+              onFileTreesLoaded?.(newMap)
+              return newMap
+            })
           }
         } catch (error) {
           console.error(`Failed to load file tree for project ${project.id}:`, error)
@@ -49,7 +55,7 @@ export function FileTreeManager({ projects, onFileClick, onProjectDelete }: File
     }
 
     loadFileTrees()
-  }, [projects, getFileTree, fileTree, projectFileTrees])
+  }, [projects, getFileTree, fileTree, projectFileTrees, onFileTreesLoaded])
 
   // Helper function to convert FileTreeNode to flat file list
   const flattenFileTree = (node: FileTreeNode, basePath = ""): Array<{ path: string; name: string }> => {

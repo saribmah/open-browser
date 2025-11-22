@@ -125,13 +125,13 @@ export function ContextItem({ context, onDelete, onFileClick }: ContextItemProps
 
       {/* File Tree */}
       {isExpanded && (
-        <div className="pb-2">
+        <div className="pb-2 pl-6">
           {fileTree.length === 0 ? (
-            <div className="py-2 px-3 text-xs text-zinc-500 pl-10">no files</div>
+            <div className="py-2 px-3 text-xs text-zinc-500">no files</div>
           ) : (
             <FileTree 
               nodes={fileTree} 
-              level={1} 
+              level={0} 
               onFileClick={onFileClick ? (file) => onFileClick(file, context.directory) : undefined} 
             />
           )}
