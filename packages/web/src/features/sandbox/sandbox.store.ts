@@ -12,14 +12,6 @@ export type IntegrationType = NonNullable<PostSandboxData["body"]>["type"]
 export type SdkType = NonNullable<PostSandboxData["body"]>["sdkType"]
 export type SandboxStatus = "idle" | "setting-up" | "creating" | "ready" | "error"
 
-export interface CreateSandboxParams {
-  url: string
-  type: IntegrationType
-  directory: string
-  sdkType: SdkType
-  provider: SandboxProviderType
-}
-
 export interface SandboxState {
   sandbox: Sandbox | null
   sandboxClient: typeof sandboxClient | null
@@ -28,7 +20,6 @@ export interface SandboxState {
 }
 
 export interface SandboxActions {
-  createSandbox: (params: CreateSandboxParams) => Promise<Sandbox | null>
   setSandbox: (sandbox: Sandbox | null) => void
   setStatus: (status: SandboxStatus) => void
   setError: (error: string | null) => void
@@ -65,43 +56,6 @@ export const createSandboxStore = (initialSandbox?: Sandbox) => {
         ...initialState,
 
         // Actions
-        createSandbox: async (params) => {
-          set({ status: "creating", error: null })
-
-          try {
-            const result = await postSandbox({
-              body: params,
-            })
-
-            if (result.error) {
-              const errorMsg =
-                (result.error as { error?: string })?.error || "Failed to create sandbox"
-              set({ error: errorMsg, status: "error" })
-              return null
-            }
-
-            const data = result.data as PostSandboxResponses[200]
-            if (data?.sandbox) {
-              // Configure sandbox client with the sandbox URL
-              const client = sandboxClient
-              client.setConfig({ baseUrl: data.sandbox.url })
-              
-              set({ 
-                sandbox: data.sandbox, 
-                sandboxClient: client,
-                status: "ready" 
-              })
-              return data.sandbox
-            }
-
-            set({ error: "No sandbox returned", status: "error" })
-            return null
-          } catch (err: any) {
-            set({ error: err.message || "Failed to create sandbox", status: "error" })
-            return null
-          }
-        },
-
         setSandbox: (sandbox) => {
           if (sandbox?.url) {
             // Configure sandbox client when sandbox is set
@@ -112,7 +66,7 @@ export const createSandboxStore = (initialSandbox?: Sandbox) => {
             set({ sandbox, sandboxClient: null, status: "idle" })
           }
         },
-        
+
         setStatus: (status) => set({ status }),
         setError: (error) => set({ error }),
         reset: () => set(initialState),

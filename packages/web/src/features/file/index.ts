@@ -1,2 +1,2 @@
-export { FileTreeManager } from "./FileTreeManager"
+export { FileTreeManager } from "./file-tree-manager.component.tsx"
 export { useFileList } from "./useFileList"
