@@ -66,22 +66,18 @@ export function ChatInput({
     // Check if the tab has a session
     if (!activeSession.sessionId) {
       // Create a session for this tab
-      console.log("Creating session for tab:", activeSession.id)
       const session = await createSession()
 
       if (!session) {
-        console.error("Failed to create session")
         return
       }
 
       // Update the tab with the session ID
       updateSessionId(activeSession.id, session.id)
-      console.log("Session created:", session.id)
 
       // TODO: Send message with session.id
     } else {
       // Session exists, send message
-      console.log("Sending message with existing session:", activeSession.sessionId)
       // TODO: Send message with activeSession.sessionId
     }
 

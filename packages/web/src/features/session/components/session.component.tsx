@@ -18,7 +18,6 @@ export function SessionContent() {
   // Fetch messages when a session with sessionId becomes active
   useEffect(() => {
     if (activeSessionApiId && activeSessionType !== "file") {
-      console.log("Fetching messages for session:", activeSessionApiId)
       getMessages(activeSessionApiId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,11 +62,6 @@ export function SessionContent() {
           const summary = info.summary
           const time = info.time
           const role = info.role || message.role
-
-          // Debug logging for first few messages
-          if (idx < 3) {
-            console.log(`Message ${idx}:`, { message, info, parts, summary })
-          }
 
           // Extract text content from parts
           const textContent = parts

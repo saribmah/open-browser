@@ -36,8 +36,6 @@ export function ChatSidebar() {
     e.preventDefault()
     if (!url) return
 
-    console.log("Adding project:", url)
-
     const success = await addProject({
       url,
     })

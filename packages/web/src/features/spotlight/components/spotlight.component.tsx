@@ -28,6 +28,7 @@ import {
   useChatSessions,
   useAddSession,
   useSetActiveSession,
+  useClearMessages,
 } from "@/features/chat/chat.context"
 import type { Session } from "@/features/session/components/session-bar.component"
 import type { FileNode, FileItem } from "@/features/filesystem"
@@ -53,6 +54,7 @@ export function SpotlightComponent() {
   const addSession = useAddSession()
   const setActiveSession = useSetActiveSession()
   const chatSessions = useChatSessions()
+  const clearMessages = useClearMessages()
   const { handleFileClick } = useFileClick()
 
   // Map API sessions to Session format
@@ -183,7 +185,7 @@ export function SpotlightComponent() {
                   </Command.Item>
                   <Command.Item
                     value="add context"
-                    onSelect={() => runCommand(() => console.log("Add context"))}
+                    onSelect={() => pushPage('files')}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <Plus className="h-4 w-4" />
@@ -191,7 +193,7 @@ export function SpotlightComponent() {
                   </Command.Item>
                   <Command.Item
                     value="clear chat"
-                    onSelect={() => runCommand(() => console.log("Clear chat"))}
+                    onSelect={() => runCommand(clearMessages)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -247,7 +249,7 @@ export function SpotlightComponent() {
                 <Command.Group heading="help" className="px-2 py-1.5 text-xs text-zinc-500">
                   <Command.Item
                     value="keyboard shortcuts"
-                    onSelect={() => runCommand(() => console.log("Show help"))}
+                    onSelect={() => pushPage('help')}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <HelpCircle className="h-4 w-4" />
@@ -280,6 +282,64 @@ export function SpotlightComponent() {
                     </Command.Item>
                   ))
                 )}
+              </Command.Group>
+            )}
+
+            {currentPage === 'files' && (
+              <Command.Group heading="add context files" className="px-2 py-1.5 text-xs text-zinc-500">
+                {availableFiles.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-zinc-500">no files found</div>
+                ) : (
+                  availableFiles.map((file) => (
+                    <Command.Item
+                      key={file.path}
+                      value={`${file.name} ${file.path}`}
+                      onSelect={() => runCommand(() => handleFileSelect(file))}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                    >
+                      <File className="h-4 w-4" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate">{file.name}</span>
+                        <span className="text-xs text-zinc-500 truncate">{file.path}</span>
+                      </div>
+                    </Command.Item>
+                  ))
+                )}
+              </Command.Group>
+            )}
+
+            {currentPage === 'help' && (
+              <Command.Group heading="keyboard shortcuts" className="px-2 py-1.5 text-xs text-zinc-500">
+                <div className="px-3 py-2 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-300">open command palette</span>
+                    <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs">⌘K</kbd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-300">new session</span>
+                    <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs">⌘N</kbd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-300">navigate items</span>
+                    <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs">↑↓</kbd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-300">select item</span>
+                    <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs">↵</kbd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-300">send message</span>
+                    <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs">↵</kbd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-300">new line</span>
+                    <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs">⇧↵</kbd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-300">mention file</span>
+                    <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs">@</kbd>
+                  </div>
+                </div>
               </Command.Group>
             )}
           </Command.List>
