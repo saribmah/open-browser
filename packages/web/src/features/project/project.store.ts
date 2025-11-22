@@ -10,24 +10,13 @@ import type {
   GetInstanceProjectsResponses,
   PostInstanceProjectAddResponses,
   PostInstanceProjectRemoveResponses,
+  PostInstanceProjectAddData,
 } from "@/client/sandbox/types.gen"
 
-export type ProjectType = "GITHUB" | "ARXIV"
-
-export type Project = {
-  id: string
-  type: ProjectType
-  url: string
-  directory: string
-  metadata?: {
-    [key: string]: unknown
-  }
-}
-
-export interface AddProjectParams {
-  url: string
-  directory?: string
-}
+// Use generated types from the API
+export type Project = GetInstanceProjectsResponses[200][number]
+export type ProjectType = Project['type']
+export type AddProjectParams = NonNullable<PostInstanceProjectAddData['body']>
 
 export interface ProjectState {
   projects: Project[]
@@ -86,14 +75,7 @@ export const createProjectStore = () => {
 
             const data = result.data as GetInstanceProjectsResponses[200]
             if (data) {
-              const projects = data.map((project) => ({
-                id: project.id,
-                type: project.type,
-                url: project.url,
-                directory: project.directory,
-                metadata: project.metadata,
-              }))
-              set({ projects, isLoadingProjects: false })
+              set({ projects: data, isLoadingProjects: false })
             }
           } catch (err: any) {
             set({

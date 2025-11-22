@@ -12,27 +12,18 @@ import type {
   GetFileReadResponses,
 } from "@/client/sandbox/types.gen"
 
-export type FileType = "file" | "directory"
+// Use generated types from the API
+export type FileItem = GetFileListResponses[200]['files'][number]
+export type FileType = FileItem['type']
 
-export interface FileItem {
-  name: string
-  path: string
-  type: FileType
-  size?: number
-  modifiedAt?: string
-}
-
-export interface FileTreeNode {
-  name: string
-  path: string
-  type: FileType
+// FileTreeNode needs to be recursive, but the generated type from OpenAPI doesn't support this
+// So we extend it to make children recursive
+type BaseFileTreeNode = GetFileListResponses[200]['files'][number]
+export type FileTreeNode = BaseFileTreeNode & {
   children?: FileTreeNode[]
 }
 
-export interface FileContent {
-  path: string
-  content: string
-}
+export type FileContent = GetFileReadResponses[200] & { path: string }
 
 export interface FilesystemState {
   files: FileItem[]
@@ -136,7 +127,7 @@ export const createFilesystemStore = () => {
             const data = result.data as GetFileTreeResponses[200]
             if (data) {
               set({
-                tree: data.tree as FileTreeNode,
+                tree: data.tree,
                 isLoadingTree: false,
               })
             }

@@ -12,14 +12,8 @@ import type {
   GetSessionIdMessagesResponses,
 } from "@/client/sandbox/types.gen"
 
-export type Session = {
-  id: string
-  title?: string
-  createdAt?: string
-  updatedAt?: string
-}
-
-// Use the generated message type from the API
+// Use generated types from the API
+export type Session = GetSessionResponses[200]['sessions'][number]
 export type Message = GetSessionIdMessagesResponses[200]['messages'][number]
 
 export interface SessionState {

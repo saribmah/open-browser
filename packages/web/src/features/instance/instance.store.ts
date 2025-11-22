@@ -2,8 +2,10 @@ import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import { postInstanceInit } from "@/client/sandbox/sdk.gen"
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
+import type { PostInstanceInitData } from "@/client/sandbox/types.gen"
 
-export type SdkType = "OPENCODE" | "CLAUDE_CODE"
+// Use generated types from the API
+export type SdkType = NonNullable<PostInstanceInitData['body']>['sdkType']
 export type InstanceStatus = "idle" | "initializing" | "ready" | "error"
 
 export interface InstanceState {
