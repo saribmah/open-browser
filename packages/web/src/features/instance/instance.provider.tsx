@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react"
+import React, { useRef, useEffect, useState } from "react"
 import { InstanceContext } from "./instance.context"
 import { createInstanceStore, type InstanceStore, type SdkType } from "./instance.store"
 import { useSandboxContext } from "@/features/sandbox/sandbox.context"
@@ -15,6 +15,7 @@ export const InstanceProvider = ({
   const sandboxClient = useSandboxContext(s => s.sandboxClient)
   const storeRef = useRef<InstanceStore>(createInstanceStore())
   const initializeRef = useRef(false)
+  const [isReady, setIsReady] = useState(false)
 
   // Initialize instance when sandbox and sandboxClient are available
   useEffect(() => {
@@ -27,6 +28,7 @@ export const InstanceProvider = ({
     
     // Skip if already initialized
     if (state.initialized) {
+      setIsReady(true)
       return
     }
 
@@ -35,9 +37,12 @@ export const InstanceProvider = ({
     const performInit = async () => {
       try {
         await store.getState().initialize(sdkType, sandboxClient)
+        setIsReady(true)
       } catch (error) {
         // Error is already handled in the store
         console.error("Instance initialization failed:", error)
+        // Still set ready to true so children can render (they can handle the error state)
+        setIsReady(true)
       }
     }
 
@@ -46,7 +51,7 @@ export const InstanceProvider = ({
 
   return (
     <InstanceContext.Provider value={storeRef.current}>
-      {children}
+      {isReady ? children : null}
     </InstanceContext.Provider>
   )
 }

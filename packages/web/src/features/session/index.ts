@@ -1,7 +1,7 @@
 export { SessionProvider } from "./session.provider"
-export { 
-  SessionContext, 
-  useSessionContext, 
+export {
+  SessionContext,
+  useSessionContext,
   useSessions,
   useSessionLoading,
   useSessionError,
@@ -20,5 +20,5 @@ export type {
   Session as SessionData,
   Message,
 } from "./session.store"
-export { SessionBar } from "./SessionBar"
-export type { Session } from "./SessionBar"
+export { SessionBar } from "./session-bar.component.tsx"
+export type { Session } from "./session-bar.component.tsx"
