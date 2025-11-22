@@ -40,12 +40,19 @@ export function SessionContent() {
   return (
     <div className="p-8 space-y-4">
       {isLoadingMessages ? (
-        <div className="text-center text-zinc-500 mt-8">
-          Loading messages...
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center text-zinc-500">
+            Loading messages...
+          </div>
         </div>
       ) : messages.length === 0 ? (
-        <div className="text-center text-zinc-500 mt-8">
-          No messages yet. Start a conversation!
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center text-zinc-500">
+            <div className="mb-2">No messages yet. Start a conversation!</div>
+            <div className="text-xs text-zinc-600">
+              Press <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400">⌘K</kbd> to explore
+            </div>
+          </div>
         </div>
       ) : (
         messages.map((message, idx) => {

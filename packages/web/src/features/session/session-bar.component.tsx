@@ -8,6 +8,7 @@ import {
   useRemoveSession,
   useSetActiveSession,
 } from "@/features/chat/chat.context"
+import { useOpenSpotlight } from "@/features/spotlight"
 
 export interface Session {
   id: string
@@ -18,11 +19,7 @@ export interface Session {
   filePath?: string
 }
 
-interface SessionBarProps {
-  onSearchSessions?: () => void
-}
-
-export function SessionBar({ onSearchSessions }: SessionBarProps) {
+export function SessionBar() {
   // Get state and actions from chat store
   const sessions = useChatSessions()
   const activeSessionId = useActiveSessionId()
@@ -30,6 +27,9 @@ export function SessionBar({ onSearchSessions }: SessionBarProps) {
   const removeSession = useRemoveSession()
   const setActiveSession = useSetActiveSession()
   const sessionRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  
+  // Spotlight actions
+  const openSpotlight = useOpenSpotlight()
 
   // Handle creating a new session
   const handleNewSession = () => {
@@ -106,15 +106,13 @@ export function SessionBar({ onSearchSessions }: SessionBarProps) {
         </button>
         
         {/* Search Sessions Button */}
-        {onSearchSessions && (
-          <button
-            onClick={onSearchSessions}
-            className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-white/10 rounded-full transition-colors"
-            aria-label="search sessions"
-          >
-            <ChevronDown className="h-4 w-4" />
-          </button>
-        )}
+        <button
+          onClick={() => openSpotlight('sessions')}
+          className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-white/10 rounded-full transition-colors"
+          aria-label="search sessions"
+        >
+          <ChevronDown className="h-4 w-4" />
+        </button>
       </div>
     </div>
   )

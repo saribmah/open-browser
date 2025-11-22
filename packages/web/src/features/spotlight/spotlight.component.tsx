@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { Command } from "cmdk"
 import { 
   Plus, 
@@ -10,83 +10,130 @@ import {
   File,
   Search
 } from "lucide-react"
-import type { MentionFile } from "@/components/FileMention"
-import type { Session } from "@/features/session"
+import {
+  useSpotlightOpen,
+  useSpotlightSearch,
+  useSpotlightCurrentPage,
+  useOpenSpotlight,
+  useCloseSpotlight,
+  useToggleSpotlight,
+  useSetSpotlightSearch,
+  usePushSpotlightPage,
+  usePopSpotlightPage,
+} from "./spotlight.context"
+import { useFileList, useFileClick } from "@/features/file"
+import { useSessions } from "@/features/session"
+import { 
+  useChatSessions,
+  useAddSession,
+  useSetActiveSession,
+} from "@/features/chat/chat.context"
+import type { Session } from "@/features/session/session-bar.component"
+import type { FileNode } from "@/components/FileTree"
 
-interface CommandDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onAddContext?: () => void
-  onNewSession?: () => void
-  onClearChat?: () => void
-  onShowHelp?: () => void
-  onFileSelect?: (file: MentionFile) => void
-  onSessionSelect?: (session: Session) => void
-  availableFiles?: MentionFile[]
-  availableSessions?: Session[]
-  initialPage?: string
+// Type for a MentionFile (from FileList)
+interface MentionFile {
+  id: string
+  name: string
+  path: string
 }
 
-export function CommandDialog({ 
-  open, 
-  onOpenChange,
-  onAddContext,
-  onNewSession,
-  onClearChat,
-  onShowHelp,
-  onFileSelect,
-  onSessionSelect,
-  availableFiles = [],
-  availableSessions = [],
-  initialPage,
-}: CommandDialogProps) {
-  const [search, setSearch] = useState("")
-  const [pages, setPages] = useState<string[]>([])
+export function SpotlightComponent() {
   const inputRef = useRef<HTMLInputElement>(null)
-  const page = pages[pages.length - 1]
+  
+  // State
+  const isOpen = useSpotlightOpen()
+  const search = useSpotlightSearch()
+  const currentPage = useSpotlightCurrentPage()
+  
+  // Actions
+  const closeSpotlight = useCloseSpotlight()
+  const toggleSpotlight = useToggleSpotlight()
+  const setSearch = useSetSpotlightSearch()
+  const pushPage = usePushSpotlightPage()
+  const popPage = usePopSpotlightPage()
+  
+  // Integration with other features
+  const availableFiles = useFileList()
+  const apiSessions = useSessions()
+  const addSession = useAddSession()
+  const setActiveSession = useSetActiveSession()
+  const chatSessions = useChatSessions()
+  const { handleFileClick } = useFileClick()
 
-  // Reset search, pages and focus input when dialog opens
+  // Map API sessions to Session format
+  const availableSessions = apiSessions.map((apiSession): Session => ({
+    id: apiSession.id,
+    title: apiSession.title || apiSession.id,
+    type: "chat",
+    sessionId: apiSession.id,
+  }))
+
+  // Reset search and focus input when dialog opens
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       setSearch("")
-      setPages(initialPage ? [initialPage] : [])
-      // Small delay to ensure the dialog is rendered
       setTimeout(() => {
         inputRef.current?.focus()
       }, 0)
     }
-  }, [open, initialPage])
+  }, [isOpen, setSearch])
 
   // Handle keyboard shortcuts
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        onOpenChange(!open)
+        toggleSpotlight()
       }
-      if (e.key === "Escape" && open) {
+      if (e.key === "Escape" && isOpen) {
         e.preventDefault()
-        onOpenChange(false)
+        closeSpotlight()
       }
     }
 
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-  }, [open, onOpenChange])
+  }, [isOpen, toggleSpotlight, closeSpotlight])
 
   const runCommand = (command: () => void) => {
-    onOpenChange(false)
+    closeSpotlight()
     command()
   }
 
-  if (!open) return null
+  const handleNewSession = () => {
+    const newSession: Session = {
+      id: Date.now().toString(),
+      title: "new session",
+    }
+    addSession(newSession)
+  }
+
+  const handleFileSelect = (file: MentionFile) => {
+    const fileNode: FileNode = {
+      name: file.name,
+      path: file.path,
+      type: "file"
+    }
+    handleFileClick(fileNode)
+  }
+
+  const handleSessionSelect = (session: Session) => {
+    const existingSession = chatSessions.find((s) => s.id === session.id)
+    if (!existingSession) {
+      addSession(session)
+    }
+    setActiveSession(session.id)
+  }
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={() => onOpenChange(false)}
+        onClick={closeSpotlight}
       />
       
       {/* Dialog */}
@@ -99,10 +146,10 @@ export function CommandDialog({
             // Backspace goes to previous page when search is empty
             if (e.key === 'Escape' || (e.key === 'Backspace' && !search)) {
               e.preventDefault()
-              if (pages.length > 0) {
-                setPages((pages) => pages.slice(0, -1))
+              if (currentPage) {
+                popPage()
               } else {
-                onOpenChange(false)
+                closeSpotlight()
               }
             }
           }}
@@ -120,12 +167,12 @@ export function CommandDialog({
               no results found.
             </Command.Empty>
 
-            {!page && (
+            {!currentPage && (
               <>
                 <Command.Group heading="actions" className="px-2 py-1.5 text-xs text-zinc-500">
                   <Command.Item
                     value="new session"
-                    onSelect={() => runCommand(() => onNewSession?.())}
+                    onSelect={() => runCommand(handleNewSession)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <MessageSquare className="h-4 w-4" />
@@ -134,7 +181,7 @@ export function CommandDialog({
                   </Command.Item>
                   <Command.Item
                     value="search sessions"
-                    onSelect={() => setPages([...pages, 'sessions'])}
+                    onSelect={() => pushPage('sessions')}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <Search className="h-4 w-4" />
@@ -142,7 +189,7 @@ export function CommandDialog({
                   </Command.Item>
                   <Command.Item
                     value="add context"
-                    onSelect={() => runCommand(() => onAddContext?.())}
+                    onSelect={() => runCommand(() => console.log("Add context"))}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <Plus className="h-4 w-4" />
@@ -150,7 +197,7 @@ export function CommandDialog({
                   </Command.Item>
                   <Command.Item
                     value="clear chat"
-                    onSelect={() => runCommand(() => onClearChat?.())}
+                    onSelect={() => runCommand(() => console.log("Clear chat"))}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -188,7 +235,7 @@ export function CommandDialog({
                         <Command.Item
                           key={file.id}
                           value={`${file.name} ${file.path}`}
-                          onSelect={() => runCommand(() => onFileSelect?.(file))}
+                          onSelect={() => runCommand(() => handleFileSelect(file))}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                         >
                           <File className="h-4 w-4" />
@@ -206,7 +253,7 @@ export function CommandDialog({
                 <Command.Group heading="help" className="px-2 py-1.5 text-xs text-zinc-500">
                   <Command.Item
                     value="keyboard shortcuts"
-                    onSelect={() => runCommand(() => onShowHelp?.())}
+                    onSelect={() => runCommand(() => console.log("Show help"))}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <HelpCircle className="h-4 w-4" />
@@ -217,7 +264,7 @@ export function CommandDialog({
               </>
             )}
 
-            {page === 'sessions' && (
+            {currentPage === 'sessions' && (
               <Command.Group heading="sessions" className="px-2 py-1.5 text-xs text-zinc-500">
                 {availableSessions.length === 0 ? (
                   <div className="px-3 py-2 text-xs text-zinc-500">no sessions found</div>
@@ -226,7 +273,7 @@ export function CommandDialog({
                     <Command.Item
                       key={session.id}
                       value={`${session.id} ${session.title} ${session.type || ''}`}
-                      onSelect={() => runCommand(() => onSessionSelect?.(session))}
+                      onSelect={() => runCommand(() => handleSessionSelect(session))}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                     >
                       <MessageSquare className="h-4 w-4" />
