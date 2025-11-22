@@ -13,21 +13,13 @@ export function useChatContext<T>(selector: (state: ChatStoreState) => T): T {
 }
 
 // Helper selectors
-export const useChatSessions = () => useChatContext(state => state.sessions)
-export const useActiveSessionId = () => useChatContext(state => state.activeSessionId)
-export const useActiveSession = () => useChatContext(state => 
-  state.sessions.find(session => session.id === state.activeSessionId)
-)
+export const useChatActiveSessionId = () => useChatContext(state => state.activeSessionId)
 export const useContexts = () => useChatContext(state => state.contexts)
-export const useMessages = () => useChatContext(state => state.messages)
+export const useChatMessages = () => useChatContext(state => state.messages)
 export const useChatLoading = () => useChatContext(state => state.isLoading)
 export const useChatError = () => useChatContext(state => state.error)
 
 // Action hooks
-export const useAddSession = () => useChatContext(state => state.addSession)
-export const useRemoveSession = () => useChatContext(state => state.removeSession)
-export const useSetActiveSession = () => useChatContext(state => state.setActiveSession)
-export const useUpdateSessionId = () => useChatContext(state => state.updateSessionId)
 export const useAddContext = () => useChatContext(state => state.addContext)
 export const useRemoveContext = () => useChatContext(state => state.removeContext)
 export const useSendMessage = () => useChatContext(state => state.sendMessage)

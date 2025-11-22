@@ -1,7 +1,11 @@
 import { useEffect } from "react"
 import { Code } from "@/components/Code"
-import { useMessages, useMessagesLoading, useGetMessages } from "@/features/session"
-import { useActiveSession } from "@/features/chat/chat.context"
+import {
+  useMessages,
+  useMessagesLoading,
+  useGetMessages,
+  useActiveSession,
+} from "@/features/session"
 
 /**
  * Session content component
@@ -9,26 +13,27 @@ import { useActiveSession } from "@/features/chat/chat.context"
  */
 export function SessionContent() {
   const activeSession = useActiveSession()
-  const activeSessionApiId = activeSession?.sessionId
+  const activeSessionId = activeSession?.id
   const activeSessionType = activeSession?.type
-  const messages = useMessages(activeSessionApiId)
+  const isEphemeral = activeSession?.ephemeral
+  const messages = useMessages(activeSessionId)
   const isLoadingMessages = useMessagesLoading()
   const getMessages = useGetMessages()
 
-  // Fetch messages when a session with sessionId becomes active
+  // Fetch messages when a non-ephemeral session becomes active
   useEffect(() => {
-    if (activeSessionApiId && activeSessionType !== "file") {
-      getMessages(activeSessionApiId)
+    if (activeSessionId && activeSessionType !== "file" && !isEphemeral) {
+      getMessages(activeSessionId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSessionApiId, activeSessionType])
+  }, [activeSessionId, activeSessionType, isEphemeral])
 
   if (activeSession?.type === "file" && activeSession.fileContent) {
     // File viewer
     return (
       <Code
         file={{
-          name: activeSession.title,
+          name: activeSession.title || activeSession.filePath || "Untitled",
           contents: activeSession.fileContent,
         }}
       />

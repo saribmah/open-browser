@@ -2,29 +2,21 @@ import { useEffect, useRef } from "react"
 import { X, Plus, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  useChatSessions,
+  useSessions,
   useActiveSessionId,
-  useAddSession,
-  useRemoveSession,
+  useAddUISession,
+  useRemoveUISession,
   useSetActiveSession,
-} from "@/features/chat/chat.context"
+} from "@/features/session"
 import { useOpenSpotlight } from "@/features/spotlight"
-
-export interface Session {
-  id: string
-  title: string
-  type?: "chat" | "file"
-  sessionId?: string  // Session ID for chat sessions
-  fileContent?: string
-  filePath?: string
-}
+import type { UISession } from "@/features/session/session.store"
 
 export function SessionBar() {
-  // Get state and actions from chat store
-  const sessions = useChatSessions()
+  // Get state and actions from session store
+  const sessions = useSessions()
   const activeSessionId = useActiveSessionId()
-  const addSession = useAddSession()
-  const removeSession = useRemoveSession()
+  const addSession = useAddUISession()
+  const removeSession = useRemoveUISession()
   const setActiveSession = useSetActiveSession()
   const sessionRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   
@@ -33,9 +25,10 @@ export function SessionBar() {
 
   // Handle creating a new session
   const handleNewSession = () => {
-    const newSession: Session = {
+    const newSession: UISession = {
       id: Date.now().toString(),
       title: "new session",
+      ephemeral: true,
     }
     addSession(newSession)
   }

@@ -2,7 +2,6 @@ import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import type { FileItem } from "@/features/filesystem"
 import type { FileItemData } from "@/features/filesystem/filesystem.store"
-import type { Session } from "@/features/session/components/session-bar.component"
 
 export interface ChatMessage {
   id: string
@@ -13,7 +12,6 @@ export interface ChatMessage {
 }
 
 export interface ChatState {
-  sessions: Session[]
   activeSessionId: string
   contexts: FileItemData[]
   messages: ChatMessage[]
@@ -22,12 +20,6 @@ export interface ChatState {
 }
 
 export interface ChatActions {
-  // Session management
-  addSession: (session: Session) => void
-  removeSession: (id: string) => void
-  setActiveSession: (id: string) => void
-  updateSessionId: (sessionId: string, apiSessionId: string) => void
-
   // Context management
   addContext: (context: FileItemData) => void
   removeContext: (id: string) => void
@@ -47,7 +39,6 @@ export type ChatStoreState = ChatState & ChatActions
 
 export const createChatStore = () => {
   const initialState: ChatState = {
-    sessions: [{ id: "1", title: "new session", type: "chat" }],
     activeSessionId: "1",
     contexts: [],
     messages: [],
@@ -60,44 +51,6 @@ export const createChatStore = () => {
       (set) => ({
         // Initial state
         ...initialState,
-
-        // Session management
-        addSession: (session: Session) => {
-          set((state) => ({
-            sessions: [...state.sessions, session],
-            activeSessionId: session.id,
-          }))
-        },
-
-        removeSession: (id: string) => {
-          set((state) => {
-            const newSessions = state.sessions.filter((session) => session.id !== id)
-            let newActiveSessionId = state.activeSessionId
-
-            // If we're closing the active session, switch to the last session
-            if (state.activeSessionId === id && newSessions.length > 0) {
-              const lastSession = newSessions[newSessions.length - 1]
-              newActiveSessionId = lastSession?.id || state.activeSessionId
-            }
-
-            return {
-              sessions: newSessions,
-              activeSessionId: newActiveSessionId,
-            }
-          })
-        },
-
-        setActiveSession: (id: string) => {
-          set({ activeSessionId: id })
-        },
-
-        updateSessionId: (sessionId: string, apiSessionId: string) => {
-          set((state) => ({
-            sessions: state.sessions.map((session) =>
-              session.id === sessionId ? { ...session, sessionId: apiSessionId } : session
-            ),
-          }))
-        },
 
         // Context management
         addContext: (context: FileItemData) => {

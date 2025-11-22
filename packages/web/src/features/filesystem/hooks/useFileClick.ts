@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react"
 import type { FileNode } from "@/features/filesystem"
-import type { Session } from "@/features/session/components/session-bar.component"
+import type { UISession } from "@/features/session/session.store"
 import {
-  useChatSessions,
-  useAddSession,
-  useRemoveSession,
+  useSessions,
+  useAddUISession,
+  useRemoveUISession,
   useSetActiveSession,
-} from "@/features/chat"
+} from "@/features/session"
 import { useReadFile, useCurrentFile } from "@/features/filesystem"
 
 /**
@@ -16,10 +16,10 @@ import { useReadFile, useCurrentFile } from "@/features/filesystem"
 export function useFileClick() {
   const [loadingFile, setLoadingFile] = useState<string | null>(null)
 
-  // Get chat state and actions
-  const sessions = useChatSessions()
-  const addSession = useAddSession()
-  const removeSession = useRemoveSession()
+  // Get session state and actions
+  const sessions = useSessions()
+  const addSession = useAddUISession()
+  const removeSession = useRemoveUISession()
   const setActiveSession = useSetActiveSession()
 
   // Get filesystem actions
@@ -35,7 +35,7 @@ export function useFileClick() {
     if (existingSession && existingSession.fileContent === "Loading...") {
       // Remove and re-add with updated content
       removeSession(loadingFile)
-      const updatedSession: Session = {
+      const updatedSession: UISession = {
         id: currentFile.path,
         title: existingSession.title,
         type: "file",
@@ -60,7 +60,7 @@ export function useFileClick() {
     }
 
     // Create tab with loading state
-    const newSession: Session = {
+    const newSession: UISession = {
       id: filePath,
       title: file.name,
       type: "file",

@@ -16,8 +16,19 @@ import type {
 export type Session = GetSessionResponses[200]['sessions'][number]
 export type Message = GetSessionIdMessagesResponses[200]['messages'][number]
 
+// UISession extends Session with UI-specific fields for sessions
+// that are created locally (e.g., via "new tab") before being persisted
+export interface UISession extends Partial<Session> {
+  id: string
+  type?: "chat" | "file"
+  ephemeral?: boolean
+  fileContent?: string
+  filePath?: string
+}
+
 export interface SessionState {
-  sessions: Session[]
+  sessions: UISession[]
+  activeSessionId: string
   messages: Record<string, Message[]> // sessionId -> messages
   isLoading: boolean
   isLoadingMessages: boolean
@@ -28,6 +39,9 @@ export interface SessionState {
 export interface SessionActions {
   getAllSessions: () => Promise<void>
   createSession: () => Promise<Session | null>
+  addUISession: (session: UISession) => void
+  removeUISession: (sessionId: string) => void
+  setActiveSession: (id: string) => void
   getMessages: (sessionId: string) => Promise<void>
   setError: (error: string | null) => void
   setSandboxClient: (client: typeof sandboxClientType | null) => void
@@ -38,7 +52,8 @@ export type SessionStoreState = SessionState & SessionActions
 
 export const createSessionStore = () => {
   const initialState: SessionState = {
-    sessions: [],
+    sessions: [{ id: "1", title: "new session", type: "chat", ephemeral: true }],
+    activeSessionId: "1",
     messages: {},
     isLoading: false,
     isLoadingMessages: false,
@@ -127,6 +142,35 @@ export const createSessionStore = () => {
             })
             return null
           }
+        },
+
+        addUISession: (session: UISession) => {
+          set((state) => ({
+            sessions: [...state.sessions, session],
+            activeSessionId: session.id,
+          }))
+        },
+
+        removeUISession: (sessionId: string) => {
+          set((state) => {
+            const newSessions = state.sessions.filter((s) => s.id !== sessionId)
+            let newActiveSessionId = state.activeSessionId
+
+            // If we're closing the active session, switch to the last session
+            if (state.activeSessionId === sessionId && newSessions.length > 0) {
+              const lastSession = newSessions[newSessions.length - 1]
+              newActiveSessionId = lastSession?.id || state.activeSessionId
+            }
+
+            return {
+              sessions: newSessions,
+              activeSessionId: newActiveSessionId,
+            }
+          })
+        },
+
+        setActiveSession: (id: string) => {
+          set({ activeSessionId: id })
         },
 
         getMessages: async (sessionId: string) => {

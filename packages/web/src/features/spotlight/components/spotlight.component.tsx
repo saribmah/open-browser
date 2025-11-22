@@ -23,14 +23,13 @@ import {
 } from "@/features/spotlight/spotlight.context"
 import { useFileClick } from "@/features/filesystem/hooks/useFileClick"
 import { useFileList } from "@/features/filesystem/hooks/useFileList"
-import { useSessions } from "@/features/session"
 import {
-  useChatSessions,
-  useAddSession,
+  useSessions,
+  useAddUISession,
   useSetActiveSession,
-  useClearMessages,
-} from "@/features/chat/chat.context"
-import type { Session } from "@/features/session/components/session-bar.component"
+} from "@/features/session"
+import { useClearMessages } from "@/features/chat/chat.context"
+import type { UISession } from "@/features/session/session.store"
 import type { FileNode, FileItem } from "@/features/filesystem"
 
 export function SpotlightComponent() {
@@ -50,20 +49,11 @@ export function SpotlightComponent() {
 
   // Integration with other features
   const availableFiles = useFileList()
-  const apiSessions = useSessions()
-  const addSession = useAddSession()
+  const addSession = useAddUISession()
   const setActiveSession = useSetActiveSession()
-  const chatSessions = useChatSessions()
+  const sessions = useSessions()
   const clearMessages = useClearMessages()
   const { handleFileClick } = useFileClick()
-
-  // Map API sessions to Session format
-  const availableSessions = apiSessions.map((apiSession): Session => ({
-    id: apiSession.id,
-    title: apiSession.title || apiSession.id,
-    type: "chat",
-    sessionId: apiSession.id,
-  }))
 
   // Reset search and focus input when dialog opens
   useEffect(() => {
@@ -98,9 +88,10 @@ export function SpotlightComponent() {
   }
 
   const handleNewSession = () => {
-    const newSession: Session = {
+    const newSession: UISession = {
       id: Date.now().toString(),
       title: "new session",
+      ephemeral: true,
     }
     addSession(newSession)
   }
@@ -114,8 +105,8 @@ export function SpotlightComponent() {
     handleFileClick(fileNode)
   }
 
-  const handleSessionSelect = (session: Session) => {
-    const existingSession = chatSessions.find((s) => s.id === session.id)
+  const handleSessionSelect = (session: UISession) => {
+    const existingSession = sessions.find((s) => s.id === session.id)
     if (!existingSession) {
       addSession(session)
     }
@@ -262,10 +253,10 @@ export function SpotlightComponent() {
 
             {currentPage === 'sessions' && (
               <Command.Group heading="sessions" className="px-2 py-1.5 text-xs text-zinc-500">
-                {availableSessions.length === 0 ? (
+                {sessions.length === 0 ? (
                   <div className="px-3 py-2 text-xs text-zinc-500">no sessions found</div>
                 ) : (
-                  availableSessions.map((session) => (
+                  sessions.map((session) => (
                     <Command.Item
                       key={session.id}
                       value={`${session.id} ${session.title} ${session.type || ''}`}

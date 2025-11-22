@@ -5,12 +5,13 @@ import { FileMention } from "@/features/filesystem/components/file-mention.compo
 import { cn } from "@/lib/utils"
 import type { FormEvent, KeyboardEvent } from "react"
 import type { FileItem } from "@/features/filesystem"
+import { useSendMessage } from "@/features/chat/chat.context"
 import {
   useActiveSession,
-  useSendMessage,
-  useUpdateSessionId,
-} from "@/features/chat/chat.context"
-import { useCreateSession } from "@/features/session"
+  useCreateSession,
+  useRemoveUISession,
+  useAddUISession,
+} from "@/features/session"
 import { useFileList } from "@/features/filesystem/hooks/useFileList"
 
 const sdks = [
@@ -42,10 +43,11 @@ export function ChatInput({
   selectedSdk = "opencode",
   onSdkChange,
 }: ChatInputProps) {
-  // Get state and actions from chat store
+  // Get state and actions from stores
   const activeSession = useActiveSession()
   const sendMessage = useSendMessage()
-  const updateSessionId = useUpdateSessionId()
+  const removeSession = useRemoveUISession()
+  const addSession = useAddUISession()
   const createSession = useCreateSession()
   const availableFiles = useFileList()
 
@@ -63,22 +65,27 @@ export function ChatInput({
     e.preventDefault()
     if (!message.trim() || disabled || !activeSession) return
 
-    // Check if the tab has a session
-    if (!activeSession.sessionId) {
-      // Create a session for this tab
-      const session = await createSession()
+    // Check if the session is ephemeral
+    if (activeSession.ephemeral) {
+      // Create a backend session for this ephemeral tab
+      const backendSession = await createSession()
 
-      if (!session) {
+      if (!backendSession) {
         return
       }
 
-      // Update the tab with the session ID
-      updateSessionId(activeSession.id, session.id)
+      // Replace the ephemeral session with the backend session
+      removeSession(activeSession.id)
+      addSession({
+        ...activeSession,
+        id: backendSession.id,
+        ephemeral: false,
+      })
 
-      // TODO: Send message with session.id
+      // TODO: Send message with backendSession.id
     } else {
       // Session exists, send message
-      // TODO: Send message with activeSession.sessionId
+      // TODO: Send message with activeSession.id
     }
 
     // For now, just call the existing sendMessage
