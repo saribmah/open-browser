@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { X, Plus } from "lucide-react"
+import { X, Plus, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface Session {
@@ -17,9 +17,10 @@ interface SessionBarProps {
   onSessionSelect: (id: string) => void
   onSessionClose: (id: string) => void
   onNewSession: () => void
+  onSearchSessions?: () => void
 }
 
-export function SessionBar({ sessions, activeSessionId, onSessionSelect, onSessionClose, onNewSession }: SessionBarProps) {
+export function SessionBar({ sessions, activeSessionId, onSessionSelect, onSessionClose, onNewSession, onSearchSessions }: SessionBarProps) {
   const sessionRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   useEffect(() => {
@@ -73,13 +74,26 @@ export function SessionBar({ sessions, activeSessionId, onSessionSelect, onSessi
       </div>
 
       {/* New Session Button */}
-      <button
-        onClick={onNewSession}
-        className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-white/10 rounded-full transition-colors shrink-0"
-        aria-label="new session"
-      >
-        <Plus className="h-4 w-4" />
-      </button>
+      <div className="flex items-center gap-0.5 shrink-0">
+        <button
+          onClick={onNewSession}
+          className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-white/10 rounded-full transition-colors"
+          aria-label="new session"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+        
+        {/* Search Sessions Button */}
+        {onSearchSessions && (
+          <button
+            onClick={onSearchSessions}
+            className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-white/10 rounded-full transition-colors"
+            aria-label="search sessions"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }

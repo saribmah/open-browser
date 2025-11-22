@@ -32,6 +32,7 @@ import { useCreateSession } from "@/features/session"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
+  const [commandInitialPage, setCommandInitialPage] = useState<string | undefined>()
   const [loadingFile, setLoadingFile] = useState<string | null>(null)
   const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
   
@@ -154,6 +155,11 @@ export function ChatComponent() {
     removeSession(id)
   }
 
+  const handleSearchSessions = () => {
+    setCommandInitialPage('sessions')
+    setCommandOpen(true)
+  }
+
   const handleFileClick = async (file: FileNode, directory?: string) => {
     // Construct the full path: directory/filePath
     // Remove leading slash from file.path if present to avoid double slashes
@@ -186,7 +192,12 @@ export function ChatComponent() {
     <>
       <CommandDialog
         open={commandOpen}
-        onOpenChange={setCommandOpen}
+        onOpenChange={(open) => {
+          setCommandOpen(open)
+          if (!open) {
+            setCommandInitialPage(undefined)
+          }
+        }}
         onNewSession={handleNewSession}
         onAddContext={() => {
           // Focus on the sidebar add context input
@@ -205,7 +216,13 @@ export function ChatComponent() {
           const projectDir = file.path.split('/')[0] // Extract project directory
           handleFileClick(fileNode, projectDir)
         }}
+        onSessionSelect={(session) => {
+          setActiveSession(session.id)
+          setCommandOpen(false)
+        }}
         availableFiles={availableFiles}
+        availableSessions={sessions}
+        initialPage={commandInitialPage}
       />
       <div className="flex h-[calc(100vh-4rem)]">
         <Sidebar
@@ -234,6 +251,7 @@ export function ChatComponent() {
             onSessionSelect={setActiveSession}
             onSessionClose={handleCloseSession}
             onNewSession={handleNewSession}
+            onSearchSessions={handleSearchSessions}
           />
 
           {/* Content area */}
