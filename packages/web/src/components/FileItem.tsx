@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { ChevronDown, ChevronRight, Trash2, Folder, FolderGit2, FileText } from "lucide-react"
 import { FileTree } from "@/components/FileTree"
-import type { FileNode } from "@/components/FileTree"
+import type { FileNode } from "@/features/filesystem"
 
 export interface FileItemFile {
   name: string

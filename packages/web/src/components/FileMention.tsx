@@ -1,12 +1,6 @@
 import { File, Folder, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-export interface MentionFile {
-  id: string
-  name: string
-  path: string
-  type: "file" | "folder"
-}
+import type { MentionFile } from "@/features/filesystem"
 
 interface FileMentionProps {
   files: MentionFile[]
@@ -56,7 +50,7 @@ export function FileMention({ files, selectedIndex, onSelect, onClose, searchQue
                 : "text-zinc-400 hover:bg-white/5 hover:text-white"
             )}
           >
-            {file.type === "folder" ? (
+            {file.type === "directory" ? (
               <Folder className="h-4 w-4 text-blue-400 shrink-0" />
             ) : (
               <File className="h-4 w-4 text-zinc-500 shrink-0" />

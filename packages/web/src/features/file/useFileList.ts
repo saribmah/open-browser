@@ -1,6 +1,5 @@
 import { useMemo } from "react"
-import type { MentionFile } from "@/components/FileMention"
-import type { FileTreeNode } from "@/features/filesystem"
+import type { MentionFile, FileTreeNode } from "@/features/filesystem"
 import { useFileTree } from "@/features/filesystem"
 
 /**

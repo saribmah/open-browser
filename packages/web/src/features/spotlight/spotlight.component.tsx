@@ -29,14 +29,7 @@ import {
   useSetActiveSession,
 } from "@/features/chat/chat.context"
 import type { Session } from "@/features/session/session-bar.component"
-import type { FileNode } from "@/components/FileTree"
-
-// Type for a MentionFile (from FileList)
-interface MentionFile {
-  id: string
-  name: string
-  path: string
-}
+import type { FileNode, MentionFile } from "@/features/filesystem"
 
 export function SpotlightComponent() {
   const inputRef = useRef<HTMLInputElement>(null)

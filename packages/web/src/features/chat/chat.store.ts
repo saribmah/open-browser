@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
-import type { MentionFile } from "@/components/FileMention"
+import type { MentionFile } from "@/features/filesystem"
 import type { FileItemData } from "@/components/FileItem"
 import type { Session } from "@/features/session"
 

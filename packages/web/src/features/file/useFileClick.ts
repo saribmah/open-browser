@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import type { FileNode } from "@/components/FileTree"
+import type { FileNode } from "@/features/filesystem"
 import type { Session } from "@/features/session"
 import { 
   useChatSessions,

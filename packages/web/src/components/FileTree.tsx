@@ -1,13 +1,7 @@
 import { useState } from "react"
 import { ChevronRight, ChevronDown, File, Folder, FolderOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-export interface FileNode {
-  name: string
-  path: string
-  type: "file" | "directory"
-  children?: FileNode[]
-}
+import type { FileNode } from "@/features/filesystem"
 
 interface FileTreeProps {
   nodes: FileNode[]

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button"
 import { FileMention } from "@/components/FileMention"
 import { cn } from "@/lib/utils"
 import type { FormEvent, KeyboardEvent } from "react"
-import type { MentionFile } from "@/components/FileMention"
+import type { MentionFile } from "@/features/filesystem"
 import {
   useActiveSession,
   useSendMessage,

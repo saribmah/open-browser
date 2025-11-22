@@ -25,6 +25,16 @@ export type FileTreeNode = BaseFileTreeNode & {
 
 export type FileContent = GetFileReadResponses[200] & { path: string }
 
+// FileNode is used by the FileTree component - it's an alias for FileTreeNode
+// This type represents a node in the file tree structure
+export type FileNode = FileTreeNode
+
+// MentionFile is used for file mentions in chat
+// It extends the base FileItem with an id for React key management
+export type MentionFile = FileItem & {
+  id: string
+}
+
 export interface FilesystemState {
   files: FileItem[]
   tree: FileTreeNode | null
