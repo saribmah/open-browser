@@ -9,7 +9,7 @@ import {
   useActiveSession,
   useSendMessage,
   useUpdateSessionId,
-} from "./chat.context"
+} from "@/features/chat/chat.context"
 import { useCreateSession } from "@/features/session"
 import { useFileList } from "@/features/filesystem/hooks/useFileList"
 

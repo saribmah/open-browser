@@ -27,5 +27,3 @@ export type {
   ChatStoreState,
   ChatStore
 } from "./chat.store"
-export { ChatComponent } from "./chat.component"
-export { ChatSidebar } from "./chat-sidebar.component"
