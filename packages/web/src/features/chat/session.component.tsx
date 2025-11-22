@@ -1,5 +1,6 @@
+import { useEffect } from "react"
 import { Code } from "@/components/Code"
-import { useMessages, useMessagesLoading } from "@/features/session"
+import { useMessages, useMessagesLoading, useGetMessages } from "@/features/session"
 import { useActiveSession } from "./chat.context"
 
 /**
@@ -9,8 +10,19 @@ import { useActiveSession } from "./chat.context"
 export function SessionContent() {
   const activeSession = useActiveSession()
   const activeSessionApiId = activeSession?.sessionId
+  const activeSessionType = activeSession?.type
   const messages = useMessages(activeSessionApiId)
   const isLoadingMessages = useMessagesLoading()
+  const getMessages = useGetMessages()
+
+  // Fetch messages when a session with sessionId becomes active
+  useEffect(() => {
+    if (activeSessionApiId && activeSessionType !== "file") {
+      console.log("Fetching messages for session:", activeSessionApiId)
+      getMessages(activeSessionApiId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSessionApiId, activeSessionType])
 
   if (activeSession?.type === "file" && activeSession.fileContent) {
     // File viewer

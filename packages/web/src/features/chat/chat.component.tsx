@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { ChatInput } from "@/components/ChatInput"
 import { CommandDialog } from "@/components/CommandDialog"
@@ -7,10 +7,8 @@ import type { FileNode } from "@/components/FileTree"
 import { SessionBar, type Session } from "@/features/session"
 import {
   useChatSessions,
-  useActiveSessionId,
   useActiveSession,
   useAddSession,
-  useRemoveSession,
   useSetActiveSession,
   useSendMessage,
   useUpdateSessionId,
@@ -21,25 +19,22 @@ import {
   useAddProject,
 } from "@/features/project"
 import { FileTreeManager, useFileList, useFileClick } from "@/features/file"
-import { 
+import {
   useCreateSession,
   useSessions as useApiSessions,
-  useGetMessages,
 } from "@/features/session"
 import { SessionContent } from "./session.component"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
   const [commandInitialPage, setCommandInitialPage] = useState<string | undefined>()
-  
+
   // Get state from chat store
   const sessions = useChatSessions()
-  const activeSessionId = useActiveSessionId()
   const activeSession = useActiveSession()
-  
+
   // Get actions from chat store
   const addSession = useAddSession()
-  const removeSession = useRemoveSession()
   const setActiveSession = useSetActiveSession()
   const sendMessage = useSendMessage()
   const updateSessionId = useUpdateSessionId()
@@ -47,11 +42,6 @@ export function ChatComponent() {
   // Get session API state and actions
   const apiSessions = useApiSessions()
   const createSession = useCreateSession()
-  const getMessages = useGetMessages()
-  
-  // Get the sessionId and type separately to avoid object reference issues
-  const activeSessionApiId = activeSession?.sessionId
-  const activeSessionType = activeSession?.type
 
   // Get project state and actions
   const projects = useProjects()
@@ -61,20 +51,6 @@ export function ChatComponent() {
   // Get file click handler and file list for mentions
   const { handleFileClick } = useFileClick()
   const availableFiles = useFileList()
-
-  // Load projects on mount
-  useEffect(() => {
-    getAllProjects()
-  }, [getAllProjects])
-
-  // Fetch messages when a session with sessionId becomes active
-  useEffect(() => {
-    if (activeSessionApiId && activeSessionType !== "file") {
-      console.log("Fetching messages for session:", activeSessionApiId)
-      getMessages(activeSessionApiId)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSessionApiId, activeSessionType])
 
   const handleAddContext = async (url: string) => {
     console.log("Adding project:", url)
@@ -98,7 +74,7 @@ export function ChatComponent() {
       // Create a session for this tab
       console.log("Creating session for tab:", activeSession.id)
       const session = await createSession()
-      
+
       if (!session) {
         console.error("Failed to create session")
         return
@@ -107,7 +83,7 @@ export function ChatComponent() {
       // Update the tab with the session ID
       updateSessionId(activeSession.id, session.id)
       console.log("Session created:", session.id)
-      
+
       // TODO: Send message with session.id
     } else {
       // Session exists, send message
@@ -129,18 +105,6 @@ export function ChatComponent() {
     }))
   }, [apiSessions])
 
-  const handleNewSession = () => {
-    const newSession: Session = {
-      id: Date.now().toString(),
-      title: "new session",
-    }
-    addSession(newSession)
-  }
-
-  const handleCloseSession = (id: string) => {
-    removeSession(id)
-  }
-
   const handleSearchSessions = () => {
     setCommandInitialPage('sessions')
     setCommandOpen(true)
@@ -156,7 +120,13 @@ export function ChatComponent() {
             setCommandInitialPage(undefined)
           }
         }}
-        onNewSession={handleNewSession}
+        onNewSession={() => {
+          const newSession: Session = {
+            id: Date.now().toString(),
+            title: "new session",
+          }
+          addSession(newSession)
+        }}
         onAddContext={() => {
           // Focus on the sidebar add context input
           setCommandOpen(false)
@@ -204,11 +174,6 @@ export function ChatComponent() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Session Bar */}
           <SessionBar
-            sessions={sessions}
-            activeSessionId={activeSessionId}
-            onSessionSelect={setActiveSession}
-            onSessionClose={handleCloseSession}
-            onNewSession={handleNewSession}
             onSearchSessions={handleSearchSessions}
           />
 

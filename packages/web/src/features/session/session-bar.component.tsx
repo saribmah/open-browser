@@ -1,6 +1,13 @@
 import { useEffect, useRef } from "react"
 import { X, Plus, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  useChatSessions,
+  useActiveSessionId,
+  useAddSession,
+  useRemoveSession,
+  useSetActiveSession,
+} from "@/features/chat/chat.context"
 
 export interface Session {
   id: string
@@ -12,16 +19,31 @@ export interface Session {
 }
 
 interface SessionBarProps {
-  sessions: Session[]
-  activeSessionId: string
-  onSessionSelect: (id: string) => void
-  onSessionClose: (id: string) => void
-  onNewSession: () => void
   onSearchSessions?: () => void
 }
 
-export function SessionBar({ sessions, activeSessionId, onSessionSelect, onSessionClose, onNewSession, onSearchSessions }: SessionBarProps) {
+export function SessionBar({ onSearchSessions }: SessionBarProps) {
+  // Get state and actions from chat store
+  const sessions = useChatSessions()
+  const activeSessionId = useActiveSessionId()
+  const addSession = useAddSession()
+  const removeSession = useRemoveSession()
+  const setActiveSession = useSetActiveSession()
   const sessionRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+
+  // Handle creating a new session
+  const handleNewSession = () => {
+    const newSession: Session = {
+      id: Date.now().toString(),
+      title: "new session",
+    }
+    addSession(newSession)
+  }
+
+  // Handle closing a session
+  const handleCloseSession = (id: string) => {
+    removeSession(id)
+  }
 
   useEffect(() => {
     const activeSessionEl = sessionRefs.current.get(activeSessionId)
@@ -48,14 +70,14 @@ export function SessionBar({ sessions, activeSessionId, onSessionSelect, onSessi
                   ? "bg-white/10 text-white"
                   : "text-zinc-500 hover:text-zinc-300"
               )}
-              onClick={() => onSessionSelect(session.id)}
+              onClick={() => setActiveSession(session.id)}
             >
               <span className="text-sm whitespace-nowrap">{session.title}</span>
               {sessions.length > 1 && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    onSessionClose(session.id)
+                    handleCloseSession(session.id)
                   }}
                   className={cn(
                     "p-0.5 rounded transition-all",
@@ -76,7 +98,7 @@ export function SessionBar({ sessions, activeSessionId, onSessionSelect, onSessi
       {/* New Session Button */}
       <div className="flex items-center gap-0.5 shrink-0">
         <button
-          onClick={onNewSession}
+          onClick={handleNewSession}
           className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-white/10 rounded-full transition-colors"
           aria-label="new session"
         >
