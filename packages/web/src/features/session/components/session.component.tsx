@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Code } from "@/components/Code"
 import {
   useMessages,
@@ -6,6 +6,8 @@ import {
   useGetMessages,
   useActiveSession,
 } from "@/features/session"
+import { Terminal, Loader2 } from "lucide-react"
+import { Message } from "@/features/message"
 
 /**
  * Session content component
@@ -19,6 +21,7 @@ export function SessionContent() {
   const messages = useMessages(activeSessionId)
   const isLoadingMessages = useMessagesLoading()
   const getMessages = useGetMessages()
+  const [collapsedMessages, setCollapsedMessages] = useState<Set<string>>(new Set())
 
   // Fetch messages when a non-ephemeral session becomes active
   useEffect(() => {
@@ -27,6 +30,18 @@ export function SessionContent() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSessionId, activeSessionType, isEphemeral])
+
+  const toggleMessageCollapse = (messageId: string) => {
+    setCollapsedMessages((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId)
+      } else {
+        newSet.add(messageId)
+      }
+      return newSet
+    })
+  }
 
   if (activeSession?.type === "file" && activeSession.fileContent) {
     // File viewer
@@ -42,16 +57,18 @@ export function SessionContent() {
 
   // Chat messages area
   return (
-    <div className="p-8 space-y-4">
+    <div className="p-4 md:p-6 space-y-8">
       {isLoadingMessages ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-zinc-500">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
             Loading messages...
           </div>
         </div>
       ) : messages.length === 0 ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-zinc-500">
+            <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <div className="mb-2">No messages yet. Start a conversation!</div>
             <div className="text-xs text-zinc-600">
               Press <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400">⌘K</kbd> to explore
@@ -60,61 +77,20 @@ export function SessionContent() {
         </div>
       ) : (
         messages.map((message, idx) => {
-          // Message now has a well-defined structure with info and parts
-          const { info, parts } = message
-          const { time, role } = info
-
-          // Extract text content from parts
-          const textContent = parts
-            .filter((part) => part.type === 'text' && 'text' in part)
-            .map((part) => 'text' in part ? part.text : '')
-            .join('\n')
-
-          // Check if this is a user message with summary
-          const isUserMessage = role === 'user'
-          const summary = isUserMessage && 'summary' in info ? info.summary : undefined
-
+          const messageId = message.info.id || idx.toString()
+          const isCollapsed = collapsedMessages.has(messageId)
+          const prevMessageId = messages[idx - 1]?.info.id || (idx - 1).toString()
+          
           return (
-            <div
-              key={info.id || idx}
-              className="py-4"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-semibold uppercase text-zinc-400">
-                  {role}
-                </span>
-                {time?.created && (
-                  <span className="text-xs text-zinc-500">
-                    {new Date(time.created).toLocaleString()}
-                  </span>
-                )}
-              </div>
-              {summary?.title && (
-                <div className="font-medium text-zinc-100 mb-2">
-                  {summary.title}
-                </div>
-              )}
-              {summary?.body && (
-                <div className="text-sm text-zinc-300 mb-2 whitespace-pre-wrap">
-                  {summary.body}
-                </div>
-              )}
-              {textContent && !summary?.body && (
-                <div className="text-sm text-zinc-300 mb-2 whitespace-pre-wrap">
-                  {textContent}
-                </div>
-              )}
-              {summary?.diffs && summary.diffs.length > 0 && (
-                <div className="text-xs text-zinc-400 mt-2">
-                  {summary.diffs.length} file{summary.diffs.length !== 1 ? 's' : ''} changed
-                </div>
-              )}
-              {!summary?.title && !summary?.body && !textContent && (
-                <div className="text-sm text-zinc-400 italic">
-                  No content available
-                </div>
-              )}
-            </div>
+            <Message
+              key={messageId}
+              message={message}
+              index={idx}
+              nextMessage={messages[idx + 1]}
+              prevMessage={messages[idx - 1]}
+              isCollapsed={collapsedMessages.has(prevMessageId)}
+              onToggleCollapse={toggleMessageCollapse}
+            />
           )
         })
       )}
