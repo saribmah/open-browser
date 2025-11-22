@@ -1,11 +1,9 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/Sidebar"
-import { ContextItem } from "@/components/ContextItem"
 import { ChatInput } from "@/components/ChatInput"
 import { TabBar } from "@/components/TabBar"
 import { CommandDialog } from "@/components/CommandDialog"
 import { Code } from "@/components/Code"
-import type { Context } from "@/components/ContextItem"
 import type { Tab } from "@/components/TabBar"
 import type { MentionFile } from "@/components/FileMention"
 import type { FileNode } from "@/components/FileTree"
@@ -25,16 +23,13 @@ import {
   useRemoveProject,
 } from "@/features/project"
 import { 
-  useGetFileTree, 
-  useFileTree, 
   useReadFile, 
   useCurrentFile,
-  type FileTreeNode 
 } from "@/features/filesystem"
+import { FileTreeManager } from "@/features/file"
 
 export function ChatComponent() {
   const [commandOpen, setCommandOpen] = useState(false)
-  const [projectFileTrees, setProjectFileTrees] = useState<Map<string, FileTreeNode>>(new Map())
   const [loadingFile, setLoadingFile] = useState<string | null>(null)
   
   // Get state from chat store
@@ -55,8 +50,6 @@ export function ChatComponent() {
   const removeProject = useRemoveProject()
 
   // Get filesystem actions
-  const getFileTree = useGetFileTree()
-  const fileTree = useFileTree()
   const readFile = useReadFile()
   const currentFile = useCurrentFile()
 
@@ -64,31 +57,6 @@ export function ChatComponent() {
   useEffect(() => {
     getAllProjects()
   }, [getAllProjects])
-
-  // Load file trees for all projects
-  useEffect(() => {
-    if (projects.length === 0) return
-
-    const loadFileTrees = async () => {
-      for (const project of projects) {
-        // Skip if we already loaded this project's files
-        if (projectFileTrees.has(project.id)) continue
-
-        try {
-          await getFileTree(project.directory, 3)
-          
-          // Store the file tree for this project
-          if (fileTree) {
-            setProjectFileTrees(prev => new Map(prev).set(project.id, fileTree))
-          }
-        } catch (error) {
-          console.error(`Failed to load file tree for project ${project.id}:`, error)
-        }
-      }
-    }
-
-    loadFileTrees()
-  }, [projects, getFileTree, fileTree, projectFileTrees])
 
   // Watch for file loading completion and update tab
   useEffect(() => {
@@ -111,40 +79,6 @@ export function ChatComponent() {
     
     setLoadingFile(null)
   }, [currentFile, loadingFile, tabs, removeTab, addTab])
-
-  // Helper function to convert FileTreeNode to flat file list
-  const flattenFileTree = (node: FileTreeNode, basePath = ""): Array<{ path: string; name: string }> => {
-    const files: Array<{ path: string; name: string }> = []
-    
-    if (node.type === "file") {
-      files.push({
-        path: node.path,
-        name: node.name,
-      })
-    }
-    
-    if (node.children) {
-      for (const child of node.children) {
-        files.push(...flattenFileTree(child, node.path))
-      }
-    }
-    
-    return files
-  }
-
-  // Convert projects to Context format for UI
-  const contexts = useMemo<Context[]>(() => {
-    return projects.map((project) => {
-      const tree = projectFileTrees.get(project.id)
-      const files = tree ? flattenFileTree(tree) : []
-      
-      return {
-        id: project.id,
-        name: project.directory,
-        files,
-      }
-    })
-  }, [projects, projectFileTrees])
 
   const handleAddContext = async (url: string) => {
     console.log("Adding project:", url)
@@ -172,17 +106,8 @@ export function ChatComponent() {
     sendMessage(message, mentionedFiles)
   }
 
-  // Convert context files to MentionFile format
-  const availableFiles = useMemo<MentionFile[]>(() => {
-    return contexts.flatMap((context) =>
-      context.files.map((file) => ({
-        id: `${context.id}-${file.path}`,
-        name: file.name,
-        path: `${context.name}${file.path}`,
-        type: "file" as const,
-      }))
-    )
-  }, [contexts])
+  // TODO: Convert project files to MentionFile format for chat input
+  const availableFiles: MentionFile[] = []
 
   const handleNewTab = () => {
     const newTab: Tab = {
@@ -196,9 +121,14 @@ export function ChatComponent() {
     removeTab(id)
   }
 
-  const handleFileClick = async (file: FileNode) => {
+  const handleFileClick = async (file: FileNode, directory?: string) => {
+    // Construct the full path: directory/filePath
+    // Remove leading slash from file.path if present to avoid double slashes
+    const relativePath = file.path.startsWith('/') ? file.path.slice(1) : file.path
+    const fullPath = directory ? `${directory}/${relativePath}` : file.path
+    
     // Check if tab already exists for this file
-    const existingTab = tabs.find((tab) => tab.id === file.path)
+    const existingTab = tabs.find((tab) => tab.id === fullPath)
     if (existingTab) {
       setActiveTab(existingTab.id)
       return
@@ -206,17 +136,17 @@ export function ChatComponent() {
 
     // Create tab with loading state
     const newTab: Tab = {
-      id: file.path,
+      id: fullPath,
       title: file.name,
       type: "file",
       fileContent: "Loading...",
-      filePath: file.path,
+      filePath: fullPath,
     }
     addTab(newTab)
-    setLoadingFile(file.path)
+    setLoadingFile(fullPath)
 
-    // Fetch file content - useEffect will update the tab when loaded
-    readFile(file.path)
+    // Fetch file content with full path - useEffect will update the tab when loaded
+    readFile(fullPath)
   }
 
   return (
@@ -236,23 +166,18 @@ export function ChatComponent() {
       <div className="flex h-[calc(100vh-4rem)]">
         <Sidebar
           onAddContext={handleAddContext}
-          contexts={contexts.map(c => ({ id: c.id, name: c.name }))}
+          contexts={projects.map(p => ({ id: p.id, name: p.directory }))}
         >
           {projects.length === 0 ? (
             <div className="p-4 text-sm text-zinc-500">
               no projects added yet. click "add context" to get started.
             </div>
           ) : (
-            <div>
-              {contexts.map((context) => (
-                <ContextItem
-                  key={context.id}
-                  context={context}
-                  onDelete={handleDeleteContext}
-                  onFileClick={handleFileClick}
-                />
-              ))}
-            </div>
+            <FileTreeManager 
+              projects={projects}
+              onFileClick={handleFileClick}
+              onProjectDelete={handleDeleteContext}
+            />
           )}
         </Sidebar>
 

@@ -11,6 +11,7 @@ export interface ContextFile {
 export interface Context {
   id: string
   name: string
+  directory?: string
   files: ContextFile[]
   tree?: FileNode[]
 }
@@ -18,7 +19,7 @@ export interface Context {
 interface ContextItemProps {
   context: Context
   onDelete: (id: string) => void
-  onFileClick?: (file: FileNode) => void
+  onFileClick?: (file: FileNode, directory?: string) => void
 }
 
 function getContextIcon(name: string) {
@@ -128,7 +129,11 @@ export function ContextItem({ context, onDelete, onFileClick }: ContextItemProps
           {fileTree.length === 0 ? (
             <div className="py-2 px-3 text-xs text-zinc-500 pl-10">no files</div>
           ) : (
-            <FileTree nodes={fileTree} level={1} onFileClick={onFileClick} />
+            <FileTree 
+              nodes={fileTree} 
+              level={1} 
+              onFileClick={onFileClick ? (file) => onFileClick(file, context.directory) : undefined} 
+            />
           )}
         </div>
       )}
