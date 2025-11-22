@@ -41,7 +41,7 @@ export function FileMention({ files, selectedIndex, onSelect, onClose, searchQue
       <div className="max-h-48 overflow-y-auto">
         {filteredFiles.map((file, index) => (
           <button
-            key={file.id}
+            key={file.path}
             onClick={() => onSelect(file)}
             className={cn(
               "w-full flex items-center gap-2 px-3 py-2 text-left transition-colors",

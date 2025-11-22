@@ -26,10 +26,9 @@ export function useFileList(): MentionFile[] {
         const path = node.path.startsWith('/') ? node.path.slice(1) : node.path
         
         allFiles.push({
-          id: node.path,
           name: node.name,
           path: path,
-          type: "file",
+          type: node.type,
         })
       }
 

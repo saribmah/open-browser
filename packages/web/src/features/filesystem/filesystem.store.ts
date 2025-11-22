@@ -30,10 +30,9 @@ export type FileContent = GetFileReadResponses[200] & { path: string }
 export type FileNode = FileTreeNode
 
 // MentionFile is used for file mentions in chat
-// It extends the base FileItem with an id for React key management
-export type MentionFile = FileItem & {
-  id: string
-}
+// It's a direct alias of FileItem from the backend - no client extensions needed
+// We use the 'path' field as the unique identifier for React keys
+export type MentionFile = FileItem
 
 export interface FilesystemState {
   files: FileItem[]

@@ -226,7 +226,7 @@ export function SpotlightComponent() {
                     <Command.Group heading="files" className="px-2 py-1.5 text-xs text-zinc-500">
                       {availableFiles.map((file) => (
                         <Command.Item
-                          key={file.id}
+                          key={file.path}
                           value={`${file.name} ${file.path}`}
                           onSelect={() => runCommand(() => handleFileSelect(file))}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"

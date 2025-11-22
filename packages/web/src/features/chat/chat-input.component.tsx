@@ -159,15 +159,15 @@ export function ChatInput({
 
       const newMessage = textBeforeCursor.slice(0, atIndex) + `@${file.name} ` + textAfterCursor
       setMessage(newMessage)
-      setMentionedFiles((prev) => [...prev.filter(f => f.id !== file.id), file])
+      setMentionedFiles((prev) => [...prev.filter(f => f.path !== file.path), file])
     }
     setShowFileMention(false)
     setMentionQuery("")
     textareaRef.current?.focus()
   }
 
-  const removeMentionedFile = (fileId: string) => {
-    setMentionedFiles((prev) => prev.filter(f => f.id !== fileId))
+  const removeMentionedFile = (filePath: string) => {
+    setMentionedFiles((prev) => prev.filter(f => f.path !== filePath))
   }
 
   const currentModel = models.find(m => m.id === selectedModel) || models[0]
@@ -208,13 +208,13 @@ export function ChatInput({
           <div className="flex flex-wrap gap-1.5 px-4 pt-3">
             {mentionedFiles.map((file) => (
               <span
-                key={file.id}
+                key={file.path}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-xs"
               >
                 @{file.name}
                 <button
                   type="button"
-                  onClick={() => removeMentionedFile(file.id)}
+                  onClick={() => removeMentionedFile(file.path)}
                   className="hover:text-blue-300"
                 >
                   ×
