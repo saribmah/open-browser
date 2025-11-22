@@ -104,12 +104,8 @@ export function ChatSidebar() {
 
         {/* File Tree Content */}
         <div className="flex-1 overflow-y-auto">
-          {projects.length === 0 ? (
-            <div className="p-4 text-sm text-zinc-500">
-              no projects added yet. click "add context" to get started.
-            </div>
-          ) : (
-            <FileTreeManager />
+          {projects.length !== 0 && (
+              <FileTreeManager />
           )}
         </div>
       </div>
