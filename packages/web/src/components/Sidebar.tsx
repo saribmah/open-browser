@@ -4,17 +4,36 @@ import { cn } from "@/lib/utils"
 import type { ReactNode } from "react"
 
 interface SidebarProps {
-  children: (collapsed: boolean, setCollapsed: (collapsed: boolean) => void) => ReactNode
+  children: ReactNode
   defaultCollapsed?: boolean
+  collapsed?: boolean
+  onCollapsedChange?: (collapsed: boolean) => void
 }
 
 /**
  * Sidebar component - Presentational component for sidebar layout
- * Handles only the collapse/expand functionality and styling
- * Exposes collapsed state to children via render prop
+ * Handles collapse/expand functionality and styling
+ * Can be controlled (collapsed + onCollapsedChange) or uncontrolled (defaultCollapsed)
  */
-export function Sidebar({ children, defaultCollapsed = false }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed)
+export function Sidebar({ 
+  children, 
+  defaultCollapsed = false,
+  collapsed: controlledCollapsed,
+  onCollapsedChange
+}: SidebarProps) {
+  const [uncontrolledCollapsed, setUncontrolledCollapsed] = useState(defaultCollapsed)
+  
+  // Use controlled state if provided, otherwise use uncontrolled
+  const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : uncontrolledCollapsed
+  
+  const handleToggle = () => {
+    const newValue = !isCollapsed
+    if (onCollapsedChange) {
+      onCollapsedChange(newValue)
+    } else {
+      setUncontrolledCollapsed(newValue)
+    }
+  }
 
   return (
     <aside
@@ -25,7 +44,7 @@ export function Sidebar({ children, defaultCollapsed = false }: SidebarProps) {
     >
       {/* Toggle Button */}
       <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        onClick={handleToggle}
         className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-black text-zinc-400 hover:text-white transition-colors"
         aria-label={isCollapsed ? "expand sidebar" : "collapse sidebar"}
       >
@@ -36,8 +55,8 @@ export function Sidebar({ children, defaultCollapsed = false }: SidebarProps) {
         )}
       </button>
 
-      {/* Content - render prop pattern to expose collapsed state */}
-      {children(isCollapsed, setIsCollapsed)}
+      {/* Content */}
+      {children}
     </aside>
   )
 }
