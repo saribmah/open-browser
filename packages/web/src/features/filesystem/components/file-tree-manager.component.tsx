@@ -1,4 +1,4 @@
-import { FileTree } from "@/components/FileTree"
+import { FileTree } from "@/features/filesystem/components/file-tree.component"
 import { useFileTree } from "@/features/filesystem"
 import { useFileClick } from "@/features/filesystem/hooks/useFileClick"
 
