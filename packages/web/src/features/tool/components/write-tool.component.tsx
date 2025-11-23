@@ -1,10 +1,10 @@
 import { useState } from "react"
-import { FileEdit, ChevronRight, CheckCircle2, Loader2, Circle } from "lucide-react"
+import { FilePlus, ChevronRight, CheckCircle2, Loader2, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Code } from "@/components/Code"
 import type { ToolPart } from "@/client/sandbox"
-import { Diff } from "@/components/Diff"
 
-interface EditToolProps {
+interface WriteToolProps {
   tool: ToolPart
 }
 
@@ -17,9 +17,9 @@ function getFilename(filePath: string): string {
 }
 
 /**
- * Edit tool component that displays file edit information
+ * Write tool component that displays file write information
  */
-export function EditTool({ tool }: EditToolProps) {
+export function WriteTool({ tool }: WriteToolProps) {
   const { state } = tool
   const [isExpanded, setIsExpanded] = useState(tool.state.status === 'running')
 
@@ -30,6 +30,9 @@ export function EditTool({ tool }: EditToolProps) {
 
   const input = state.input as Record<string, unknown>
   const filePath = typeof input.filePath === 'string' ? input.filePath : 'unknown'
+
+  // Get title from state or use filename
+  const title = getFilename(filePath)
 
   // Get status icon
   const getStatusIcon = () => {
@@ -45,35 +48,24 @@ export function EditTool({ tool }: EditToolProps) {
     }
   }
 
-  // Check if we have filediff metadata (only available in running, completed, or error states)
-  const metadata = 'metadata' in state ? (state.metadata as Record<string, unknown> | undefined) : undefined
-  const filediff = metadata?.filediff as {
-    file?: string
-    before?: string
-    after?: string
-  } | undefined
-
-  // Validate that we have all required filediff properties
-  const hasValidFilediff = filediff &&
-    typeof filediff.file === 'string' &&
-    typeof filediff.before === 'string' &&
-    typeof filediff.after === 'string'
+  // Get content if available
+  const content = 'content' in state.input && typeof state.input.content === 'string' ? state.input.content : null
 
   return (
     <div className="relative">
       <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-        {/* If we have a diff, make the header part of the diff block */}
-        {hasValidFilediff ? (
+        {/* If we have content, make the header part of the content block */}
+        {content ? (
           <div className="border border-zinc-800/50 rounded-lg overflow-hidden">
-            {/* Header as part of the diff - clickable to collapse/expand */}
+            {/* Header as part of the content - clickable to collapse/expand */}
             <div
               className="flex items-center justify-between p-2.5 bg-zinc-900/50 border-b border-zinc-800/50 cursor-pointer hover:bg-zinc-900 transition-colors"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 {getStatusIcon()}
-                <FileEdit className="h-4 w-4 flex-shrink-0 text-blue-400" />
-                <span className="text-xs font-mono text-zinc-400 truncate">{filePath}</span>
+                <FilePlus className="h-4 w-4 flex-shrink-0 text-green-400" />
+                <span className="text-xs font-mono text-zinc-400 truncate">{title}</span>
               </div>
               <div className="flex items-center gap-2 text-xs font-mono flex-shrink-0">
                 <ChevronRight className={cn(
@@ -82,7 +74,7 @@ export function EditTool({ tool }: EditToolProps) {
                 )} />
               </div>
             </div>
-            {/* Diff content - conditionally rendered based on isExpanded */}
+            {/* Content - conditionally rendered based on isExpanded */}
             <div
               className={cn(
                 "grid transition-all duration-200 ease-out overflow-hidden",
@@ -90,26 +82,22 @@ export function EditTool({ tool }: EditToolProps) {
               )}
             >
               <div className="min-h-0">
-                <Diff
-                  before={{
-                    name: getFilename(filediff.file!),
-                    contents: filediff.before!,
-                  }}
-                  after={{
-                    name: getFilename(filediff.file!),
-                    contents: filediff.after!,
+                <Code
+                  file={{
+                    name: filePath,
+                    contents: content
                   }}
                 />
               </div>
             </div>
           </div>
         ) : (
-          /* Standalone header when there's no diff */
+          /* Standalone header when there's no output */
           <div className="flex items-center justify-between p-2.5 border rounded-lg transition-all cursor-pointer group bg-zinc-900/50 border-zinc-800/50 hover:bg-zinc-900 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
               {getStatusIcon()}
-              <FileEdit className="h-4 w-4 flex-shrink-0 text-blue-400" />
-              <span className="text-xs font-mono text-zinc-400 truncate">{filePath}</span>
+              <FilePlus className="h-4 w-4 flex-shrink-0 text-green-400" />
+              <span className="text-xs font-mono text-zinc-400 truncate">{title}</span>
             </div>
             <div className="flex items-center gap-2 text-xs font-mono flex-shrink-0">
               <ChevronRight className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-400" />
