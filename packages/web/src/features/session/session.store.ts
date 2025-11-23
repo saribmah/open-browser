@@ -41,6 +41,7 @@ export interface SessionActions {
   addUISession: (session: UISession) => void
   updateUISession: (sessionId: string, updates: Partial<UISession>) => void
   removeUISession: (sessionId: string) => void
+  clearAllSessions: () => void
   setActiveSession: (id: string) => void
   setError: (error: string | null) => void
   setSandboxClient: (client: typeof sandboxClientType | null) => void
@@ -244,6 +245,25 @@ export const createSessionStore = () => {
             return {
               visibleSessionIds: newVisibleSessionIds,
               activeSessionId: newActiveSessionId,
+            }
+          })
+        },
+
+        clearAllSessions: () => {
+          set((state) => {
+            // Create a new ephemeral session
+            const newSession: UISession = {
+              id: Date.now().toString(),
+              title: "new session",
+              type: "chat",
+              ephemeral: true,
+            }
+
+            // Keep all sessions but only show the new ephemeral session
+            return {
+              sessions: [...state.sessions, newSession],
+              visibleSessionIds: [newSession.id],
+              activeSessionId: newSession.id,
             }
           })
         },

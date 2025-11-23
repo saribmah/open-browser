@@ -31,9 +31,9 @@ import {
   useVisibleSessionIds,
   useAddUISession,
   useSetActiveSession,
+  useClearAllSessions,
 } from "@/features/session"
 import {
-  useClearMessages,
   useSelectedAgent,
   useSetSelectedAgent,
   useSelectedModel,
@@ -94,7 +94,7 @@ export function SpotlightComponent() {
   const setActiveSession = useSetActiveSession()
   const sessions = useSessions()
   const visibleSessionIds = useVisibleSessionIds()
-  const clearMessages = useClearMessages()
+  const clearAllSessions = useClearAllSessions()
   const { handleFileClick } = useFileClick()
 
   // SDK, Agent, Model state
@@ -141,7 +141,7 @@ export function SpotlightComponent() {
   // Get available agents
   const availableAgents = useMemo(() => {
     if (!agents || !Array.isArray(agents)) return []
-    
+
     return agents.filter(
       (agent) => agent.mode === "primary" || agent.mode === "all"
     )
@@ -222,12 +222,12 @@ export function SpotlightComponent() {
   const handleSessionSelect = (session: UISession) => {
     // Check if session is already visible in the top bar
     const isVisible = visibleSessionIds.includes(session.id)
-    
+
     // If not visible, add it to visible sessions
     if (!isVisible) {
       addSession(session)
     }
-    
+
     setActiveSession(session.id)
   }
 
@@ -313,12 +313,12 @@ export function SpotlightComponent() {
                     <span>add context</span>
                   </Command.Item>
                   <Command.Item
-                    value="clear chat"
-                    onSelect={() => runCommand(clearMessages)}
+                    value="close all sessions"
+                    onSelect={() => runCommand(clearAllSessions)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                   >
                     <Trash2 className="h-4 w-4" />
-                    <span>clear chat</span>
+                    <span>close all sessions</span>
                   </Command.Item>
                 </Command.Group>
 
@@ -481,8 +481,8 @@ export function SpotlightComponent() {
                       }}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
                     >
-                      <img 
-                        src={sdk.iconUrl} 
+                      <img
+                        src={sdk.iconUrl}
                         alt={sdk.name}
                         className="h-4 w-4"
                       />

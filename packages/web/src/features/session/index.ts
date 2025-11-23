@@ -16,6 +16,7 @@ export {
   useAddUISession,
   useUpdateUISession,
   useRemoveUISession,
+  useClearAllSessions,
   useSetActiveSession,
 } from "./session.context"
 export { createSessionStore } from "./session.store"

@@ -75,4 +75,5 @@ export const useConvertEphemeralToReal = () => useSessionContext(state => state.
 export const useAddUISession = () => useSessionContext(state => state.addUISession)
 export const useUpdateUISession = () => useSessionContext(state => state.updateUISession)
 export const useRemoveUISession = () => useSessionContext(state => state.removeUISession)
+export const useClearAllSessions = () => useSessionContext(state => state.clearAllSessions)
 export const useSetActiveSession = () => useSessionContext(state => state.setActiveSession)
