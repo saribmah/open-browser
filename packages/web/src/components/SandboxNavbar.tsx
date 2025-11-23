@@ -1,4 +1,4 @@
-import { Maximize2, Plus, PanelLeftClose, PanelLeft } from "lucide-react"
+import { Maximize2, PanelLeftClose, PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useSandboxContext } from "@/features/sandbox"
 import type { SandboxStatus } from "@/features/sandbox"
@@ -6,7 +6,6 @@ import type { SandboxStatus } from "@/features/sandbox"
 interface SandboxNavbarProps {
   progressPercentage?: number
   onMaximize?: () => void
-  onNewSession?: () => void
   onToggleSidebar?: () => void
   isSidebarOpen?: boolean
 }
@@ -14,7 +13,6 @@ interface SandboxNavbarProps {
 export function SandboxNavbar({ 
   progressPercentage,
   onMaximize,
-  onNewSession,
   onToggleSidebar,
   isSidebarOpen = true,
 }: SandboxNavbarProps) {
@@ -99,15 +97,6 @@ export function SandboxNavbar({
             aria-label="maximize"
           >
             <Maximize2 className="h-4 w-4" />
-          </button>
-
-          {/* New session button */}
-          <button
-            onClick={onNewSession}
-            className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-white/5 rounded transition-colors"
-            aria-label="new session"
-          >
-            <Plus className="h-4 w-4" />
           </button>
         </div>
       </div>
