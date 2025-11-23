@@ -15,8 +15,10 @@ export const useMessageContext = <T,>(selector: (state: ReturnType<MessageStore[
 // Convenience hooks
 export const useMessages = () => useMessageContext((state) => state.messages)
 export const useMessagesLoading = () => useMessageContext((state) => state.isLoading)
+export const useMessagesSending = () => useMessageContext((state) => state.isSending)
 export const useMessagesError = () => useMessageContext((state) => state.error)
 export const useGetMessages = () => useMessageContext((state) => state.getMessages)
+export const useSendMessage = () => useMessageContext((state) => state.sendMessage)
 export const useAddMessage = () => useMessageContext((state) => state.addMessage)
 export const useUpdateMessage = () => useMessageContext((state) => state.updateMessage)
 export const useMessageSessionId = () => useMessageContext((state) => state.sessionId)

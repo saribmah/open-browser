@@ -10,6 +10,7 @@ import type {
   PostSessionResponses,
 } from "@/client/sandbox/types.gen"
 import { eventBus } from "@/lib/event-bus"
+import { binarySearch } from "@/lib/binary-search"
 
 // Use generated types from the API
 export type Session = GetSessionResponses[200]['sessions'][number]
@@ -260,40 +261,96 @@ export const createSessionStore = () => {
         },
 
         initializeEventListeners: () => {
-          // Subscribe to session events from the event bus
+          // Subscribe to session.created events
           const unsubscribeCreated = eventBus.on("session.created", (event) => {
-            const sessionData = (event.data as any)?.info
-            if (sessionData) {
-              console.log("[Session Store] Session created event:", sessionData)
-              set((state) => ({
-                sessions: [...state.sessions, sessionData],
-                visibleSessionIds: [...state.visibleSessionIds, sessionData.id],
-              }))
+            const sessionInfo = (event.data as any)?.info
+            if (sessionInfo) {
+              console.log("[Session Store] Session created event:", sessionInfo)
+              
+              set((state) => {
+                const sessions = state.sessions
+                const result = binarySearch(sessions, sessionInfo.id, (s) => s.id)
+
+                if (!result.found) {
+                  // Insert at correct sorted position
+                  const updatedSessions = [...sessions]
+                  updatedSessions.splice(result.index, 0, sessionInfo)
+
+                  return {
+                    sessions: updatedSessions,
+                    visibleSessionIds: [...state.visibleSessionIds, sessionInfo.id],
+                  }
+                }
+
+                // Session already exists, just ensure it's visible
+                const visibleSessionExists = state.visibleSessionIds.includes(sessionInfo.id)
+                return {
+                  visibleSessionIds: visibleSessionExists 
+                    ? state.visibleSessionIds 
+                    : [...state.visibleSessionIds, sessionInfo.id],
+                }
+              })
             }
           })
 
+          // Subscribe to session.updated events
           const unsubscribeUpdated = eventBus.on("session.updated", (event) => {
-            const sessionData = (event.data as any)?.info
-            if (sessionData) {
-              console.log("[Session Store] Session updated event:", sessionData)
-              set((state) => ({
-                sessions: state.sessions.map((s) =>
-                  s.id === sessionData.id ? { ...s, ...sessionData } : s
-                ),
-              }))
+            const sessionInfo = (event.data as any)?.info
+            if (sessionInfo) {
+              console.log("[Session Store] Session updated event:", sessionInfo)
+              
+              set((state) => {
+                const sessions = state.sessions
+                const result = binarySearch(sessions, sessionInfo.id, (s) => s.id)
+
+                if (result.found) {
+                  // Update existing session - merge properties
+                  const updatedSessions = [...sessions]
+                  const existingSession = updatedSessions[result.index]
+                  if (existingSession) {
+                    updatedSessions[result.index] = {
+                      ...existingSession,
+                      ...sessionInfo,
+                    }
+                    return { sessions: updatedSessions }
+                  }
+                } else {
+                  // Session doesn't exist - insert at correct position
+                  const updatedSessions = [...sessions]
+                  updatedSessions.splice(result.index, 0, sessionInfo)
+                  return { sessions: updatedSessions }
+                }
+
+                return state
+              })
             }
           })
 
+          // Subscribe to session.deleted events
           const unsubscribeDeleted = eventBus.on("session.deleted", (event) => {
-            const sessionData = (event.data as any)?.info
-            if (sessionData) {
-              console.log("[Session Store] Session deleted event:", sessionData)
-              set((state) => ({
-                sessions: state.sessions.filter((s) => s.id !== sessionData.id),
-                visibleSessionIds: state.visibleSessionIds.filter(
-                  (id) => id !== sessionData.id
-                ),
-              }))
+            const sessionInfo = (event.data as any)?.info
+            if (sessionInfo) {
+              console.log("[Session Store] Session deleted event:", sessionInfo)
+              
+              set((state) => {
+                const sessions = state.sessions
+                const result = binarySearch(sessions, sessionInfo.id, (s) => s.id)
+
+                if (result.found) {
+                  // Remove session at found index
+                  const updatedSessions = [...sessions]
+                  updatedSessions.splice(result.index, 1)
+
+                  return {
+                    sessions: updatedSessions,
+                    visibleSessionIds: state.visibleSessionIds.filter(
+                      (id) => id !== sessionInfo.id
+                    ),
+                  }
+                }
+
+                return state
+              })
             }
           })
 

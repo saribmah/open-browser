@@ -1,9 +1,11 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
-import { getSessionIdMessages } from "@/client/sandbox/sdk.gen"
+import { getSessionIdMessages, postSessionIdMessage } from "@/client/sandbox/sdk.gen"
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
 import type { GetSessionIdMessagesResponses } from "@/client/sandbox/types.gen"
 import { eventBus } from "@/lib/event-bus"
+import { sseHandler } from "@/lib/sse-handler"
+import { binarySearch } from "@/lib/binary-search"
 
 // Use generated types from the API
 export type Message = GetSessionIdMessagesResponses[200][number]
@@ -12,12 +14,14 @@ export interface MessageState {
   sessionId: string
   messages: Message[]
   isLoading: boolean
+  isSending: boolean
   error: string | null
   sandboxClient: typeof sandboxClientType | null
 }
 
 export interface MessageActions {
   getMessages: () => Promise<void>
+  sendMessage: (content: string, mentionedFiles?: Array<{ path: string }>) => Promise<void>
   addMessage: (message: Message) => void
   updateMessage: (messageId: string, updates: Partial<Message>) => void
   setError: (error: string | null) => void
@@ -33,6 +37,7 @@ export const createMessageStore = (sessionId: string) => {
     sessionId,
     messages: [],
     isLoading: false,
+    isSending: false,
     error: null,
     sandboxClient: null,
   }
@@ -82,6 +87,49 @@ export const createMessageStore = (sessionId: string) => {
           }
         },
 
+        sendMessage: async (content: string, mentionedFiles?: Array<{ path: string }>) => {
+          set({ isSending: true, error: null })
+
+          const { sandboxClient, sessionId } = get()
+          if (!sandboxClient) {
+            set({ error: "Sandbox client not available", isSending: false })
+          }
+
+          try {
+            // Build the parts array for the API request
+            const parts: Array<{ type: "text"; text: string } | { type: "file"; path: string }> = [
+              { type: "text", text: content }
+            ]
+
+            // Add file parts if there are mentioned files
+            if (mentionedFiles && mentionedFiles.length > 0) {
+              mentionedFiles.forEach(file => {
+                parts.push({ type: "file", path: file.path })
+              })
+            }
+
+            // Send message via SSE stream
+            const sseResponse = await postSessionIdMessage({
+              client: sandboxClient,
+              path: { id: sessionId },
+              body: {
+                parts,
+              },
+            })
+
+            // Process the SSE stream through the handler
+            // This will emit events to the event bus which will update the store
+            await sseHandler.handle(sseResponse)
+
+            set({ isSending: false })
+          } catch (err: any) {
+            set({
+              error: err.message || "Failed to send message",
+              isSending: false,
+            })
+          }
+        },
+
         addMessage: (message: Message) => {
           set((state) => ({
             messages: [...state.messages, message],
@@ -111,28 +159,36 @@ export const createMessageStore = (sessionId: string) => {
           const unsubscribeMessageUpdated = eventBus.on(
             "message.updated",
             (event) => {
-              const messageData = (event.data as any)?.info
-              if (messageData && messageData.sessionID === currentSessionId) {
-                console.log("[Message Store] Message updated event:", messageData)
+              const messageInfo = (event.data as any)?.info
+              if (messageInfo && messageInfo.sessionID === currentSessionId) {
+                console.log("[Message Store] Message updated event:", messageInfo)
                 
                 set((state) => {
-                  const existingIndex = state.messages.findIndex(
-                    (m) => m.info.id === messageData.id
-                  )
+                  const messages = state.messages
+                  const result = binarySearch(messages, messageInfo.id, (m) => m.info.id)
 
-                  if (existingIndex >= 0) {
-                    // Update existing message
-                    const updatedMessages = [...state.messages]
-                    const existingMessage = updatedMessages[existingIndex]
+                  if (result.found) {
+                    // Update existing message - merge the new info with existing
+                    const updatedMessages = [...messages]
+                    const existingMessage = updatedMessages[result.index]
                     if (existingMessage) {
-                      updatedMessages[existingIndex] = {
+                      updatedMessages[result.index] = {
                         ...existingMessage,
-                        info: { ...existingMessage.info, ...messageData },
+                        info: { ...existingMessage.info, ...messageInfo },
                       }
                       return { messages: updatedMessages }
                     }
+                  } else {
+                    // Message not found - insert at the correct position
+                    // Create new message with info and empty parts array
+                    const updatedMessages = [...messages]
+                    updatedMessages.splice(result.index, 0, {
+                      info: messageInfo,
+                      parts: [],
+                    })
+                    return { messages: updatedMessages }
                   }
-                  // Don't add messages without parts array from event
+                  
                   return state
                 })
               }
@@ -148,28 +204,63 @@ export const createMessageStore = (sessionId: string) => {
                 console.log("[Message Store] Message part updated event:", part)
 
                 set((state) => {
-                  const messageIndex = state.messages.findIndex(
-                    (m) => m.info.id === part.messageID
-                  )
+                  // Find the message using binary search
+                  const messages = state.messages
+                  const messageResult = binarySearch(messages, part.messageID, (m) => m.info.id)
 
-                  if (messageIndex >= 0) {
-                    // Update the parts array for this message
-                    const updatedMessages = [...state.messages]
-                    const message = updatedMessages[messageIndex]
+                  if (messageResult.found) {
+                    const updatedMessages = [...messages]
+                    const message = updatedMessages[messageResult.index]
                     
                     if (message) {
-                      const partIndex = message.parts.findIndex((p) => p.id === part.id)
+                      // Find or insert the part using binary search
+                      const parts = message.parts
+                      const partResult = binarySearch(parts, part.id, (p) => p.id)
 
-                      if (partIndex >= 0) {
+                      // Clone the parts array
+                      const updatedParts = [...parts]
+
+                      if (partResult.found) {
                         // Update existing part
-                        message.parts[partIndex] = part
+                        updatedParts[partResult.index] = part
                       } else {
-                        // Add new part
-                        message.parts.push(part)
+                        // Insert new part at the correct position
+                        updatedParts.splice(partResult.index, 0, part)
+                      }
+
+                      // Update the message with new parts
+                      updatedMessages[messageResult.index] = {
+                        ...message,
+                        parts: updatedParts,
                       }
 
                       return { messages: updatedMessages }
                     }
+                  } else {
+                    // Message doesn't exist yet - create it with this part
+                    const updatedMessages = [...messages]
+                    updatedMessages.splice(messageResult.index, 0, {
+                      info: {
+                        id: part.messageID,
+                        sessionID: part.sessionID,
+                        role: "assistant",
+                        time: { created: Date.now() },
+                        parentID: "",
+                        modelID: "",
+                        providerID: "",
+                        mode: "",
+                        path: { cwd: "", root: "" },
+                        cost: 0,
+                        tokens: {
+                          input: 0,
+                          output: 0,
+                          reasoning: 0,
+                          cache: { read: 0, write: 0 },
+                        },
+                      },
+                      parts: [part],
+                    })
+                    return { messages: updatedMessages }
                   }
 
                   return state
@@ -185,9 +276,20 @@ export const createMessageStore = (sessionId: string) => {
               const { sessionID, messageID } = (event.data as any) || {}
               if (sessionID === currentSessionId && messageID) {
                 console.log("[Message Store] Message removed event:", messageID)
-                set((state) => ({
-                  messages: state.messages.filter((m) => m.info.id !== messageID),
-                }))
+                
+                set((state) => {
+                  const messages = state.messages
+                  const result = binarySearch(messages, messageID, (m) => m.info.id)
+
+                  if (result.found) {
+                    // Remove the message at the found index
+                    const updatedMessages = [...messages]
+                    updatedMessages.splice(result.index, 1)
+                    return { messages: updatedMessages }
+                  }
+
+                  return state
+                })
               }
             }
           )
@@ -201,17 +303,29 @@ export const createMessageStore = (sessionId: string) => {
                 console.log("[Message Store] Message part removed event:", partID)
                 
                 set((state) => {
-                  const messageIndex = state.messages.findIndex(
-                    (m) => m.info.id === messageID
-                  )
+                  const messages = state.messages
+                  const messageResult = binarySearch(messages, messageID, (m) => m.info.id)
 
-                  if (messageIndex >= 0) {
-                    const updatedMessages = [...state.messages]
-                    const message = updatedMessages[messageIndex]
+                  if (messageResult.found) {
+                    const updatedMessages = [...messages]
+                    const message = updatedMessages[messageResult.index]
                     
                     if (message) {
-                      message.parts = message.parts.filter((p) => p.id !== partID)
-                      return { messages: updatedMessages }
+                      const parts = message.parts
+                      const partResult = binarySearch(parts, partID, (p) => p.id)
+
+                      if (partResult.found) {
+                        // Remove the part at the found index
+                        const updatedParts = [...parts]
+                        updatedParts.splice(partResult.index, 1)
+
+                        updatedMessages[messageResult.index] = {
+                          ...message,
+                          parts: updatedParts,
+                        }
+
+                        return { messages: updatedMessages }
+                      }
                     }
                   }
 
@@ -221,12 +335,20 @@ export const createMessageStore = (sessionId: string) => {
             }
           )
 
+          // Subscribe to stream.end events to reset isSending state
+          const unsubscribeStreamEnd = eventBus.on("stream.end", (event) => {
+            const reason = (event.data as any)?.reason
+            console.log("[Message Store] Stream ended:", reason || "No reason provided")
+            set({ isSending: false })
+          })
+
           // Return cleanup function
           return () => {
             unsubscribeMessageUpdated()
             unsubscribePartUpdated()
             unsubscribeMessageRemoved()
             unsubscribePartRemoved()
+            unsubscribeStreamEnd()
           }
         },
 
