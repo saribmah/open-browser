@@ -60,23 +60,31 @@ export function SessionContent() {
           </div>
         </div>
       ) : (
-        messages.map((message, idx) => {
-          const messageId = message.info.id || idx.toString()
-          const isCollapsed = collapsedMessages.has(messageId)
-          const prevMessageId = messages[idx - 1]?.info.id || (idx - 1).toString()
+        <div className="relative">
+          {/* Continuous timeline line with fade effect at both top and bottom */}
+          <div className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-zinc-700 to-transparent" />
           
-          return (
-            <Message
-              key={messageId}
-              message={message}
-              index={idx}
-              nextMessage={messages[idx + 1]}
-              prevMessage={messages[idx - 1]}
-              isCollapsed={collapsedMessages.has(prevMessageId)}
-              onToggleCollapse={toggleMessageCollapse}
-            />
-          )
-        })
+          {/* Messages */}
+          <div className="space-y-8">
+            {messages.map((message, idx) => {
+              const messageId = message.info.id || idx.toString()
+              const isCollapsed = collapsedMessages.has(messageId)
+              const prevMessageId = messages[idx - 1]?.info.id || (idx - 1).toString()
+              
+              return (
+                <Message
+                  key={messageId}
+                  message={message}
+                  index={idx}
+                  nextMessage={messages[idx + 1]}
+                  prevMessage={messages[idx - 1]}
+                  isCollapsed={collapsedMessages.has(prevMessageId)}
+                  onToggleCollapse={toggleMessageCollapse}
+                />
+              )
+            })}
+          </div>
+        </div>
       )}
     </div>
   )
