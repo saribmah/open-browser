@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { describeRoute, resolver, openAPIRouteHandler } from 'hono-openapi';
 import { z } from "zod";
 import { sandboxRoutes } from "./sandbox";
+import { configRoutes } from "./config";
 
 export namespace Api {
     export type Routes = ReturnType<typeof app>;
@@ -80,6 +81,7 @@ export namespace Api {
                     });
                 })
             .route("/sandbox", sandboxRoutes)
+            .route("/config", configRoutes)
             .get(
                 "/doc",
                 openAPIRouteHandler(app, {

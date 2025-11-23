@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteSandboxIdData, DeleteSandboxIdErrors, DeleteSandboxIdResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetSandboxData, GetSandboxIdData, GetSandboxIdErrors, GetSandboxIdResponses, GetSandboxResponses, PostSandboxData, PostSandboxErrors, PostSandboxResponses } from './types.gen';
+import type { DeleteSandboxIdData, DeleteSandboxIdErrors, DeleteSandboxIdResponses, GetConfigData, GetConfigResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetSandboxData, GetSandboxIdData, GetSandboxIdErrors, GetSandboxIdResponses, GetSandboxResponses, PostSandboxData, PostSandboxErrors, PostSandboxResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -54,3 +54,8 @@ export const deleteSandboxId = <ThrowOnError extends boolean = false>(options: O
  * Get Sandbox by ID
  */
 export const getSandboxId = <ThrowOnError extends boolean = false>(options: Options<GetSandboxIdData, ThrowOnError>) => (options.client ?? client).get<GetSandboxIdResponses, GetSandboxIdErrors, ThrowOnError>({ url: '/sandbox/{id}', ...options });
+
+/**
+ * Get Configuration
+ */
+export const getConfig = <ThrowOnError extends boolean = false>(options?: Options<GetConfigData, ThrowOnError>) => (options?.client ?? client).get<GetConfigResponses, unknown, ThrowOnError>({ url: '/config', ...options });

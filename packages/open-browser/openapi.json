@@ -466,6 +466,84 @@
           }
         ]
       }
+    },
+    "/config": {
+      "get": {
+        "operationId": "getConfig",
+        "description": "Get Configuration",
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "enum": [
+                              "cloudflare",
+                              "daytona",
+                              "vercel",
+                              "docker",
+                              "local"
+                            ]
+                          },
+                          "version": {
+                            "type": "string"
+                          },
+                          "sdks": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "OPENCODE",
+                                "CLAUDE_CODE"
+                              ]
+                            }
+                          },
+                          "defaultSdk": {
+                            "type": "string",
+                            "enum": [
+                              "OPENCODE",
+                              "CLAUDE_CODE"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "version",
+                          "sdks",
+                          "defaultSdk"
+                        ]
+                      }
+                    },
+                    "defaultProvider": {
+                      "type": "string",
+                      "enum": [
+                        "cloudflare",
+                        "daytona",
+                        "vercel",
+                        "docker",
+                        "local"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "providers",
+                    "defaultProvider"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {}

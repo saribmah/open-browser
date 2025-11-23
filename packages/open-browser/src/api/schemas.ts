@@ -51,3 +51,18 @@ export const SuccessSchema = z.object({
     message: z.string().optional(),
     sandbox: SandboxSchema.optional()
 });
+
+// Config schemas
+export const ProviderConfigSchema = z.object({
+    name: SandboxProviderSchema,
+    version: z.string(),
+    sdks: z.array(SdkTypeSchema),
+    defaultSdk: SdkTypeSchema
+});
+export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
+
+export const ConfigResponseSchema = z.object({
+    providers: z.array(ProviderConfigSchema),
+    defaultProvider: SandboxProviderSchema
+});
+export type ConfigResponse = z.infer<typeof ConfigResponseSchema>;

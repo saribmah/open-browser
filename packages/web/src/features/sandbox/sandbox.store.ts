@@ -29,9 +29,8 @@ export interface SandboxActions {
 export type SandboxStoreState = SandboxState & SandboxActions
 
 // Configure the API client base URL
-client.setConfig({
-  baseUrl: "/api",
-})
+const baseUrl = import.meta.env?.VITE_API_URL || "http://localhost:8787/api"
+client.setConfig({baseUrl})
 
 export const createSandboxStore = (initialSandbox?: Sandbox) => {
   // Initialize sandbox client if we have a sandbox URL

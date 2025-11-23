@@ -194,3 +194,27 @@ export type GetSandboxIdResponses = {
 };
 
 export type GetSandboxIdResponse = GetSandboxIdResponses[keyof GetSandboxIdResponses];
+
+export type GetConfigData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/config';
+};
+
+export type GetConfigResponses = {
+    /**
+     * Configuration retrieved successfully
+     */
+    200: {
+        providers: Array<{
+            name: 'cloudflare' | 'daytona' | 'vercel' | 'docker' | 'local';
+            version: string;
+            sdks: Array<'OPENCODE' | 'CLAUDE_CODE'>;
+            defaultSdk: 'OPENCODE' | 'CLAUDE_CODE';
+        }>;
+        defaultProvider: 'cloudflare' | 'daytona' | 'vercel' | 'docker' | 'local';
+    };
+};
+
+export type GetConfigResponse = GetConfigResponses[keyof GetConfigResponses];
