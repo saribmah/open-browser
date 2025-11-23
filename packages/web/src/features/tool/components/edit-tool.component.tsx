@@ -1,9 +1,18 @@
 import { FileCode, ChevronRight, Terminal, FilePlus, CheckCircle2, Loader2, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ToolPart } from "@/client/sandbox"
+import { Diff } from "@/components/Diff"
 
 interface EditToolProps {
   tool: ToolPart
+}
+
+/**
+ * Get filename from file path
+ */
+function getFilename(filePath: string): string {
+  const parts = filePath.split('/')
+  return parts[parts.length - 1] || filePath
 }
 
 /**
@@ -30,7 +39,7 @@ export function EditTool({ tool }: EditToolProps) {
 
   const input = state.input as Record<string, unknown>
   const filePath = typeof input.filePath === 'string' ? input.filePath : 'unknown'
-  
+
   // Get title from state or use filename
   let title = filePath
   if ('title' in state && state.title) {
@@ -82,20 +91,62 @@ export function EditTool({ tool }: EditToolProps) {
     }
   }
 
+  // Check if we have filediff metadata (only available in running, completed, or error states)
+  const metadata = 'metadata' in state ? (state.metadata as Record<string, unknown> | undefined) : undefined
+  const filediff = metadata?.filediff as {
+    file?: string
+    before?: string
+    after?: string
+  } | undefined
+
+  // Validate that we have all required filediff properties
+  const hasValidFilediff = filediff &&
+    typeof filediff.file === 'string' &&
+    typeof filediff.before === 'string' &&
+    typeof filediff.after === 'string'
+
   return (
-    <div className="relative space-y-2">
-      {/* Horizontal connector line from timeline to tool */}
+    <div className="relative">
       <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-        <div className="flex items-center justify-between p-2.5 border rounded-lg transition-all cursor-pointer group bg-zinc-900/50 border-zinc-800/50 hover:bg-zinc-900 min-w-0">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            {getStatusIcon()}
-            {getToolIcon()}
-            <span className="text-xs font-mono text-zinc-400 truncate">{title}</span>
+        {/* If we have a diff, make the header part of the diff block */}
+        {hasValidFilediff ? (
+          <div className="border border-zinc-800/50 rounded-lg overflow-hidden">
+            {/* Header as part of the diff */}
+            <div className="flex items-center justify-between p-2.5 bg-zinc-900/50 border-b border-zinc-800/50">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                {getStatusIcon()}
+                {getToolIcon()}
+                <span className="text-xs font-mono text-zinc-400 truncate">{title}</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono flex-shrink-0">
+                <ChevronRight className="h-3.5 w-3.5 text-zinc-600" />
+              </div>
+            </div>
+            {/* Diff content */}
+            <Diff
+              before={{
+                name: getFilename(filediff.file!),
+                contents: filediff.before!,
+              }}
+              after={{
+                name: getFilename(filediff.file!),
+                contents: filediff.after!,
+              }}
+            />
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono flex-shrink-0">
-            <ChevronRight className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-400" />
+        ) : (
+          /* Standalone header when there's no diff */
+          <div className="flex items-center justify-between p-2.5 border rounded-lg transition-all cursor-pointer group bg-zinc-900/50 border-zinc-800/50 hover:bg-zinc-900 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              {getStatusIcon()}
+              {getToolIcon()}
+              <span className="text-xs font-mono text-zinc-400 truncate">{title}</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono flex-shrink-0">
+              <ChevronRight className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-400" />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
