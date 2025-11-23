@@ -114,7 +114,7 @@ export function SessionContent() {
         </div>
       )}
 
-      <div ref={scrollContainerRef} className="h-full overflow-y-auto p-4 md:p-6 space-y-8">
+      <div ref={scrollContainerRef} className="h-full overflow-y-auto p-4 md:p-6 md:pr-16 space-y-8">
         {isLoadingMessages ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center text-zinc-500">
