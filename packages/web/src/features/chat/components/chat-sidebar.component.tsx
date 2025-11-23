@@ -26,6 +26,7 @@ function getProjectIcon(name: string) {
 export function ChatSidebar() {
   const [url, setUrl] = useState("")
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isAddingProject, setIsAddingProject] = useState(false)
 
   // Get project state and actions
   const projects = useProjects()
@@ -44,7 +45,12 @@ export function ChatSidebar() {
       // Refresh projects list
       getAllProjects()
       setUrl("")
+      setIsAddingProject(false)
     }
+  }
+
+  const handleAddClick = () => {
+    setIsAddingProject(!isAddingProject)
   }
 
   return (
@@ -82,28 +88,72 @@ export function ChatSidebar() {
           isCollapsed ? "opacity-0 invisible" : "opacity-100 visible"
         )}
       >
-        {/* Add Project Input */}
-        <div className="h-[72px] flex items-center px-4 shrink-0">
-          <form onSubmit={handleSubmit} className="relative flex items-center gap-2 w-full">
-            <Input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="add url..."
-              className="h-8 px-4 rounded-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-blue-500 focus-visible:border-blue-500 text-sm"
-            />
-            <Button
-              type="submit"
-              className="h-8 w-8 p-0 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </form>
+        {/* Explorer Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Explorer</span>
+          <button
+            onClick={handleAddClick}
+            className={cn(
+              "p-1 rounded-md transition-all duration-200",
+              isAddingProject 
+                ? "bg-zinc-800 text-zinc-100 rotate-45" 
+                : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+            )}
+            aria-label="add project"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
         </div>
 
-        {/* File Tree Content */}
-        <div className="flex-1 overflow-y-auto">
-          {projects.length !== 0 && (
-              <FileTreeManager />
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-2">
+          {/* Add Project Form - Slide Down */}
+          {isAddingProject && (
+            <div className="mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-3 shadow-xl">
+                <div className="flex items-center gap-2 mb-2 text-xs font-medium text-zinc-300">
+                  <FolderGit2 className="h-3 w-3 text-blue-400" />
+                  <span>Clone Repository</span>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-2">
+                  <Input
+                    autoFocus
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://github.com/username/repo"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50 font-mono"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingProject(false)}
+                      className="px-2 py-1 text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <Button
+                      type="submit"
+                      className="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] rounded font-medium transition-colors h-auto"
+                    >
+                      Clone Project
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* File Tree Content */}
+          {projects.length === 0 ? (
+            <div className="flex items-center justify-center h-32 text-zinc-600">
+              <div className="text-center">
+                <FolderGit2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-xs">No projects yet</p>
+                <p className="text-xs text-zinc-700 mt-1">Click + to add a project</p>
+              </div>
+            </div>
+          ) : (
+            <FileTreeManager />
           )}
         </div>
       </div>
