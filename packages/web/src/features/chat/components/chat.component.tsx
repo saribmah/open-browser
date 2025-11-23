@@ -2,8 +2,11 @@ import { ChatInput } from "./chat-input.component"
 import { ChatSidebar } from "./chat-sidebar.component"
 import { SessionBar } from "@/features/session/components/session-bar.component"
 import { SessionContent } from "@/features/session/components/session.component"
+import { MessageProvider } from "@/features/message"
+import { useActiveSessionId } from "@/features/session"
 
 export function ChatComponent() {
+    const activeSessionId = useActiveSessionId()
 
     return (
         <div className="flex h-[calc(100vh-4rem)]">
@@ -17,7 +20,9 @@ export function ChatComponent() {
                 <div className="flex-1 relative overflow-hidden">
                     {/* Main content - scrollable */}
                     <div className="absolute inset-0 overflow-y-auto pb-48">
-                        <SessionContent />
+                        <MessageProvider sessionId={activeSessionId}>
+                            <SessionContent />
+                        </MessageProvider>
                     </div>
 
                     {/* Floating chat input - always visible at bottom */}

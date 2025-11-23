@@ -1,6 +1,6 @@
-import { createContext, useContext, useMemo } from "react"
+import { createContext, useContext } from "react"
 import { useStore } from "zustand/react"
-import type { SessionStoreState, SessionStore, Message, UISession } from "./session.store"
+import type { SessionStoreState, SessionStore, UISession } from "./session.store"
 
 export const SessionContext = createContext<SessionStore | null>(null)
 
@@ -11,9 +11,6 @@ export function useSessionContext<T>(selector: (state: SessionStoreState) => T):
   }
   return useStore(store, selector)
 }
-
-// Stable empty array to avoid creating new references
-const EMPTY_MESSAGES: Message[] = []
 
 // Custom equality function that compares session arrays by their IDs and titles
 function areVisibleSessionsEqual(a: UISession[], b: UISession[]): boolean {
@@ -70,10 +67,6 @@ export const useActiveSession = () => useSessionContext(state =>
 export const useSessionLoading = () => useSessionContext(state => state.isLoading)
 export const useSessionError = () => useSessionContext(state => state.error)
 export const useSessionSandboxClient = () => useSessionContext(state => state.sandboxClient)
-export const useMessages = (sessionId?: string) => useSessionContext(state =>
-  sessionId ? (state.messages[sessionId] ?? EMPTY_MESSAGES) : EMPTY_MESSAGES
-)
-export const useMessagesLoading = () => useSessionContext(state => state.isLoadingMessages)
 
 // Action hooks
 export const useGetAllSessions = () => useSessionContext(state => state.getAllSessions)
@@ -83,4 +76,3 @@ export const useAddUISession = () => useSessionContext(state => state.addUISessi
 export const useUpdateUISession = () => useSessionContext(state => state.updateUISession)
 export const useRemoveUISession = () => useSessionContext(state => state.removeUISession)
 export const useSetActiveSession = () => useSessionContext(state => state.setActiveSession)
-export const useGetMessages = () => useSessionContext(state => state.getMessages)

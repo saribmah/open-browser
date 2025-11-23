@@ -3,18 +3,16 @@ import { devtools } from "zustand/middleware"
 import {
   getSession,
   postSession,
-  getSessionIdMessages,
 } from "@/client/sandbox/sdk.gen"
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
 import type {
   GetSessionResponses,
   PostSessionResponses,
-  GetSessionIdMessagesResponses,
 } from "@/client/sandbox/types.gen"
+import { eventBus } from "@/lib/event-bus"
 
 // Use generated types from the API
 export type Session = GetSessionResponses[200]['sessions'][number]
-export type Message = GetSessionIdMessagesResponses[200][number]
 
 // UISession extends Session with UI-specific fields for sessions
 // that are created locally (e.g., via "new tab") before being persisted
@@ -30,9 +28,7 @@ export interface SessionState {
   sessions: UISession[] // All sessions (including backend sessions)
   visibleSessionIds: string[] // Only session IDs visible in the top bar
   activeSessionId: string
-  messages: Record<string, Message[]> // sessionId -> messages
   isLoading: boolean
-  isLoadingMessages: boolean
   error: string | null
   sandboxClient: typeof sandboxClientType | null
 }
@@ -45,9 +41,9 @@ export interface SessionActions {
   updateUISession: (sessionId: string, updates: Partial<UISession>) => void
   removeUISession: (sessionId: string) => void
   setActiveSession: (id: string) => void
-  getMessages: (sessionId: string) => Promise<void>
   setError: (error: string | null) => void
   setSandboxClient: (client: typeof sandboxClientType | null) => void
+  initializeEventListeners: () => () => void
   reset: () => void
 }
 
@@ -58,9 +54,7 @@ export const createSessionStore = () => {
     sessions: [{ id: "1", title: "new session", type: "chat", ephemeral: true }],
     visibleSessionIds: ["1"], // Store only IDs
     activeSessionId: "1",
-    messages: {},
     isLoading: false,
-    isLoadingMessages: false,
     error: null,
     sandboxClient: null,
   }
@@ -257,53 +251,58 @@ export const createSessionStore = () => {
           set({ activeSessionId: id })
         },
 
-        getMessages: async (sessionId: string) => {
-          set({ isLoadingMessages: true, error: null })
-
-          const { sandboxClient } = get()
-          if (!sandboxClient) {
-            set({ error: "Sandbox client not available", isLoadingMessages: false })
-            return
-          }
-
-          try {
-            const result = await getSessionIdMessages({
-              client: sandboxClient,
-              path: { id: sessionId },
-            })
-
-            if (result.error) {
-              const errorMsg = (result.error as { error?: string })?.error || "Failed to get messages"
-              set({ error: errorMsg, isLoadingMessages: false })
-              return
-            }
-
-            const data = result.data as GetSessionIdMessagesResponses[200]
-            if (data) {
-              set((state) => ({
-                messages: {
-                  ...state.messages,
-                  [sessionId]: data || [],
-                },
-                isLoadingMessages: false,
-              }))
-            } else {
-              set({ isLoadingMessages: false })
-            }
-          } catch (err: any) {
-            set({
-              error: err.message || "Failed to get messages",
-              isLoadingMessages: false,
-            })
-          }
-        },
-
         setError: (error: string | null) => {
           set({ error })
         },
 
         setSandboxClient: (client: typeof sandboxClientType | null) => {
           set({ sandboxClient: client })
+        },
+
+        initializeEventListeners: () => {
+          // Subscribe to session events from the event bus
+          const unsubscribeCreated = eventBus.on("session.created", (event) => {
+            const sessionData = (event.data as any)?.info
+            if (sessionData) {
+              console.log("[Session Store] Session created event:", sessionData)
+              set((state) => ({
+                sessions: [...state.sessions, sessionData],
+                visibleSessionIds: [...state.visibleSessionIds, sessionData.id],
+              }))
+            }
+          })
+
+          const unsubscribeUpdated = eventBus.on("session.updated", (event) => {
+            const sessionData = (event.data as any)?.info
+            if (sessionData) {
+              console.log("[Session Store] Session updated event:", sessionData)
+              set((state) => ({
+                sessions: state.sessions.map((s) =>
+                  s.id === sessionData.id ? { ...s, ...sessionData } : s
+                ),
+              }))
+            }
+          })
+
+          const unsubscribeDeleted = eventBus.on("session.deleted", (event) => {
+            const sessionData = (event.data as any)?.info
+            if (sessionData) {
+              console.log("[Session Store] Session deleted event:", sessionData)
+              set((state) => ({
+                sessions: state.sessions.filter((s) => s.id !== sessionData.id),
+                visibleSessionIds: state.visibleSessionIds.filter(
+                  (id) => id !== sessionData.id
+                ),
+              }))
+            }
+          })
+
+          // Return cleanup function
+          return () => {
+            unsubscribeCreated()
+            unsubscribeUpdated()
+            unsubscribeDeleted()
+          }
         },
 
         reset: () => {

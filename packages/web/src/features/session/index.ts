@@ -10,8 +10,6 @@ export {
   useSessionLoading,
   useSessionError,
   useSessionSandboxClient,
-  useMessages,
-  useMessagesLoading,
   useGetAllSessions,
   useCreateSession,
   useConvertEphemeralToReal,
@@ -19,7 +17,6 @@ export {
   useUpdateUISession,
   useRemoveUISession,
   useSetActiveSession,
-  useGetMessages,
 } from "./session.context"
 export { createSessionStore } from "./session.store"
 export type {
@@ -28,6 +25,5 @@ export type {
   SessionStoreState,
   SessionStore,
   Session as SessionData,
-  Message,
   UISession,
 } from "./session.store"

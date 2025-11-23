@@ -22,6 +22,17 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     }
   }, [activeSessionId])
 
+  // Initialize event listeners
+  useEffect(() => {
+    console.log("[Chat Provider] Initializing event listeners")
+    const cleanup = storeRef.current.getState().initializeEventListeners()
+    
+    return () => {
+      console.log("[Chat Provider] Cleaning up event listeners")
+      cleanup()
+    }
+  }, [])
+
   return (
     <ChatContext.Provider value={storeRef.current}>
       {children}

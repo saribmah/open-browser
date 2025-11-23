@@ -1,13 +1,8 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Code } from "@/components/Code"
-import {
-  useMessages,
-  useMessagesLoading,
-  useGetMessages,
-  useActiveSession,
-} from "@/features/session"
+import { useActiveSession } from "@/features/session"
+import { useMessages, useMessagesLoading, Message } from "@/features/message"
 import { Terminal, Loader2 } from "lucide-react"
-import { Message } from "@/features/message"
 
 /**
  * Session content component
@@ -15,21 +10,10 @@ import { Message } from "@/features/message"
  */
 export function SessionContent() {
   const activeSession = useActiveSession()
-  const activeSessionId = activeSession?.id
   const activeSessionType = activeSession?.type
-  const isEphemeral = activeSession?.ephemeral
-  const messages = useMessages(activeSessionId)
+  const messages = useMessages()
   const isLoadingMessages = useMessagesLoading()
-  const getMessages = useGetMessages()
   const [collapsedMessages, setCollapsedMessages] = useState<Set<string>>(new Set())
-
-  // Fetch messages when a non-ephemeral session becomes active
-  useEffect(() => {
-    if (activeSessionId && activeSessionType !== "file" && !isEphemeral) {
-      getMessages(activeSessionId)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSessionId, activeSessionType, isEphemeral])
 
   const toggleMessageCollapse = (messageId: string) => {
     setCollapsedMessages((prev) => {

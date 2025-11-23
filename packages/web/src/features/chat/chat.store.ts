@@ -4,6 +4,8 @@ import { postSessionIdMessage } from "@/client/sandbox/sdk.gen"
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
 import type { FileItem } from "@/features/filesystem"
 import type { FileItemData } from "@/features/filesystem/filesystem.store"
+import { eventBus } from "@/lib/event-bus"
+import { sseHandler } from "@/lib/sse-handler"
 
 export interface ChatMessage {
   id: string
@@ -31,6 +33,7 @@ export interface ChatActions {
   setError: (error: string | null) => void
   setSandboxClient: (client: typeof sandboxClientType | null) => void
   setActiveSessionId: (sessionId: string) => void
+  initializeEventListeners: () => () => void
   reset: () => void
 }
 
@@ -103,73 +106,9 @@ export const createChatStore = () => {
               },
             })
 
-            // Track assistant message parts as they come in
-            let assistantMessageId: string | null = null
-            let assistantContent = ""
-
-            // Listen to SSE events - the stream yields already-parsed SseEnvelope objects
-            for await (const event of sseResponse.stream) {
-              // The SSE client has already parsed the JSON for us
-              // event is typed as SseEnvelope from the generated types
-
-              console.log("SSE Event:", event)
-
-              // Handle different event types with proper typing
-              if (event.type === "stream.end") {
-                // Stream has ended - clean exit
-                const reason = (event.data as any)?.reason
-                if (reason) {
-                  console.log("Stream ended:", reason)
-                }
-                break
-              } else if (event.type === "message.part.updated") {
-                // event.data contains the EventMessagePartUpdated properties
-                const part = (event.data as any).part
-                if (part && part.type === "text") {
-                  assistantMessageId = part.messageID
-                  assistantContent += part.text || ""
-
-                  // Update or add assistant message
-                  set((state) => {
-                    const existingIndex = state.messages.findIndex(
-                      m => m.id === assistantMessageId
-                    )
-
-                    if (existingIndex >= 0 && assistantMessageId) {
-                      // Update existing message
-                      const updatedMessages = [...state.messages]
-                      const existing = updatedMessages[existingIndex]
-                      if (existing) {
-                        updatedMessages[existingIndex] = {
-                          id: assistantMessageId,
-                          content: assistantContent,
-                          role: "assistant",
-                          timestamp: existing.timestamp,
-                          mentionedFiles: existing.mentionedFiles,
-                        }
-                      }
-                      return { messages: updatedMessages }
-                    } else if (assistantMessageId) {
-                      // Add new assistant message
-                      const assistantMessage: ChatMessage = {
-                        id: assistantMessageId,
-                        content: assistantContent,
-                        role: "assistant",
-                        timestamp: Date.now(),
-                      }
-                      return { messages: [...state.messages, assistantMessage] }
-                    }
-                    return state
-                  })
-                }
-              } else if (event.type === "message.completed") {
-                // Final message data
-                console.log("Message completed:", event.data)
-              } else if (event.type === "error") {
-                const errorData = event.data as any
-                throw new Error(errorData.message || "Stream error")
-              }
-            }
+            // Process the SSE stream through the handler
+            // This will emit events to the event bus
+            await sseHandler.handle(sseResponse)
 
             set({ isLoading: false })
           } catch (err: any) {
@@ -195,6 +134,82 @@ export const createChatStore = () => {
 
         setActiveSessionId: (sessionId: string) => {
           set({ activeSessionId: sessionId })
+        },
+
+        initializeEventListeners: () => {
+          // Track assistant message parts as they come in
+          let assistantMessageId: string | null = null
+          let assistantContent = ""
+
+          // Subscribe to message.part.updated events
+          const unsubscribePartUpdated = eventBus.on(
+            "message.part.updated",
+            (event) => {
+              const part = (event.data as any)?.part
+              if (part && part.type === "text") {
+                assistantMessageId = part.messageID
+                assistantContent += part.text || ""
+
+                // Update or add assistant message
+                set((state) => {
+                  const existingIndex = state.messages.findIndex(
+                    (m) => m.id === assistantMessageId
+                  )
+
+                  if (existingIndex >= 0 && assistantMessageId) {
+                    // Update existing message
+                    const updatedMessages = [...state.messages]
+                    const existing = updatedMessages[existingIndex]
+                    if (existing) {
+                      updatedMessages[existingIndex] = {
+                        id: assistantMessageId,
+                        content: assistantContent,
+                        role: "assistant",
+                        timestamp: existing.timestamp,
+                        mentionedFiles: existing.mentionedFiles,
+                      }
+                    }
+                    return { messages: updatedMessages }
+                  } else if (assistantMessageId) {
+                    // Add new assistant message
+                    const assistantMessage: ChatMessage = {
+                      id: assistantMessageId,
+                      content: assistantContent,
+                      role: "assistant",
+                      timestamp: Date.now(),
+                    }
+                    return { messages: [...state.messages, assistantMessage] }
+                  }
+                  return state
+                })
+              }
+            }
+          )
+
+          // Subscribe to message.completed events
+          const unsubscribeCompleted = eventBus.on(
+            "message.completed",
+            (event) => {
+              console.log("[Chat Store] Message completed:", event.data)
+              // Reset tracking for next message
+              assistantMessageId = null
+              assistantContent = ""
+            }
+          )
+
+          // Subscribe to stream.end events
+          const unsubscribeStreamEnd = eventBus.on("stream.end", (event) => {
+            const reason = (event.data as any)?.reason
+            console.log("[Chat Store] Stream ended:", reason || "No reason provided")
+            set({ isLoading: false })
+          })
+
+          // Return cleanup function
+          return () => {
+            unsubscribePartUpdated()
+            unsubscribeCompleted()
+            unsubscribeStreamEnd()
+          }
         },
 
         reset: () => {

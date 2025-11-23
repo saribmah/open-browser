@@ -22,6 +22,17 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
     }
   }, [sandboxClient, instanceInitialized])
 
+  // Initialize event listeners
+  useEffect(() => {
+    console.log("[Session Provider] Initializing event listeners")
+    const cleanup = storeRef.current.getState().initializeEventListeners()
+    
+    return () => {
+      console.log("[Session Provider] Cleaning up event listeners")
+      cleanup()
+    }
+  }, [])
+
   return (
     <SessionContext.Provider value={storeRef.current}>
       {children}
