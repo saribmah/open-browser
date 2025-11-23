@@ -42,11 +42,11 @@ export function EditTool({ tool }: EditToolProps) {
     <div className="relative space-y-2">
       {/* Horizontal connector line from timeline to tool */}
       <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-        <div className="flex items-center justify-between p-3 border rounded-lg transition-all cursor-pointer group bg-zinc-900/50 border-zinc-800/50 hover:bg-zinc-900">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between p-3 border rounded-lg transition-all cursor-pointer group bg-zinc-900/50 border-zinc-800/50 hover:bg-zinc-900 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <FileCode
               className={cn(
-                "h-4 w-4",
+                "h-4 w-4 flex-shrink-0",
                 getFileType(filePath) === "tsx" || getFileType(filePath) === "typescript"
                   ? "text-blue-400"
                   : getFileType(filePath) === "json"
@@ -56,9 +56,9 @@ export function EditTool({ tool }: EditToolProps) {
                       : "text-zinc-400"
               )}
             />
-            <span className="text-sm font-mono text-zinc-400">{title}</span>
+            <span className="text-sm font-mono text-zinc-400 truncate">{title}</span>
           </div>
-          <div className="flex items-center gap-3 text-xs font-mono">
+          <div className="flex items-center gap-3 text-xs font-mono flex-shrink-0">
             <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400" />
           </div>
         </div>

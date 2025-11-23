@@ -18,7 +18,7 @@ export function AssistantMessage({
   const { parts } = message
 
   return (
-    <div className="relative pl-16 space-y-4">
+    <div className="relative pl-16 space-y-4 min-w-0">
       {/* Timeline dot indicator for assistant - only show on first in sequence */}
       {showDot && (
         <div className="absolute top-1 z-10" style={{ left: '6px', transform: 'translateX(-50%)' }}>
@@ -31,7 +31,7 @@ export function AssistantMessage({
         // Render text parts
         if (part.type === 'text' && 'text' in part) {
           return (
-            <div key={part.id || idx} className="relative group">
+            <div key={part.id || idx} className="relative group min-w-0">
               {/* Horizontal connector line from timeline to text content */}
               <div className="absolute -left-[40px] top-3.5 w-[25px] h-px bg-zinc-800/50 group-hover:bg-zinc-700 transition-colors" />
               <Markdown content={part.text} className="text-zinc-300 text-sm leading-relaxed" />

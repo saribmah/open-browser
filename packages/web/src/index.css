@@ -26,3 +26,20 @@
     display: none;
   }
 }
+
+/* Markdown content styles */
+.markdown-content {
+  @apply max-w-full overflow-hidden;
+}
+
+.markdown-content pre {
+  @apply overflow-x-auto max-w-full;
+}
+
+.markdown-content code {
+  @apply break-words;
+}
+
+.markdown-content p {
+  @apply break-words;
+}
