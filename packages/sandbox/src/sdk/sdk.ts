@@ -44,6 +44,9 @@ export namespace SDK {
     export type Part = Message.Part;
     export type MessageWithParts = Message.MessageWithParts;
     export type MessagesResponse = Message.MessagesResponse;
+    export type PromptRequest = Message.PromptRequest;
+    export type PromptResponse = Message.PromptResponse;
+    export type PartInput = Message.PartInput;
 
     /**
      * SDK configuration for each type
@@ -57,6 +60,7 @@ export namespace SDK {
         createSession: (opts: { directory: string }) => Promise<Session>;
         getProviders: (opts: { directory: string }) => Promise<ProvidersResponse>;
         getMessages: (opts: { directory: string; sessionId: string }) => Promise<MessageWithParts[]>;
+        sendMessage: (opts: { directory: string; sessionId: string; request: PromptRequest }) => Promise<PromptResponse>;
     }
 
     /**
@@ -169,6 +173,23 @@ export namespace SDK {
         return await config.getMessages({
             directory: opts.directory,
             sessionId: opts.sessionId
+        });
+    }
+
+    /**
+     * Send a message to a session
+     */
+    export async function sendMessage(opts: {
+        type: Type;
+        directory: string;
+        sessionId: string;
+        request: PromptRequest;
+    }): Promise<PromptResponse> {
+        const config = getConfig(opts.type);
+        return await config.sendMessage({
+            directory: opts.directory,
+            sessionId: opts.sessionId,
+            request: opts.request
         });
     }
 }

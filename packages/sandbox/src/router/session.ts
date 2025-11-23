@@ -23,6 +23,8 @@ const SessionsResponseSchema = z.object({
 
 // Use the comprehensive message schemas from Message namespace
 const MessagesResponseSchema = Message.MessagesResponseSchema;
+const PromptRequestSchema = Message.PromptRequestSchema;
+const PromptResponseSchema = Message.PromptResponseSchema;
 
 // GET /session - Get all sessions for current instance
 route.get(
@@ -136,6 +138,64 @@ route.get(
         }
 
         return c.json(result.messages || []);
+    },
+);
+
+// POST /session/:id/message - Send a message to a session
+route.post(
+    "/:id/message",
+    describeRoute({
+        description: 'Send Message to Session',
+        responses: {
+            200: {
+                description: 'Message sent successfully',
+                content: {
+                    'application/json': { schema: resolver(PromptResponseSchema) },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+            404: {
+                description: 'Session not found',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    async (c) => {
+        const sessionId = c.req.param("id");
+
+        if (!sessionId) {
+            return c.json({
+                error: "Session ID is required"
+            }, 400);
+        }
+
+        const body = await c.req.json();
+        
+        // Validate request body against schema
+        const parseResult = PromptRequestSchema.safeParse(body);
+        if (!parseResult.success) {
+            return c.json({
+                error: "Invalid request body",
+                details: parseResult.error.message
+            }, 400);
+        }
+
+        const result = await Session.sendMessage(sessionId, parseResult.data);
+
+        if (!result.success) {
+            return c.json({
+                error: result.error || "Failed to send message"
+            }, 400);
+        }
+
+        return c.json(result.message);
     },
 );
 

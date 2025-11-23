@@ -131,4 +131,50 @@ export namespace Session {
             };
         }
     }
+
+    /**
+     * Send a message to a session
+     */
+    export async function sendMessage(sessionId: string, request: SDK.PromptRequest): Promise<{ success: boolean; message?: SDK.PromptResponse; error?: string }> {
+        log.info("Sending message to session", { sessionId, request });
+
+        try {
+            // Get instance state
+            const state = Instance.getState();
+            const directory = Instance.getDirectory();
+
+            log.info("Sending message to session", {
+                sdkType: state.sdkType,
+                directory,
+                sessionId
+            });
+
+            // Send message via SDK
+            const message = await SDK.sendMessage({
+                type: state.sdkType,
+                directory,
+                sessionId,
+                request
+            });
+
+            log.info("Message sent successfully", {
+                sessionId,
+                messageId: message.info.id
+            });
+
+            return {
+                success: true,
+                message
+            };
+        } catch (error: any) {
+            log.error("Failed to send message", {
+                error: error.message,
+                sessionId
+            });
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
 }

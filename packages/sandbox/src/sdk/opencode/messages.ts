@@ -36,6 +36,58 @@ export type SessionMessagesResponses = {
     }>
 }
 
+export type SessionPromptData = {
+    body?: {
+        messageID?: string
+        model?: {
+            providerID: string
+            modelID: string
+        }
+        agent?: string
+        noReply?: boolean
+        system?: string
+        tools?: {
+            [key: string]: boolean
+        }
+        parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
+    }
+    path: {
+        /**
+         * Session ID
+         */
+        id: string
+    }
+    query?: {
+        directory?: string
+    }
+    url: "/session/{id}/message"
+}
+
+export type SessionPromptErrors = {
+    /**
+     * Bad request
+     */
+    400: BadRequestError
+    /**
+     * Not found
+     */
+    404: NotFoundError
+}
+
+export type SessionPromptError = SessionPromptErrors[keyof SessionPromptErrors]
+
+export type SessionPromptResponses = {
+    /**
+     * Created message
+     */
+    200: {
+        info: AssistantMessage
+        parts: Array<Part>
+    }
+}
+
+export type SessionPromptResponse = SessionPromptResponses[keyof SessionPromptResponses]
+
 export type SessionMessagesResponse = SessionMessagesResponses[keyof SessionMessagesResponses]
 /**
  * List messages for a session
@@ -45,6 +97,20 @@ class Session {
         return (options.client ?? this._client).get<SessionMessagesResponses, SessionMessagesErrors, ThrowOnError>({
             url: "/session/{id}/message",
             ...options,
+        })
+    }
+
+    /**
+     * Create and send a new message to a session
+     */
+    public prompt<ThrowOnError extends boolean = false>(options: Options<SessionPromptData, ThrowOnError>) {
+        return (options.client ?? this._client).post<SessionPromptResponses, SessionPromptErrors, ThrowOnError>({
+            url: "/session/{id}/message",
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                ...options.headers,
+            },
         })
     }
 }

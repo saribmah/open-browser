@@ -414,4 +414,57 @@ export namespace Message {
 
     export const MessagesResponseSchema = z.array(MessageWithPartsSchema);
     export type MessagesResponse = z.infer<typeof MessagesResponseSchema>;
+
+    // ============= Input Types for Creating Messages =============
+
+    export const TextPartInputSchema = z.object({
+        type: z.literal("text"),
+        text: z.string()
+    }).meta({ ref: "TextPartInput" });
+    export type TextPartInput = z.infer<typeof TextPartInputSchema>;
+
+    export const FilePartInputSchema = z.object({
+        type: z.literal("file"),
+        path: z.string()
+    }).meta({ ref: "FilePartInput" });
+    export type FilePartInput = z.infer<typeof FilePartInputSchema>;
+
+    export const AgentPartInputSchema = z.object({
+        type: z.literal("agent"),
+        name: z.string()
+    }).meta({ ref: "AgentPartInput" });
+    export type AgentPartInput = z.infer<typeof AgentPartInputSchema>;
+
+    export const SubtaskPartInputSchema = z.object({
+        type: z.literal("subtask"),
+        prompt: z.string(),
+        description: z.string(),
+        agent: z.string()
+    }).meta({ ref: "SubtaskPartInput" });
+    export type SubtaskPartInput = z.infer<typeof SubtaskPartInputSchema>;
+
+    export const PartInputSchema = z.discriminatedUnion("type", [
+        TextPartInputSchema,
+        FilePartInputSchema,
+        AgentPartInputSchema,
+        SubtaskPartInputSchema
+    ]);
+    export type PartInput = z.infer<typeof PartInputSchema>;
+
+    export const PromptRequestSchema = z.object({
+        messageID: z.string().optional(),
+        model: ModelSchema.optional(),
+        agent: z.string().optional(),
+        noReply: z.boolean().optional(),
+        system: z.string().optional(),
+        tools: z.record(z.string(), z.boolean()).optional(),
+        parts: z.array(PartInputSchema)
+    }).meta({ ref: "PromptRequest" });
+    export type PromptRequest = z.infer<typeof PromptRequestSchema>;
+
+    export const PromptResponseSchema = z.object({
+        info: AssistantMessageSchema,
+        parts: z.array(PartSchema)
+    }).meta({ ref: "PromptResponse" });
+    export type PromptResponse = z.infer<typeof PromptResponseSchema>;
 }
