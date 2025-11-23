@@ -33,6 +33,11 @@ export function Message({
   if (shouldHideAssistant) return null
   
   const isThreadActive = info.role === 'user' && nextMessage?.info.role === 'assistant'
+  
+  // Check if this is the first assistant message in a sequence (show dot only for first)
+  const isFirstAssistantInSequence = 
+    info.role === 'assistant' && 
+    prevMessage?.info.role !== 'assistant'
 
   return (
     <div
@@ -52,6 +57,7 @@ export function Message({
         <AssistantMessage
           message={message}
           index={index}
+          showDot={isFirstAssistantInSequence}
         />
       )}
     </div>
