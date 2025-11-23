@@ -94,6 +94,15 @@ export function SandboxNavbar({
 
         {/* Right side - Action buttons */}
         <div className="flex items-center gap-2">
+          {/* Maximize button - closes both sidebars */}
+          <button
+            onClick={onMaximize}
+            className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-white/5 rounded transition-colors"
+            aria-label="maximize view"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </button>
+          
           {/* Activity Log toggle button */}
           <button
             onClick={onToggleActivityLog}

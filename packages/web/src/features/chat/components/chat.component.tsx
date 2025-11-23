@@ -14,8 +14,9 @@ export function ChatComponent() {
     const [isActivityLogOpen, setIsActivityLogOpen] = useState(true)
 
     const handleMaximize = () => {
-        // TODO: Implement maximize functionality
-        console.log("Maximize clicked")
+        // Close both sidebars for maximized view
+        setIsSidebarOpen(false)
+        setIsActivityLogOpen(false)
     }
 
     const handleToggleSidebar = () => {
