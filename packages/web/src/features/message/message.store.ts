@@ -93,6 +93,7 @@ export const createMessageStore = (sessionId: string) => {
           const { sandboxClient, sessionId } = get()
           if (!sandboxClient) {
             set({ error: "Sandbox client not available", isSending: false })
+            return
           }
 
           try {
