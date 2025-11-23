@@ -1,5 +1,5 @@
 import type { ToolPart } from "@/client/sandbox"
-import { EditTool, WriteTool, ReadTool, BashTool, GlobTool, GrepTool, ListTool, TodoWriteTool } from "@/features/tool"
+import { EditTool, WriteTool, ReadTool, BashTool, GlobTool, GrepTool, ListTool, TodoWriteTool, TaskTool, WebfetchTool } from "@/features/tool"
 import { FileCode, Terminal, FilePlus, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -111,6 +111,12 @@ export function Tool({ tool }: ToolProps) {
   }
   if (tool.tool === 'todowrite') {
     return <TodoWriteTool tool={tool} />
+  }
+  if (tool.tool === 'task') {
+    return <TaskTool tool={tool} />
+  }
+  if (tool.tool === 'webfetch') {
+    return <WebfetchTool tool={tool} />
   }
 
   // For other tool types, return null for now
