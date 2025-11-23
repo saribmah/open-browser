@@ -1,5 +1,5 @@
 import type { ToolPart } from "@/client/sandbox"
-import { EditTool, WriteTool, ReadTool } from "@/features/tool"
+import { EditTool, WriteTool, ReadTool, BashTool } from "@/features/tool"
 import { FileCode, Terminal, FilePlus, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -95,7 +95,7 @@ export function Tool({ tool }: ToolProps) {
     return <WriteTool tool={tool} />
   }
   if (tool.tool === 'bash') {
-    return <EditTool tool={tool} />
+    return <BashTool tool={tool} />
   }
   if (tool.tool === 'read') {
     return <ReadTool tool={tool} />
