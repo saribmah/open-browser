@@ -10,6 +10,7 @@ export namespace SSE {
     | 'session.updated'
     | 'session.deleted'
     | 'session.idle'
+    | 'stream.end'
     | 'error'
     | 'billing.insufficient_credits';
 
@@ -23,8 +24,9 @@ export namespace SSE {
     });
   }
 
-  export async function endStream(stream: SSEStreamingApi) {
-    await stream.writeSSE({ data: "[DONE]" });
+  export async function endStream(stream: SSEStreamingApi, reason?: string) {
+    // Send a typed stream.end event instead of raw [DONE] string
+    await SSE.writeEnvelope(stream, 'stream.end', { reason });
   }
 
   export function create(stream: SSEStreamingApi) {
@@ -47,7 +49,7 @@ export namespace SSE {
       async end(reason?: string) {
         if (ended) return;
         ended = true;
-        await SSE.endStream(stream);
+        await SSE.endStream(stream, reason);
         if (reason) {
           log.info("Stream ended", { reason });
         }

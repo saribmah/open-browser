@@ -4,6 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from "zod";
 import { Session } from "../session/session";
 import { Message } from "../message/message";
+import type { Event } from "../instance/events";
 
 const route = new Hono();
 
@@ -26,6 +27,14 @@ const SessionsResponseSchema = z.object({
 const MessagesResponseSchema = Message.MessagesResponseSchema;
 const PromptRequestSchema = Message.PromptRequestSchema;
 const PromptResponseSchema = Message.PromptResponseSchema;
+
+// SSE Event Envelope Schema
+const SSEEnvelopeSchema = z.object({
+    v: z.number().describe('Envelope version'),
+    type: z.string().describe('Event type'),
+    data: z.any().describe('Event data/properties'),
+    ts: z.number().describe('Timestamp'),
+}).meta({ ref: 'SSEEnvelope' });
 
 // GET /session - Get all sessions for current instance
 route.get(
@@ -149,13 +158,10 @@ route.post(
         description: 'Stream Message to Session',
         responses: {
             200: {
-                description: 'Server-sent events stream',
+                description: 'Server-sent events stream with OpenCode events',
                 content: {
                     'text/event-stream': {
-                        schema: {
-                            type: 'string',
-                            description: 'Server-sent events stream with real-time updates'
-                        }
+                        schema: resolver(SSEEnvelopeSchema),
                     },
                 },
             },

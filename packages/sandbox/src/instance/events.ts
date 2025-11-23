@@ -1,157 +1,10 @@
-export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = ClientOptions<
-    TData,
-    ThrowOnError
-> & {
-    /**
-     * You can provide a client instance returned by `createClient()` instead of
-     * individual options. This might be also useful if you want to implement a
-     * custom client.
-     */
-    client?: Client
-    /**
-     * You can pass arbitrary values through the `meta` object. This can be
-     * used to access values that aren't defined as part of the SDK function.
-     */
-    meta?: Record<string, unknown>
-}
-export type SessionMessagesData = {
-    body?: never
-    path: {
-        /**
-         * Session ID
-         */
-        id: string
-    }
-    query?: {
-        directory?: string
-        limit?: number
-    }
-    url: "/session/{id}/message"
-}
-
-export type SessionMessagesErrors = {
-    /**
-     * Bad request
-     */
-    400: BadRequestError
-    /**
-     * Not found
-     */
-    404: NotFoundError
-}
-
-export type SessionMessagesError = SessionMessagesErrors[keyof SessionMessagesErrors]
-
-export type SessionMessagesResponses = {
-    /**
-     * List of messages
-     */
-    200: Array<{
-        info: Message
-        parts: Array<Part>
-    }>
-}
-
-export type SessionPromptData = {
-    body?: {
-        messageID?: string
-        model?: {
-            providerID: string
-            modelID: string
-        }
-        agent?: string
-        noReply?: boolean
-        system?: string
-        tools?: {
-            [key: string]: boolean
-        }
-        parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
-    }
-    path: {
-        /**
-         * Session ID
-         */
-        id: string
-    }
-    query?: {
-        directory?: string
-    }
-    url: "/session/{id}/message"
-}
-
-export type SessionPromptErrors = {
-    /**
-     * Bad request
-     */
-    400: BadRequestError
-    /**
-     * Not found
-     */
-    404: NotFoundError
-}
-
-export type SessionPromptError = SessionPromptErrors[keyof SessionPromptErrors]
-
-export type SessionPromptResponses = {
-    /**
-     * Created message
-     */
-    200: {
-        info: AssistantMessage
-        parts: Array<Part>
-    }
-}
-
-export type SessionPromptResponse = SessionPromptResponses[keyof SessionPromptResponses]
-
-export type SessionMessagesResponse = SessionMessagesResponses[keyof SessionMessagesResponses]
 /**
- * List messages for a session
+ * OpenCode Event Types
+ * These are all the event types that can be sent via SSE streams
+ * Reference: @opencode-ai/sdk event types
  */
-class Session {
-    public messages<ThrowOnError extends boolean = false>(options: Options<SessionMessagesData, ThrowOnError>) {
-        return (options.client ?? this._client).get<SessionMessagesResponses, SessionMessagesErrors, ThrowOnError>({
-            url: "/session/{id}/message",
-            ...options,
-        })
-    }
 
-    /**
-     * Create and send a new message to a session
-     */
-    public prompt<ThrowOnError extends boolean = false>(options: Options<SessionPromptData, ThrowOnError>) {
-        return (options.client ?? this._client).post<SessionPromptResponses, SessionPromptErrors, ThrowOnError>({
-            url: "/session/{id}/message",
-            ...options,
-            headers: {
-                "Content-Type": "application/json",
-                ...options.headers,
-            },
-        })
-    }
-}
-
-export type EventInstallationUpdated = {
-    type: "installation.updated"
-    properties: {
-        version: string
-    }
-}
-
-export type EventLspClientDiagnostics = {
-    type: "lsp.client.diagnostics"
-    properties: {
-        serverID: string
-        path: string
-    }
-}
-
-export type EventLspUpdated = {
-    type: "lsp.updated"
-    properties: {
-        [key: string]: unknown
-    }
-}
+// ============= Base Types =============
 
 export type FileDiff = {
     file: string
@@ -259,20 +112,7 @@ export type AssistantMessage = {
 
 export type Message = UserMessage | AssistantMessage
 
-export type EventMessageUpdated = {
-    type: "message.updated"
-    properties: {
-        info: Message
-    }
-}
-
-export type EventMessageRemoved = {
-    type: "message.removed"
-    properties: {
-        sessionID: string
-        messageID: string
-    }
-}
+// ============= Part Types =============
 
 export type TextPart = {
     id: string
@@ -478,6 +318,16 @@ export type AgentPart = {
     }
 }
 
+export type SubtaskPart = {
+    id: string
+    sessionID: string
+    messageID: string
+    type: "subtask"
+    prompt: string
+    description: string
+    agent: string
+}
+
 export type RetryPart = {
     id: string
     sessionID: string
@@ -499,15 +349,6 @@ export type CompactionPart = {
 
 export type Part =
     | TextPart
-    | {
-    id: string
-    sessionID: string
-    messageID: string
-    type: "subtask"
-    prompt: string
-    description: string
-    agent: string
-}
     | ReasoningPart
     | FilePart
     | ToolPart
@@ -516,8 +357,128 @@ export type Part =
     | SnapshotPart
     | PatchPart
     | AgentPart
+    | SubtaskPart
     | RetryPart
     | CompactionPart
+
+// ============= Session Types =============
+
+export type Permission = {
+    id: string
+    type: string
+    pattern?: string | Array<string>
+    sessionID: string
+    messageID: string
+    callID?: string
+    title: string
+    metadata: {
+        [key: string]: unknown
+    }
+    time: {
+        created: number
+    }
+}
+
+export type SessionStatus =
+    | {
+        type: "idle"
+    }
+    | {
+        type: "retry"
+        attempt: number
+        message: string
+        next: number
+    }
+    | {
+        type: "busy"
+    }
+
+export type Todo = {
+    /**
+     * Brief description of the task
+     */
+    content: string
+    /**
+     * Current status of the task: pending, in_progress, completed, cancelled
+     */
+    status: string
+    /**
+     * Priority level of the task: high, medium, low
+     */
+    priority: string
+    /**
+     * Unique identifier for the todo item
+     */
+    id: string
+}
+
+export type Session = {
+    id: string
+    projectID: string
+    directory: string
+    parentID?: string
+    summary?: {
+        additions: number
+        deletions: number
+        files: number
+        diffs?: Array<FileDiff>
+    }
+    share?: {
+        url: string
+    }
+    title: string
+    version: string
+    time: {
+        created: number
+        updated: number
+        compacting?: number
+    }
+    revert?: {
+        messageID: string
+        partID?: string
+        snapshot?: string
+        diff?: string
+    }
+}
+
+// ============= Event Types =============
+
+export type EventInstallationUpdated = {
+    type: "installation.updated"
+    properties: {
+        version: string
+    }
+}
+
+export type EventLspClientDiagnostics = {
+    type: "lsp.client.diagnostics"
+    properties: {
+        serverID: string
+        path: string
+    }
+}
+
+export type EventLspUpdated = {
+    type: "lsp.updated"
+    properties: {
+        [key: string]: unknown
+    }
+}
+
+export type EventMessageUpdated = {
+    type: "message.updated"
+    properties: {
+        info: Message
+    }
+}
+
+export type EventMessageRemoved = {
+    type: "message.removed"
+    properties: {
+        sessionID: string
+        messageID: string
+    }
+}
 
 export type EventMessagePartUpdated = {
     type: "message.part.updated"
@@ -536,22 +497,6 @@ export type EventMessagePartRemoved = {
     }
 }
 
-export type Permission = {
-    id: string
-    type: string
-    pattern?: string | Array<string>
-    sessionID: string
-    messageID: string
-    callID?: string
-    title: string
-    metadata: {
-        [key: string]: unknown
-    }
-    time: {
-        created: number
-    }
-}
-
 export type EventPermissionUpdated = {
     type: "permission.updated"
     properties: Permission
@@ -564,20 +509,6 @@ export type EventPermissionReplied = {
         permissionID: string
         response: string
     }
-}
-
-export type SessionStatus =
-    | {
-    type: "idle"
-}
-    | {
-    type: "retry"
-    attempt: number
-    message: string
-    next: number
-}
-    | {
-    type: "busy"
 }
 
 export type EventSessionStatus = {
@@ -609,25 +540,6 @@ export type EventFileEdited = {
     }
 }
 
-export type Todo = {
-    /**
-     * Brief description of the task
-     */
-    content: string
-    /**
-     * Current status of the task: pending, in_progress, completed, cancelled
-     */
-    status: string
-    /**
-     * Priority level of the task: high, medium, low
-     */
-    priority: string
-    /**
-     * Unique identifier for the todo item
-     */
-    id: string
-}
-
 export type EventTodoUpdated = {
     type: "todo.updated"
     properties: {
@@ -643,35 +555,6 @@ export type EventCommandExecuted = {
         sessionID: string
         arguments: string
         messageID: string
-    }
-}
-
-export type Session = {
-    id: string
-    projectID: string
-    directory: string
-    parentID?: string
-    summary?: {
-        additions: number
-        deletions: number
-        files: number
-        diffs?: Array<FileDiff>
-    }
-    share?: {
-        url: string
-    }
-    title: string
-    version: string
-    time: {
-        created: number
-        updated: number
-        compacting?: number
-    }
-    revert?: {
-        messageID: string
-        partID?: string
-        snapshot?: string
-        diff?: string
     }
 }
 
@@ -771,37 +654,17 @@ export type EventFileWatcherUpdated = {
     }
 }
 
-
-export type EventSubscribeData = {
-    body?: never
-    path?: never
-    query?: {
-        directory?: string
-    }
-    url: "/event"
-}
-
-export type EventSubscribeResponses = {
-    /**
-     * Event stream
-     */
-    200: Event
-}
-
-export type EventSubscribeResponse = EventSubscribeResponses[keyof EventSubscribeResponses]
-
-class Event {
-    /**
-     * Get events
-     */
-    public subscribe<ThrowOnError extends boolean = false>(options?: Options<EventSubscribeData, ThrowOnError>) {
-        return (options?.client ?? this._client).get.sse<EventSubscribeResponses, unknown, ThrowOnError>({
-            url: "/event",
-            ...options,
-        })
+export type EventStreamEnd = {
+    type: "stream.end"
+    properties: {
+        reason?: string
     }
 }
 
+/**
+ * Union of all possible event types
+ * This is the discriminated union that can be sent via SSE
+ */
 export type Event =
     | EventInstallationUpdated
     | EventLspClientDiagnostics
@@ -828,3 +691,14 @@ export type Event =
     | EventTuiToastShow
     | EventServerConnected
     | EventFileWatcherUpdated
+    | EventStreamEnd
+
+/**
+ * SSE Envelope that wraps all events
+ */
+export type SSEEnvelope = {
+    v: number
+    type: Event['type']
+    data: Event['properties']
+    ts: number
+}

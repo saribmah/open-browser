@@ -348,6 +348,25 @@ export type MessageWithParts = {
     parts: Array<TextPart | ReasoningPart | FilePart | ToolPart | StepStartPart | StepFinishPart | SnapshotPart | PatchPart | AgentPart | SubtaskPart | RetryPart | CompactionPart>;
 };
 
+export type SseEnvelope = {
+    /**
+     * Envelope version
+     */
+    v: number;
+    /**
+     * Event type
+     */
+    type: string;
+    /**
+     * Event data/properties
+     */
+    data: unknown;
+    /**
+     * Timestamp
+     */
+    ts: number;
+};
+
 export type TextPartInput = {
     type: 'text';
     text: string;
@@ -551,9 +570,9 @@ export type PostSessionIdMessageError = PostSessionIdMessageErrors[keyof PostSes
 
 export type PostSessionIdMessageResponses = {
     /**
-     * Server-sent events stream with real-time updates
+     * Server-sent events stream with OpenCode events
      */
-    200: string;
+    200: SseEnvelope;
 };
 
 export type PostSessionIdMessageResponse = PostSessionIdMessageResponses[keyof PostSessionIdMessageResponses];

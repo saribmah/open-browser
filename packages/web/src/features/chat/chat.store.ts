@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import { postSessionIdMessage } from "@/client/sandbox/sdk.gen"
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
+import type { SseEnvelope } from "@/client/sandbox/types.gen"
 import type { FileItem } from "@/features/filesystem"
 import type { FileItemData } from "@/features/filesystem/filesystem.store"
 
@@ -109,33 +110,25 @@ export const createChatStore = () => {
             let assistantMessageId: string | null = null
             let assistantContent = ""
 
-            // Listen to SSE events
-            for await (const rawEvent of sseResponse.stream) {
-              // Parse the SSE event data
-              // The stream yields strings, we need to parse the JSON envelope
-              let event: { v: number; type: string; data: any; ts: number }
+            // Listen to SSE events - the stream yields already-parsed SseEnvelope objects
+            for await (const event of sseResponse.stream) {
+              // The SSE client has already parsed the JSON for us
+              // event is typed as SseEnvelope from the generated types
               
-              try {
-                // rawEvent is the string data from SSE
-                const eventStr = typeof rawEvent === 'string' ? rawEvent : JSON.stringify(rawEvent)
-                
-                // Check if this is the [DONE] signal
-                if (eventStr === "[DONE]") {
-                  break
-                }
-                
-                event = JSON.parse(eventStr)
-              } catch {
-                console.warn("Failed to parse SSE event:", rawEvent)
-                continue
-              }
-
               console.log("SSE Event:", event)
 
-              // Handle different event types
-              if (event.type === "message.part.updated" || event.type === "part.updated") {
-                const part = event.data
-                if (part.type === "text") {
+              // Handle different event types with proper typing
+              if (event.type === "stream.end") {
+                // Stream has ended - clean exit
+                const reason = (event.data as any)?.reason
+                if (reason) {
+                  console.log("Stream ended:", reason)
+                }
+                break
+              } else if (event.type === "message.part.updated") {
+                // event.data contains the EventMessagePartUpdated properties
+                const part = (event.data as any).part
+                if (part && part.type === "text") {
                   assistantMessageId = part.messageID
                   assistantContent += part.text || ""
                   
@@ -176,7 +169,8 @@ export const createChatStore = () => {
                 // Final message data
                 console.log("Message completed:", event.data)
               } else if (event.type === "error") {
-                throw new Error(event.data.message || "Stream error")
+                const errorData = event.data as any
+                throw new Error(errorData.message || "Stream error")
               }
             }
 
