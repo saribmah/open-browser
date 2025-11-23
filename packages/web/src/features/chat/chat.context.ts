@@ -15,3 +15,5 @@ export function useChatContext<T>(selector: (state: ChatStoreState) => T): T {
 // Action hooks
 export const useSendMessage = () => useChatContext(state => state.sendMessage)
 export const useClearMessages = () => useChatContext(state => state.clearMessages)
+export const useSelectedModel = () => useChatContext(state => state.selectedModel)
+export const useSetSelectedModel = () => useChatContext(state => state.setSelectedModel)

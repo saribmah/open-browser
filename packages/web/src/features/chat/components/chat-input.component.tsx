@@ -1,30 +1,21 @@
 import { useState, useRef } from "react"
-import { ArrowUp, ChevronDown } from "lucide-react"
+import { ArrowUp } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { FileMention } from "@/features/filesystem/components/file-mention.component.tsx"
 import { SdkSelector } from "./sdk-selector.component"
-import { cn } from "@/lib/utils"
+import { ModelSelector } from "./model-selector.component"
 import type { FormEvent, KeyboardEvent } from "react"
 import type { FileItem } from "@/features/filesystem"
-import { useSendMessage } from "@/features/chat/chat.context"
+import { useSendMessage, useSelectedModel, useSetSelectedModel } from "@/features/chat/chat.context"
 import {
   useActiveSession,
   useConvertEphemeralToReal,
 } from "@/features/session"
 import { useFileList } from "@/features/filesystem/hooks/useFileList"
 
-const models = [
-  { id: "claude-sonnet-4", name: "claude sonnet 4" },
-  { id: "claude-opus-4", name: "claude opus 4" },
-  { id: "gpt-4o", name: "gpt-4o" },
-  { id: "gpt-4o-mini", name: "gpt-4o mini" },
-]
-
 interface ChatInputProps {
   placeholder?: string
   disabled?: boolean
-  selectedModel?: string
-  onModelChange?: (modelId: string) => void
   selectedSdk?: string
   onSdkChange?: (sdkId: string) => void
 }
@@ -32,8 +23,6 @@ interface ChatInputProps {
 export function ChatInput({
   placeholder = "ask anything...",
   disabled = false,
-  selectedModel = "claude-sonnet-4",
-  onModelChange,
   selectedSdk = "opencode",
   onSdkChange,
 }: ChatInputProps) {
@@ -42,10 +31,11 @@ export function ChatInput({
   const sendMessage = useSendMessage()
   const convertEphemeralToReal = useConvertEphemeralToReal()
   const availableFiles = useFileList()
+  const selectedModel = useSelectedModel()
+  const setSelectedModel = useSetSelectedModel()
 
   // Local state
   const [message, setMessage] = useState("")
-  const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false)
   const [showFileMention, setShowFileMention] = useState(false)
   const [mentionQuery, setMentionQuery] = useState("")
   const [mentionIndex, setMentionIndex] = useState(0)
@@ -156,13 +146,6 @@ export function ChatInput({
     setMentionedFiles((prev) => prev.filter(f => f.path !== filePath))
   }
 
-  const currentModel = models.find(m => m.id === selectedModel) || models[0]
-
-  const handleModelSelect = (modelId: string) => {
-    onModelChange?.(modelId)
-    setIsModelSelectorOpen(false)
-  }
-
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4">
       <form
@@ -231,43 +214,10 @@ export function ChatInput({
             />
 
             {/* Model selector */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs transition-colors"
-              >
-                <span>{currentModel?.name}</span>
-                <ChevronDown className="h-3 w-3" />
-              </button>
-
-              {/* Model dropdown */}
-              {isModelSelectorOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setIsModelSelectorOpen(false)}
-                  />
-                  <div className="absolute bottom-full mb-2 left-0 bg-zinc-900 border border-white/10 rounded-lg overflow-hidden z-20 min-w-[160px]">
-                    {models.map((model) => (
-                      <button
-                        key={model.id}
-                        type="button"
-                        onClick={() => handleModelSelect(model.id)}
-                        className={cn(
-                          "w-full px-3 py-2 text-left text-xs transition-colors",
-                          selectedModel === model.id
-                            ? "bg-white/10 text-white"
-                            : "text-zinc-400 hover:bg-white/5 hover:text-white"
-                        )}
-                      >
-                        {model.name}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
           </div>
 
           {/* Send button */}

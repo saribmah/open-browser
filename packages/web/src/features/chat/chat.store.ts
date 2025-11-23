@@ -7,6 +7,11 @@ import type { FileItemData } from "@/features/filesystem/filesystem.store"
 import { eventBus } from "@/lib/event-bus"
 import { sseHandler } from "@/lib/sse-handler"
 
+export type Model = {
+  providerID: string
+  modelID: string
+}
+
 export interface ChatMessage {
   id: string
   content: string
@@ -22,6 +27,7 @@ export interface ChatState {
   isLoading: boolean
   error: string | null
   sandboxClient: typeof sandboxClientType | null
+  selectedModel: Model | null
 }
 
 export interface ChatActions {
@@ -33,6 +39,7 @@ export interface ChatActions {
   setError: (error: string | null) => void
   setSandboxClient: (client: typeof sandboxClientType | null) => void
   setActiveSessionId: (sessionId: string) => void
+  setSelectedModel: (model: Model | null) => void
   initializeEventListeners: () => () => void
   reset: () => void
 }
@@ -47,6 +54,7 @@ export const createChatStore = () => {
     isLoading: false,
     error: null,
     sandboxClient: null,
+    selectedModel: null,
   }
 
   return create<ChatStoreState>()(
@@ -60,7 +68,7 @@ export const createChatStore = () => {
           set({ isLoading: true, error: null })
 
           const state = get()
-          const { sandboxClient, activeSessionId } = state
+          const { sandboxClient, activeSessionId, selectedModel } = state
 
           if (!sandboxClient) {
             set({
@@ -102,6 +110,8 @@ export const createChatStore = () => {
               client: sandboxClient,
               path: { id: activeSessionId },
               body: {
+                  agent: "build",
+                  model: selectedModel ?? undefined,
                 parts,
               },
             })
@@ -134,6 +144,10 @@ export const createChatStore = () => {
 
         setActiveSessionId: (sessionId: string) => {
           set({ activeSessionId: sessionId })
+        },
+
+        setSelectedModel: (model: Model | null) => {
+          set({ selectedModel: model })
         },
 
         initializeEventListeners: () => {
