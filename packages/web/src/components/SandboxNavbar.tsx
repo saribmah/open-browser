@@ -1,4 +1,4 @@
-import { Maximize2, PanelLeftClose, PanelLeft } from "lucide-react"
+import { Maximize2, PanelLeftClose, PanelLeft, PanelRightClose, PanelRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useSandboxContext } from "@/features/sandbox"
 import type { SandboxStatus } from "@/features/sandbox"
@@ -8,6 +8,8 @@ interface SandboxNavbarProps {
   onMaximize?: () => void
   onToggleSidebar?: () => void
   isSidebarOpen?: boolean
+  onToggleActivityLog?: () => void
+  isActivityLogOpen?: boolean
 }
 
 export function SandboxNavbar({ 
@@ -15,6 +17,8 @@ export function SandboxNavbar({
   onMaximize,
   onToggleSidebar,
   isSidebarOpen = true,
+  onToggleActivityLog,
+  isActivityLogOpen = true,
 }: SandboxNavbarProps) {
   // Get sandbox data from context
   const sandboxStatus = useSandboxContext((state) => state.status)
@@ -90,13 +94,17 @@ export function SandboxNavbar({
 
         {/* Right side - Action buttons */}
         <div className="flex items-center gap-2">
-          {/* Maximize button */}
+          {/* Activity Log toggle button */}
           <button
-            onClick={onMaximize}
+            onClick={onToggleActivityLog}
             className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-white/5 rounded transition-colors"
-            aria-label="maximize"
+            aria-label={isActivityLogOpen ? "close activity log" : "open activity log"}
           >
-            <Maximize2 className="h-4 w-4" />
+            {isActivityLogOpen ? (
+              <PanelRightClose className="h-4 w-4" />
+            ) : (
+              <PanelRight className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
