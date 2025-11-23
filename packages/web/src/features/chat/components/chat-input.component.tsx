@@ -2,6 +2,7 @@ import { useState, useRef } from "react"
 import { ArrowUp, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { FileMention } from "@/features/filesystem/components/file-mention.component.tsx"
+import { SdkSelector } from "./sdk-selector.component"
 import { cn } from "@/lib/utils"
 import type { FormEvent, KeyboardEvent } from "react"
 import type { FileItem } from "@/features/filesystem"
@@ -11,11 +12,6 @@ import {
   useConvertEphemeralToReal,
 } from "@/features/session"
 import { useFileList } from "@/features/filesystem/hooks/useFileList"
-
-const sdks = [
-  { id: "opencode", name: "opencode" },
-  { id: "claude-code", name: "claude code" },
-]
 
 const models = [
   { id: "claude-sonnet-4", name: "claude sonnet 4" },
@@ -50,7 +46,6 @@ export function ChatInput({
   // Local state
   const [message, setMessage] = useState("")
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false)
-  const [isSdkSelectorOpen, setIsSdkSelectorOpen] = useState(false)
   const [showFileMention, setShowFileMention] = useState(false)
   const [mentionQuery, setMentionQuery] = useState("")
   const [mentionIndex, setMentionIndex] = useState(0)
@@ -162,16 +157,10 @@ export function ChatInput({
   }
 
   const currentModel = models.find(m => m.id === selectedModel) || models[0]
-  const currentSdk = sdks.find(s => s.id === selectedSdk) || sdks[0]
 
   const handleModelSelect = (modelId: string) => {
     onModelChange?.(modelId)
     setIsModelSelectorOpen(false)
-  }
-
-  const handleSdkSelect = (sdkId: string) => {
-    onSdkChange?.(sdkId)
-    setIsSdkSelectorOpen(false)
   }
 
   return (
@@ -236,43 +225,10 @@ export function ChatInput({
         <div className="flex items-center justify-between px-3 pb-3">
           <div className="flex items-center gap-2">
             {/* SDK selector */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsSdkSelectorOpen(!isSdkSelectorOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs transition-colors"
-              >
-                <span>{currentSdk?.name}</span>
-                <ChevronDown className="h-3 w-3" />
-              </button>
-
-              {/* SDK dropdown */}
-              {isSdkSelectorOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setIsSdkSelectorOpen(false)}
-                  />
-                  <div className="absolute bottom-full mb-2 left-0 bg-zinc-900 border border-white/10 rounded-lg overflow-hidden z-20 min-w-[120px]">
-                    {sdks.map((sdk) => (
-                      <button
-                        key={sdk.id}
-                        type="button"
-                        onClick={() => handleSdkSelect(sdk.id)}
-                        className={cn(
-                          "w-full px-3 py-2 text-left text-xs transition-colors",
-                          selectedSdk === sdk.id
-                            ? "bg-white/10 text-white"
-                            : "text-zinc-400 hover:bg-white/5 hover:text-white"
-                        )}
-                      >
-                        {sdk.name}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <SdkSelector 
+              selectedSdk={selectedSdk}
+              onSdkChange={onSdkChange}
+            />
 
             {/* Model selector */}
             <div className="relative">

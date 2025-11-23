@@ -9,30 +9,30 @@ const PROVIDER_CONFIGS: ProviderConfig[] = [
     {
         name: "local" as SandboxProvider,
         version: "latest",
-        sdks: ["OPENCODE" as SdkType, "CLAUDE_CODE" as SdkType],
+        sdks: ["OPENCODE" as SdkType],
         defaultSdk: "OPENCODE" as SdkType
     },
     {
         name: "docker" as SandboxProvider,
         version: "latest",
-        sdks: ["OPENCODE" as SdkType, "CLAUDE_CODE" as SdkType],
+        sdks: ["OPENCODE" as SdkType],
         defaultSdk: "OPENCODE" as SdkType
     },
     {
         name: "cloudflare" as SandboxProvider,
-        version: "v1.0.0",
+        version: "1.0.0",
         sdks: ["OPENCODE" as SdkType],
         defaultSdk: "OPENCODE" as SdkType
     },
     {
         name: "daytona" as SandboxProvider,
-        version: "latest",
-        sdks: ["OPENCODE" as SdkType, "CLAUDE_CODE" as SdkType],
+        version: "0.1.0",
+        sdks: ["OPENCODE" as SdkType],
         defaultSdk: "OPENCODE" as SdkType
     },
     {
         name: "vercel" as SandboxProvider,
-        version: "v1.0.0",
+        version: "1.0.0",
         sdks: ["OPENCODE" as SdkType],
         defaultSdk: "OPENCODE" as SdkType
     }
