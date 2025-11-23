@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { FileCode, ChevronRight, Terminal, FilePlus, CheckCircle2, Loader2, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ToolPart } from "@/client/sandbox"
@@ -31,6 +32,7 @@ function getFileType(filePath: string): 'tsx' | 'typescript' | 'javascript' | 'j
  */
 export function EditTool({ tool }: EditToolProps) {
   const { state } = tool
+  const [isExpanded, setIsExpanded] = useState(tool.state.status === 'running')
 
   // Extract file path from input
   if (!('input' in state) || !state.input) {
@@ -111,28 +113,46 @@ export function EditTool({ tool }: EditToolProps) {
         {/* If we have a diff, make the header part of the diff block */}
         {hasValidFilediff ? (
           <div className="border border-zinc-800/50 rounded-lg overflow-hidden">
-            {/* Header as part of the diff */}
-            <div className="flex items-center justify-between p-2.5 bg-zinc-900/50 border-b border-zinc-800/50">
+            {/* Header as part of the diff - clickable to collapse/expand */}
+            <div
+              className="flex items-center justify-between p-2.5 bg-zinc-900/50 border-b border-zinc-800/50 cursor-pointer hover:bg-zinc-900 transition-colors"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 {getStatusIcon()}
                 {getToolIcon()}
                 <span className="text-xs font-mono text-zinc-400 truncate">{title}</span>
               </div>
               <div className="flex items-center gap-2 text-xs font-mono flex-shrink-0">
-                <ChevronRight className="h-3.5 w-3.5 text-zinc-600" />
+                <ChevronRight className={cn(
+                  "h-3.5 w-3.5 text-zinc-600 transition-transform duration-300 ease-in-out",
+                  isExpanded && "rotate-90"
+                )} />
               </div>
             </div>
-            {/* Diff content */}
-            <Diff
-              before={{
-                name: getFilename(filediff.file!),
-                contents: filediff.before!,
-              }}
-              after={{
-                name: getFilename(filediff.file!),
-                contents: filediff.after!,
-              }}
-            />
+            {/* Diff content - conditionally rendered based on isExpanded */}
+            <div
+              className={cn(
+                "transition-all duration-300 ease-in-out overflow-hidden",
+                isExpanded ? "opacity-100 max-h-[2000px]" : "opacity-0 max-h-0"
+              )}
+            >
+              <div className={cn(
+                "transition-transform duration-300 ease-in-out",
+                isExpanded ? "translate-y-0" : "-translate-y-4"
+              )}>
+                <Diff
+                  before={{
+                    name: getFilename(filediff.file!),
+                    contents: filediff.before!,
+                  }}
+                  after={{
+                    name: getFilename(filediff.file!),
+                    contents: filediff.after!,
+                  }}
+                />
+              </div>
+            </div>
           </div>
         ) : (
           /* Standalone header when there's no diff */
