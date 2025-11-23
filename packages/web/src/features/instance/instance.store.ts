@@ -1,14 +1,15 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
-import { postInstanceInit, getConfigProviders, getSdkConfig } from "@/client/sandbox/sdk.gen"
+import { postInstanceInit, getConfigProviders, getSdkConfig, getSdkAgent } from "@/client/sandbox/sdk.gen"
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
-import type { PostInstanceInitData, GetConfigProvidersResponses, GetSdkConfigResponses } from "@/client/sandbox/types.gen"
+import type { PostInstanceInitData, GetConfigProvidersResponses, GetSdkConfigResponses, GetSdkAgentResponses } from "@/client/sandbox/types.gen"
 
 // Use generated types from the API
 export type SdkType = NonNullable<PostInstanceInitData['body']>['sdkType']
 export type InstanceStatus = "idle" | "initializing" | "ready" | "error"
 export type ProvidersData = GetConfigProvidersResponses[200]
 export type SdkConfigData = GetSdkConfigResponses[200]
+export type AgentData = GetSdkAgentResponses[200]
 
 export interface InstanceState {
   status: InstanceStatus
@@ -17,6 +18,7 @@ export interface InstanceState {
   initialized: boolean
   providers: ProvidersData | null
   sdkConfig: SdkConfigData | null
+  agent: AgentData | null
 }
 
 export interface InstanceActions {
@@ -36,6 +38,7 @@ export const createInstanceStore = () => {
     initialized: false,
     providers: null,
     sdkConfig: null,
+    agent: null,
   }
 
   return create<InstanceStoreState>()(
@@ -79,11 +82,21 @@ export const createInstanceStore = () => {
               console.warn("Failed to fetch SDK config:", sdkConfigResult.error)
             }
 
+            // Fetch SDK agent
+            const agentResult = await getSdkAgent({
+              client: sandboxClient,
+            })
+
+            if (agentResult.error) {
+              console.warn("Failed to fetch SDK agent:", agentResult.error)
+            }
+
             set({ 
               status: "ready", 
               initialized: true,
               providers: providersResult.data || null,
               sdkConfig: sdkConfigResult.data || null,
+              agent: agentResult.data || null,
             })
           } catch (err: any) {
             const errorMsg = err.message || "Failed to initialize SDK"

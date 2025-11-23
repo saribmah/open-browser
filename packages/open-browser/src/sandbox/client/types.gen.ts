@@ -627,6 +627,35 @@ export type GetSdkConfigResponses = {
 
 export type GetSdkConfigResponse = GetSdkConfigResponses[keyof GetSdkConfigResponses];
 
+export type GetSdkAgentData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/sdk/agent';
+};
+
+export type GetSdkAgentErrors = {
+    /**
+     * Bad request
+     */
+    400: {
+        error: string;
+    };
+};
+
+export type GetSdkAgentError = GetSdkAgentErrors[keyof GetSdkAgentErrors];
+
+export type GetSdkAgentResponses = {
+    /**
+     * SDK agent retrieved successfully
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type GetSdkAgentResponse = GetSdkAgentResponses[keyof GetSdkAgentResponses];
+
 export type PostInstanceInitData = {
     body?: {
         sdkType: 'OPENCODE' | 'CLAUDE_CODE';

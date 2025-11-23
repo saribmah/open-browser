@@ -195,6 +195,42 @@ export const OPENCODE = {
             throw new Error(`Failed to get config: ${error.message}`);
         }
     },
+    getAgent: async (opts: { directory: string }) => {
+        const { directory } = opts;
+
+        log.info("Getting agents from OpenCode SDK", { directory });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Get agents using the OpenCode client
+            const response = await opencode.client.app.agents();
+
+            if (!response.data) {
+                log.error("No agent data returned from OpenCode SDK", { directory });
+                throw new Error("Failed to get agents: No data returned");
+            }
+
+            log.info("Agents retrieved successfully", {
+                directory,
+                agentsCount: Array.isArray(response.data) ? response.data.length : 0
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to get agents from OpenCode SDK", {
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to get agents: ${error.message}`);
+        }
+    },
     getProviders: async (opts: { directory: string }) => {
         const { directory } = opts;
 

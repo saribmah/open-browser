@@ -404,6 +404,46 @@
         }
       }
     },
+    "/sdk/agent": {
+      "get": {
+        "operationId": "getSdkAgent",
+        "description": "Get SDK Agent",
+        "responses": {
+          "200": {
+            "description": "SDK agent retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/instance/init": {
       "post": {
         "operationId": "postInstanceInit",

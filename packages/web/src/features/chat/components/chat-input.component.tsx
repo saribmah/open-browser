@@ -3,10 +3,11 @@ import { ArrowUp } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { FileMention } from "@/features/filesystem/components/file-mention.component.tsx"
 import { SdkSelector } from "./sdk-selector.component"
+import { AgentSelector } from "./agent-selector.component"
 import { ModelSelector } from "./model-selector.component"
 import type { FormEvent, KeyboardEvent } from "react"
 import type { FileItem } from "@/features/filesystem"
-import { useSendMessage, useSelectedModel, useSetSelectedModel } from "@/features/chat/chat.context"
+import { useSendMessage, useSelectedAgent, useSetSelectedAgent, useSelectedModel, useSetSelectedModel } from "@/features/chat/chat.context"
 import {
   useActiveSession,
   useConvertEphemeralToReal,
@@ -31,6 +32,8 @@ export function ChatInput({
   const sendMessage = useSendMessage()
   const convertEphemeralToReal = useConvertEphemeralToReal()
   const availableFiles = useFileList()
+  const selectedAgent = useSelectedAgent()
+  const setSelectedAgent = useSetSelectedAgent()
   const selectedModel = useSelectedModel()
   const setSelectedModel = useSetSelectedModel()
 
@@ -211,6 +214,12 @@ export function ChatInput({
             <SdkSelector 
               selectedSdk={selectedSdk}
               onSdkChange={onSdkChange}
+            />
+
+            {/* Agent selector */}
+            <AgentSelector
+              selectedAgent={selectedAgent}
+              onAgentChange={setSelectedAgent}
             />
 
             {/* Model selector */}

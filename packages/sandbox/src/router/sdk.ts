@@ -25,6 +25,7 @@ const ErrorSchema = z.object({
 });
 
 const SDKConfigResponseSchema = z.record(z.string(), z.any());
+const AgentResponseSchema = z.record(z.string(), z.any());
 
 const availableSDKs: SDKInfo[] = [
     {
@@ -90,6 +91,47 @@ route.get(
         } catch (error: any) {
             return c.json({
                 error: error.message || "Failed to get SDK config"
+            }, 400);
+        }
+    },
+);
+
+// GET /sdk/agent - Get SDK agent for current instance
+route.get(
+    "/agent",
+    describeRoute({
+        description: 'Get SDK Agent',
+        responses: {
+            200: {
+                description: 'SDK agent retrieved successfully',
+                content: {
+                    'application/json': { schema: resolver(AgentResponseSchema) },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    async (c) => {
+        try {
+            // Get instance state
+            const state = Instance.getState();
+            const directory = Instance.getDirectory();
+
+            // Get SDK agent
+            const agent = await SDK.getAgent({
+                type: state.sdkType,
+                directory
+            });
+
+            return c.json(agent);
+        } catch (error: any) {
+            return c.json({
+                error: error.message || "Failed to get SDK agent"
             }, 400);
         }
     },

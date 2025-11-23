@@ -27,6 +27,7 @@ export interface ChatState {
   isLoading: boolean
   error: string | null
   sandboxClient: typeof sandboxClientType | null
+  selectedAgent: string | null
   selectedModel: Model | null
 }
 
@@ -39,6 +40,7 @@ export interface ChatActions {
   setError: (error: string | null) => void
   setSandboxClient: (client: typeof sandboxClientType | null) => void
   setActiveSessionId: (sessionId: string) => void
+  setSelectedAgent: (agent: string | null) => void
   setSelectedModel: (model: Model | null) => void
   initializeEventListeners: () => () => void
   reset: () => void
@@ -54,6 +56,7 @@ export const createChatStore = () => {
     isLoading: false,
     error: null,
     sandboxClient: null,
+    selectedAgent: null,
     selectedModel: null,
   }
 
@@ -68,7 +71,7 @@ export const createChatStore = () => {
           set({ isLoading: true, error: null })
 
           const state = get()
-          const { sandboxClient, activeSessionId, selectedModel } = state
+          const { sandboxClient, activeSessionId, selectedAgent, selectedModel } = state
 
           if (!sandboxClient) {
             set({
@@ -110,8 +113,8 @@ export const createChatStore = () => {
               client: sandboxClient,
               path: { id: activeSessionId },
               body: {
-                  agent: "build",
-                  model: selectedModel ?? undefined,
+                agent: selectedAgent ?? undefined,
+                model: selectedModel ?? undefined,
                 parts,
               },
             })
@@ -144,6 +147,10 @@ export const createChatStore = () => {
 
         setActiveSessionId: (sessionId: string) => {
           set({ activeSessionId: sessionId })
+        },
+
+        setSelectedAgent: (agent: string | null) => {
+          set({ selectedAgent: agent })
         },
 
         setSelectedModel: (model: Model | null) => {

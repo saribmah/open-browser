@@ -46,6 +46,44 @@ export namespace SDK {
     }
 
     /**
+     * Agent type structure
+     */
+    export type Agent = {
+        name: string
+        description?: string
+        mode: "subagent" | "primary" | "all"
+        builtIn: boolean
+        topP?: number
+        temperature?: number
+        color?: string
+        permission: {
+            edit: "ask" | "allow" | "deny"
+            bash: {
+                [key: string]: "ask" | "allow" | "deny"
+            }
+            webfetch?: "ask" | "allow" | "deny"
+            doom_loop?: "ask" | "allow" | "deny"
+            external_directory?: "ask" | "allow" | "deny"
+        }
+        model?: {
+            modelID: string
+            providerID: string
+        }
+        prompt?: string
+        tools: {
+            [key: string]: boolean
+        }
+        options: {
+            [key: string]: unknown
+        }
+    }
+
+    /**
+     * Agent response structure (array of agents)
+     */
+    export type AgentResponse = Agent[]
+
+    /**
      * Export message types from Message namespace
      */
     export type MessageInfo = Message.MessageInfo;
@@ -67,6 +105,7 @@ export namespace SDK {
         getSessions: (opts: { directory: string }) => Promise<Session[]>;
         createSession: (opts: { directory: string }) => Promise<Session>;
         getConfig: (opts: { directory: string }) => Promise<SDKConfigResponse>;
+        getAgent: (opts: { directory: string }) => Promise<AgentResponse>;
         getProviders: (opts: { directory: string }) => Promise<ProvidersResponse>;
         getMessages: (opts: { directory: string; sessionId: string }) => Promise<MessageWithParts[]>;
         sendMessage: (opts: { directory: string; sessionId: string; request: PromptRequest }) => Promise<PromptResponse>;
@@ -167,6 +206,19 @@ export namespace SDK {
     }): Promise<SDKConfigResponse> {
         const config = getConfig(opts.type);
         return await config.getConfig({
+            directory: opts.directory
+        });
+    }
+
+    /**
+     * Get agent info
+     */
+    export async function getAgent(opts: {
+        type: Type;
+        directory: string;
+    }): Promise<AgentResponse> {
+        const config = getConfig(opts.type);
+        return await config.getAgent({
             directory: opts.directory
         });
     }
