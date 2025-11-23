@@ -1,7 +1,7 @@
 import { registerCustomTheme } from "@pierre/precision-diffs"
 import type { ThemeRegistrationResolved } from "@pierre/precision-diffs"
 
-export function registerOpenCodeTheme() {
+export function registerOpenbrowserTheme() {
   registerCustomTheme("OpenCode", () => {
     return Promise.resolve({
       name: "OpenCode",

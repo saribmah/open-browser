@@ -1,10 +1,6 @@
 import { useEffect, useRef } from "react"
 import { File } from "@pierre/precision-diffs"
 import type { FileContents, FileOptions, LineAnnotation } from "@pierre/precision-diffs"
-import { registerOpenCodeTheme } from "@/components/theme"
-
-// Register theme on module load
-registerOpenCodeTheme()
 
 export interface CodeProps<T = object> extends Omit<FileOptions<T>, 'theme'> {
   file: FileContents
@@ -19,9 +15,9 @@ export function Code<T = object>({ file, annotations, className, ...options }: C
     if (!containerRef.current) return
 
     const instance = new File<T>({
-      theme: "OpenCode",
-      overflow: "wrap",
+      theme: { dark: 'pierre-dark', light: 'pierre-light' },
       themeType: "dark",
+      overflow: "wrap",
       disableFileHeader: true,
       disableLineNumbers: false,
       ...options,

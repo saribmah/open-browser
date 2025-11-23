@@ -16,7 +16,7 @@ export function Diff<T = object>({ before, after, annotations, className, ...opt
     if (!containerRef.current) return
 
     const instance = new FileDiff<T>({
-      theme: "OpenCode",
+      theme: { dark: 'pierre-dark', light: 'pierre-light' },
       themeType: "dark",
       disableLineNumbers: false,
       overflow: "wrap",

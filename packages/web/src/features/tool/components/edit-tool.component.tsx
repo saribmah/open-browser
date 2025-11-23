@@ -133,14 +133,11 @@ export function EditTool({ tool }: EditToolProps) {
             {/* Diff content - conditionally rendered based on isExpanded */}
             <div
               className={cn(
-                "transition-all duration-300 ease-in-out overflow-hidden",
-                isExpanded ? "opacity-100 max-h-[2000px]" : "opacity-0 max-h-0"
+                "grid transition-all duration-200 ease-out overflow-hidden",
+                isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
               )}
             >
-              <div className={cn(
-                "transition-transform duration-300 ease-in-out",
-                isExpanded ? "translate-y-0" : "-translate-y-4"
-              )}>
+              <div className="min-h-0">
                 <Diff
                   before={{
                     name: getFilename(filediff.file!),
