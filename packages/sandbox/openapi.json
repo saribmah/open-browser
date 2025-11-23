@@ -364,6 +364,46 @@
         }
       }
     },
+    "/sdk/config": {
+      "get": {
+        "operationId": "getSdkConfig",
+        "description": "Get SDK Config",
+        "responses": {
+          "200": {
+            "description": "SDK config retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/instance/init": {
       "post": {
         "operationId": "postInstanceInit",
@@ -748,6 +788,62 @@
                 "required": [
                   "projectId"
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config": {
+      "get": {
+        "operationId": "getConfig",
+        "description": "Get Current Instance Config",
+        "responses": {
+          "200": {
+            "description": "Config retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sdkType": {
+                      "type": "string",
+                      "enum": [
+                        "OPENCODE",
+                        "CLAUDE_CODE"
+                      ]
+                    },
+                    "directory": {
+                      "type": "string"
+                    },
+                    "initialized": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "sdkType",
+                    "directory",
+                    "initialized"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
               }
             }
           }

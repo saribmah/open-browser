@@ -598,6 +598,35 @@ export type GetSdkResponses = {
 
 export type GetSdkResponse = GetSdkResponses[keyof GetSdkResponses];
 
+export type GetSdkConfigData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/sdk/config';
+};
+
+export type GetSdkConfigErrors = {
+    /**
+     * Bad request
+     */
+    400: {
+        error: string;
+    };
+};
+
+export type GetSdkConfigError = GetSdkConfigErrors[keyof GetSdkConfigErrors];
+
+export type GetSdkConfigResponses = {
+    /**
+     * SDK config retrieved successfully
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type GetSdkConfigResponse = GetSdkConfigResponses[keyof GetSdkConfigResponses];
+
 export type PostInstanceInitData = {
     body?: {
         sdkType: 'OPENCODE' | 'CLAUDE_CODE';
@@ -765,6 +794,37 @@ export type PostInstanceProjectRemoveResponses = {
 };
 
 export type PostInstanceProjectRemoveResponse = PostInstanceProjectRemoveResponses[keyof PostInstanceProjectRemoveResponses];
+
+export type GetConfigData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/config';
+};
+
+export type GetConfigErrors = {
+    /**
+     * Bad request
+     */
+    400: {
+        error: string;
+    };
+};
+
+export type GetConfigError = GetConfigErrors[keyof GetConfigErrors];
+
+export type GetConfigResponses = {
+    /**
+     * Config retrieved successfully
+     */
+    200: {
+        sdkType: 'OPENCODE' | 'CLAUDE_CODE';
+        directory: string;
+        initialized: boolean;
+    };
+};
+
+export type GetConfigResponse = GetConfigResponses[keyof GetConfigResponses];
 
 export type GetConfigProvidersData = {
     body?: never;

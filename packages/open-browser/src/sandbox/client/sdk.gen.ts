@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetConfigProvidersData, GetConfigProvidersErrors, GetConfigProvidersResponses, GetFileListData, GetFileListErrors, GetFileListResponses, GetFileReadData, GetFileReadErrors, GetFileReadResponses, GetFileTreeData, GetFileTreeErrors, GetFileTreeResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetInstanceProjectsData, GetInstanceProjectsResponses, GetInstanceStateData, GetInstanceStateResponses, GetSdkData, GetSdkResponses, GetSessionData, GetSessionErrors, GetSessionIdMessagesData, GetSessionIdMessagesErrors, GetSessionIdMessagesResponses, GetSessionResponses, PostInstanceInitData, PostInstanceInitErrors, PostInstanceInitResponses, PostInstanceProjectAddData, PostInstanceProjectAddErrors, PostInstanceProjectAddResponses, PostInstanceProjectRemoveData, PostInstanceProjectRemoveErrors, PostInstanceProjectRemoveResponses, PostSessionData, PostSessionErrors, PostSessionIdMessageData, PostSessionIdMessageErrors, PostSessionIdMessageResponses, PostSessionResponses } from './types.gen';
+import type { GetConfigData, GetConfigErrors, GetConfigProvidersData, GetConfigProvidersErrors, GetConfigProvidersResponses, GetConfigResponses, GetFileListData, GetFileListErrors, GetFileListResponses, GetFileReadData, GetFileReadErrors, GetFileReadResponses, GetFileTreeData, GetFileTreeErrors, GetFileTreeResponses, GetHealthData, GetHealthResponses, GetIndexData, GetIndexResponses, GetInstanceProjectsData, GetInstanceProjectsResponses, GetInstanceStateData, GetInstanceStateResponses, GetSdkConfigData, GetSdkConfigErrors, GetSdkConfigResponses, GetSdkData, GetSdkResponses, GetSessionData, GetSessionErrors, GetSessionIdMessagesData, GetSessionIdMessagesErrors, GetSessionIdMessagesResponses, GetSessionResponses, PostInstanceInitData, PostInstanceInitErrors, PostInstanceInitResponses, PostInstanceProjectAddData, PostInstanceProjectAddErrors, PostInstanceProjectAddResponses, PostInstanceProjectRemoveData, PostInstanceProjectRemoveErrors, PostInstanceProjectRemoveResponses, PostSessionData, PostSessionErrors, PostSessionIdMessageData, PostSessionIdMessageErrors, PostSessionIdMessageResponses, PostSessionResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -61,6 +61,11 @@ export const postSessionIdMessage = <ThrowOnError extends boolean = false>(optio
 export const getSdk = <ThrowOnError extends boolean = false>(options?: Options<GetSdkData, ThrowOnError>) => (options?.client ?? client).get<GetSdkResponses, unknown, ThrowOnError>({ url: '/sdk', ...options });
 
 /**
+ * Get SDK Config
+ */
+export const getSdkConfig = <ThrowOnError extends boolean = false>(options?: Options<GetSdkConfigData, ThrowOnError>) => (options?.client ?? client).get<GetSdkConfigResponses, GetSdkConfigErrors, ThrowOnError>({ url: '/sdk/config', ...options });
+
+/**
  * Initialize SDK
  */
 export const postInstanceInit = <ThrowOnError extends boolean = false>(options?: Options<PostInstanceInitData, ThrowOnError>) => (options?.client ?? client).post<PostInstanceInitResponses, PostInstanceInitErrors, ThrowOnError>({
@@ -105,6 +110,11 @@ export const postInstanceProjectRemove = <ThrowOnError extends boolean = false>(
         ...options?.headers
     }
 });
+
+/**
+ * Get Current Instance Config
+ */
+export const getConfig = <ThrowOnError extends boolean = false>(options?: Options<GetConfigData, ThrowOnError>) => (options?.client ?? client).get<GetConfigResponses, GetConfigErrors, ThrowOnError>({ url: '/config', ...options });
 
 /**
  * Get All Providers

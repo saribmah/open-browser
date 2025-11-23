@@ -9,6 +9,12 @@ const ErrorSchema = z.object({
     error: z.string()
 });
 
+const ConfigResponseSchema = z.object({
+    sdkType: z.enum(["OPENCODE", "CLAUDE_CODE"]),
+    directory: z.string(),
+    initialized: z.boolean()
+});
+
 const ProviderSchema = z.object({
     id: z.string(),
     name: z.string(),
@@ -19,6 +25,39 @@ const ProvidersResponseSchema = z.object({
     providers: z.array(ProviderSchema),
     default: z.record(z.string(), z.string())
 });
+
+// GET /config - Get current instance config
+route.get(
+    "/",
+    describeRoute({
+        description: 'Get Current Instance Config',
+        responses: {
+            200: {
+                description: 'Config retrieved successfully',
+                content: {
+                    'application/json': { schema: resolver(ConfigResponseSchema) },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    async (c) => {
+        const result = await Config.get();
+
+        if (!result.success) {
+            return c.json({
+                error: result.error || "Failed to get config"
+            }, 400);
+        }
+
+        return c.json(result.config);
+    },
+);
 
 // GET /config/providers - Get all providers for current instance
 route.get(

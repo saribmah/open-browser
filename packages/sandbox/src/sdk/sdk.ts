@@ -39,6 +39,13 @@ export namespace SDK {
     }
 
     /**
+     * SDK Config response structure
+     */
+    export interface SDKConfigResponse {
+        [key: string]: any;
+    }
+
+    /**
      * Export message types from Message namespace
      */
     export type MessageInfo = Message.MessageInfo;
@@ -59,6 +66,7 @@ export namespace SDK {
         remove: (opts: { directory: string; metadata?: Record<string, any> }) => Promise<void>;
         getSessions: (opts: { directory: string }) => Promise<Session[]>;
         createSession: (opts: { directory: string }) => Promise<Session>;
+        getConfig: (opts: { directory: string }) => Promise<SDKConfigResponse>;
         getProviders: (opts: { directory: string }) => Promise<ProvidersResponse>;
         getMessages: (opts: { directory: string; sessionId: string }) => Promise<MessageWithParts[]>;
         sendMessage: (opts: { directory: string; sessionId: string; request: PromptRequest }) => Promise<PromptResponse>;
@@ -146,6 +154,19 @@ export namespace SDK {
     }): Promise<Session> {
         const config = getConfig(opts.type);
         return await config.createSession({
+            directory: opts.directory
+        });
+    }
+
+    /**
+     * Get SDK config
+     */
+    export async function getSDKConfig(opts: {
+        type: Type;
+        directory: string;
+    }): Promise<SDKConfigResponse> {
+        const config = getConfig(opts.type);
+        return await config.getConfig({
             directory: opts.directory
         });
     }
