@@ -1,6 +1,8 @@
 import { Log } from "../util/log";
 import { Instance } from "../instance/instance";
 import { SDK } from "../sdk/sdk";
+import type { SSEStreamingApi } from "hono/streaming";
+import { SSE } from "../sse/sse";
 
 const log = Log.create({ service: "session" });
 
@@ -175,6 +177,54 @@ export namespace Session {
                 success: false,
                 error: error.message
             };
+        }
+    }
+
+    /**
+     * Stream a message to a session with real-time events
+     */
+    export async function streamMessage(
+        stream: SSEStreamingApi,
+        sessionId: string,
+        request: SDK.PromptRequest
+    ): Promise<void> {
+        const sse = SSE.create(stream);
+
+        try {
+            log.info("Streaming message to session", { sessionId, request });
+
+            // Get instance state
+            const state = Instance.getState();
+            const directory = Instance.getDirectory();
+
+            // Stream message via SDK
+            await SDK.streamMessage({
+                type: state.sdkType,
+                directory,
+                sessionId,
+                request,
+                sse
+            });
+
+            await sse.end("Message stream completed");
+        } catch (error: any) {
+            log.error("Failed to stream message", {
+                error: error.message,
+                sessionId
+            });
+
+            // Send error via SSE
+            const payload = {
+                name: error.name || "Error",
+                message: error.message || "Unknown error occurred",
+            };
+            await sse.write("error", payload);
+            await sse.end("Error occurred");
+        }
+
+        // Cleanup: ensure stream is properly ended
+        if (!sse.ended) {
+            await sse.end("Stream cleanup");
         }
     }
 }

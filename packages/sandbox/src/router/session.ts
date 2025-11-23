@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { streamSSE } from "hono/streaming";
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from "zod";
 import { Session } from "../session/session";
@@ -141,16 +142,21 @@ route.get(
     },
 );
 
-// POST /session/:id/message - Send a message to a session  
+// POST /session/:id/message - Stream a message to a session with real-time events
 route.post(
     "/:id/message",
     describeRoute({
-        description: 'Send Message to Session',
+        description: 'Stream Message to Session',
         responses: {
             200: {
-                description: 'Message sent successfully',
+                description: 'Server-sent events stream',
                 content: {
-                    'application/json': { schema: resolver(PromptResponseSchema) },
+                    'text/event-stream': {
+                        schema: {
+                            type: 'string',
+                            description: 'Server-sent events stream with real-time updates'
+                        }
+                    },
                 },
             },
             400: {
@@ -178,15 +184,11 @@ route.post(
         }
 
         const body = c.req.valid('json');
-        const result = await Session.sendMessage(sessionId, body);
 
-        if (!result.success) {
-            return c.json({
-                error: result.error || "Failed to send message"
-            }, 400);
-        }
-
-        return c.json(result.message);
+        // Return SSE stream
+        return streamSSE(c, async (stream) => {
+            await Session.streamMessage(stream, sessionId, body);
+        });
     },
 );
 

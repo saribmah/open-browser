@@ -253,14 +253,15 @@
     "/session/{id}/message": {
       "post": {
         "operationId": "postSession:idMessage",
-        "description": "Send Message to Session",
+        "description": "Stream Message to Session",
         "responses": {
           "200": {
-            "description": "Message sent successfully",
+            "description": "Server-sent events stream",
             "content": {
-              "application/json": {
+              "text/event-stream": {
                 "schema": {
-                  "$ref": "#/components/schemas/PromptResponse"
+                  "type": "string",
+                  "description": "Server-sent events stream with real-time updates"
                 }
               }
             }
@@ -2295,61 +2296,6 @@
                 "$ref": "#/components/schemas/AssistantMessage"
               }
             ]
-          },
-          "parts": {
-            "type": "array",
-            "items": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/TextPart"
-                },
-                {
-                  "$ref": "#/components/schemas/ReasoningPart"
-                },
-                {
-                  "$ref": "#/components/schemas/FilePart"
-                },
-                {
-                  "$ref": "#/components/schemas/ToolPart"
-                },
-                {
-                  "$ref": "#/components/schemas/StepStartPart"
-                },
-                {
-                  "$ref": "#/components/schemas/StepFinishPart"
-                },
-                {
-                  "$ref": "#/components/schemas/SnapshotPart"
-                },
-                {
-                  "$ref": "#/components/schemas/PatchPart"
-                },
-                {
-                  "$ref": "#/components/schemas/AgentPart"
-                },
-                {
-                  "$ref": "#/components/schemas/SubtaskPart"
-                },
-                {
-                  "$ref": "#/components/schemas/RetryPart"
-                },
-                {
-                  "$ref": "#/components/schemas/CompactionPart"
-                }
-              ]
-            }
-          }
-        },
-        "required": [
-          "info",
-          "parts"
-        ]
-      },
-      "PromptResponse": {
-        "type": "object",
-        "properties": {
-          "info": {
-            "$ref": "#/components/schemas/AssistantMessage"
           },
           "parts": {
             "type": "array",

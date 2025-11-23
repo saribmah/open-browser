@@ -44,9 +44,9 @@ export const postSession = <ThrowOnError extends boolean = false>(options?: Opti
 export const getSessionIdMessages = <ThrowOnError extends boolean = false>(options: Options<GetSessionIdMessagesData, ThrowOnError>) => (options.client ?? client).get<GetSessionIdMessagesResponses, GetSessionIdMessagesErrors, ThrowOnError>({ url: '/session/{id}/messages', ...options });
 
 /**
- * Send Message to Session
+ * Stream Message to Session
  */
-export const postSessionIdMessage = <ThrowOnError extends boolean = false>(options: Options<PostSessionIdMessageData, ThrowOnError>) => (options.client ?? client).post<PostSessionIdMessageResponses, PostSessionIdMessageErrors, ThrowOnError>({
+export const postSessionIdMessage = <ThrowOnError extends boolean = false>(options: Options<PostSessionIdMessageData, ThrowOnError>) => (options.client ?? client).sse.post<PostSessionIdMessageResponses, PostSessionIdMessageErrors, ThrowOnError>({
     url: '/session/{id}/message',
     ...options,
     headers: {

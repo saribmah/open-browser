@@ -96,8 +96,8 @@ export const createChatStore = () => {
               })
             }
 
-            // Send message to the API
-            const response = await postSessionIdMessage({
+            // Send message via SSE stream
+            const sseResponse = await postSessionIdMessage({
               client: sandboxClient,
               path: { id: activeSessionId },
               body: {
@@ -105,29 +105,82 @@ export const createChatStore = () => {
               },
             })
 
-            if (response.error) {
-              throw new Error(response.error.error || "Failed to send message")
-            }
+            // Track assistant message parts as they come in
+            let assistantMessageId: string | null = null
+            let assistantContent = ""
 
-            // Add assistant message if we got a response
-            if (response.data) {
-              const assistantMessage: ChatMessage = {
-                id: response.data.info.id,
-                content: response.data.parts
-                  .filter(part => part.type === "text")
-                  .map(part => (part as any).text)
-                  .join("\n"),
-                role: "assistant",
-                timestamp: response.data.info.time.created,
+            // Listen to SSE events
+            for await (const rawEvent of sseResponse.stream) {
+              // Parse the SSE event data
+              // The stream yields strings, we need to parse the JSON envelope
+              let event: { v: number; type: string; data: any; ts: number }
+              
+              try {
+                // rawEvent is the string data from SSE
+                const eventStr = typeof rawEvent === 'string' ? rawEvent : JSON.stringify(rawEvent)
+                
+                // Check if this is the [DONE] signal
+                if (eventStr === "[DONE]") {
+                  break
+                }
+                
+                event = JSON.parse(eventStr)
+              } catch {
+                console.warn("Failed to parse SSE event:", rawEvent)
+                continue
               }
 
-              set((state) => ({
-                messages: [...state.messages, assistantMessage],
-                isLoading: false,
-              }))
-            } else {
-              set({ isLoading: false })
+              console.log("SSE Event:", event)
+
+              // Handle different event types
+              if (event.type === "message.part.updated" || event.type === "part.updated") {
+                const part = event.data
+                if (part.type === "text") {
+                  assistantMessageId = part.messageID
+                  assistantContent += part.text || ""
+                  
+                  // Update or add assistant message
+                  set((state) => {
+                    const existingIndex = state.messages.findIndex(
+                      m => m.id === assistantMessageId
+                    )
+                    
+                    if (existingIndex >= 0 && assistantMessageId) {
+                      // Update existing message
+                      const updatedMessages = [...state.messages]
+                      const existing = updatedMessages[existingIndex]
+                      if (existing) {
+                        updatedMessages[existingIndex] = {
+                          id: assistantMessageId,
+                          content: assistantContent,
+                          role: "assistant",
+                          timestamp: existing.timestamp,
+                          mentionedFiles: existing.mentionedFiles,
+                        }
+                      }
+                      return { messages: updatedMessages }
+                    } else if (assistantMessageId) {
+                      // Add new assistant message
+                      const assistantMessage: ChatMessage = {
+                        id: assistantMessageId,
+                        content: assistantContent,
+                        role: "assistant",
+                        timestamp: Date.now(),
+                      }
+                      return { messages: [...state.messages, assistantMessage] }
+                    }
+                    return state
+                  })
+                }
+              } else if (event.type === "message.completed") {
+                // Final message data
+                console.log("Message completed:", event.data)
+              } else if (event.type === "error") {
+                throw new Error(event.data.message || "Stream error")
+              }
             }
+
+            set({ isLoading: false })
           } catch (err: any) {
             set({
               error: err.message || "Failed to send message",

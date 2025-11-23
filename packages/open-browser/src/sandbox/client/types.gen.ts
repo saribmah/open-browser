@@ -348,11 +348,6 @@ export type MessageWithParts = {
     parts: Array<TextPart | ReasoningPart | FilePart | ToolPart | StepStartPart | StepFinishPart | SnapshotPart | PatchPart | AgentPart | SubtaskPart | RetryPart | CompactionPart>;
 };
 
-export type PromptResponse = {
-    info: AssistantMessage;
-    parts: Array<TextPart | ReasoningPart | FilePart | ToolPart | StepStartPart | StepFinishPart | SnapshotPart | PatchPart | AgentPart | SubtaskPart | RetryPart | CompactionPart>;
-};
-
 export type TextPartInput = {
     type: 'text';
     text: string;
@@ -556,9 +551,9 @@ export type PostSessionIdMessageError = PostSessionIdMessageErrors[keyof PostSes
 
 export type PostSessionIdMessageResponses = {
     /**
-     * Message sent successfully
+     * Server-sent events stream with real-time updates
      */
-    200: PromptResponse;
+    200: string;
 };
 
 export type PostSessionIdMessageResponse = PostSessionIdMessageResponses[keyof PostSessionIdMessageResponses];

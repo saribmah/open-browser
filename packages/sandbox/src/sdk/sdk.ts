@@ -1,6 +1,7 @@
 import { OPENCODE } from "./opencode.ts";
 import { CLAUDE_CODE } from "./claude-code.ts";
 import { Message } from "../message/message";
+import type { SSE } from "../sse/sse";
 
 export namespace SDK {
     /**
@@ -61,6 +62,7 @@ export namespace SDK {
         getProviders: (opts: { directory: string }) => Promise<ProvidersResponse>;
         getMessages: (opts: { directory: string; sessionId: string }) => Promise<MessageWithParts[]>;
         sendMessage: (opts: { directory: string; sessionId: string; request: PromptRequest }) => Promise<PromptResponse>;
+        streamMessage: (opts: { directory: string; sessionId: string; request: PromptRequest; sse: ReturnType<typeof SSE.create> }) => Promise<void>;
     }
 
     /**
@@ -190,6 +192,25 @@ export namespace SDK {
             directory: opts.directory,
             sessionId: opts.sessionId,
             request: opts.request
+        });
+    }
+
+    /**
+     * Stream a message to a session
+     */
+    export async function streamMessage(opts: {
+        type: Type;
+        directory: string;
+        sessionId: string;
+        request: PromptRequest;
+        sse: ReturnType<typeof SSE.create>;
+    }): Promise<void> {
+        const config = getConfig(opts.type);
+        return await config.streamMessage({
+            directory: opts.directory,
+            sessionId: opts.sessionId,
+            request: opts.request,
+            sse: opts.sse
         });
     }
 }
