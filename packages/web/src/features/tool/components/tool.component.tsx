@@ -1,5 +1,5 @@
 import type { ToolPart } from "@/client/sandbox"
-import { EditTool, WriteTool } from "@/features/tool"
+import { EditTool, WriteTool, ReadTool } from "@/features/tool"
 import { FileCode, Terminal, FilePlus, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -98,7 +98,7 @@ export function Tool({ tool }: ToolProps) {
     return <EditTool tool={tool} />
   }
   if (tool.tool === 'read') {
-    return <EditTool tool={tool} />
+    return <ReadTool tool={tool} />
   }
 
   // For other tool types, return null for now
