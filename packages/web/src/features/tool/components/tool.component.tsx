@@ -1,5 +1,5 @@
 import type { ToolPart } from "@/client/sandbox"
-import { EditTool, WriteTool, ReadTool, BashTool } from "@/features/tool"
+import { EditTool, WriteTool, ReadTool, BashTool, GlobTool, GrepTool, ListTool, TodoWriteTool } from "@/features/tool"
 import { FileCode, Terminal, FilePlus, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -99,6 +99,18 @@ export function Tool({ tool }: ToolProps) {
   }
   if (tool.tool === 'read') {
     return <ReadTool tool={tool} />
+  }
+  if (tool.tool === 'glob') {
+    return <GlobTool tool={tool} />
+  }
+  if (tool.tool === 'grep') {
+    return <GrepTool tool={tool} />
+  }
+  if (tool.tool === 'list') {
+    return <ListTool tool={tool} />
+  }
+  if (tool.tool === 'todowrite') {
+    return <TodoWriteTool tool={tool} />
   }
 
   // For other tool types, return null for now
