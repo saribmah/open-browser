@@ -207,8 +207,8 @@ export function ChatInput({
           }}
         />
 
-        {/* Bottom bar with selectors */}
-        <div className="flex items-center justify-between px-3 pb-3">
+        {/* Bottom bar with selectors - darker background */}
+        <div className="flex items-center justify-between px-3 py-2 bg-black/40 rounded-b-2xl border-t border-white/5">
           <div className="flex items-center gap-2">
             {/* SDK selector */}
             <SdkSelector 

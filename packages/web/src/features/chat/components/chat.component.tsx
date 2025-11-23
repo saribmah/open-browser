@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { ChatInput } from "./chat-input.component"
 import { ChatSidebar } from "./chat-sidebar.component"
 import { SessionBar } from "@/features/session/components/session-bar.component"
@@ -10,6 +11,7 @@ import type { UISession } from "@/features/session/session.store"
 export function ChatComponent() {
     const activeSessionId = useActiveSessionId()
     const addSession = useAddUISession()
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
     const handleNewSession = () => {
         const newSession: UISession = {
@@ -26,17 +28,21 @@ export function ChatComponent() {
         console.log("Maximize clicked")
     }
 
+    const handleToggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen)
+    }
+
     return (
         <div className="flex h-[calc(100vh-4rem)]">
-            <ChatSidebar />
+            {isSidebarOpen && <ChatSidebar />}
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Sandbox Navbar - shows sandbox-related info */}
                 <SandboxNavbar 
-                    sessionTitle="Session"
-                    progressPercentage={26}
                     onMaximize={handleMaximize}
                     onNewSession={handleNewSession}
+                    onToggleSidebar={handleToggleSidebar}
+                    isSidebarOpen={isSidebarOpen}
                 />
 
                 {/* Session Bar */}
