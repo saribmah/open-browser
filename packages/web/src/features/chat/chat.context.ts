@@ -18,8 +18,11 @@ export const useContexts = () => useChatContext(state => state.contexts)
 export const useChatMessages = () => useChatContext(state => state.messages)
 export const useChatLoading = () => useChatContext(state => state.isLoading)
 export const useChatError = () => useChatContext(state => state.error)
+export const useChatSandboxClient = () => useChatContext(state => state.sandboxClient)
 
 // Action hooks
 export const useSendMessage = () => useChatContext(state => state.sendMessage)
 export const useAddMessage = () => useChatContext(state => state.addMessage)
 export const useClearMessages = () => useChatContext(state => state.clearMessages)
+export const useSetChatSandboxClient = () => useChatContext(state => state.setSandboxClient)
+export const useSetChatActiveSessionId = () => useChatContext(state => state.setActiveSessionId)

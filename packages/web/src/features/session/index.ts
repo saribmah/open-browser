@@ -9,6 +9,7 @@ export {
   useActiveSession,
   useSessionLoading,
   useSessionError,
+  useSessionSandboxClient,
   useMessages,
   useMessagesLoading,
   useGetAllSessions,

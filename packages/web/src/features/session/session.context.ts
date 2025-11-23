@@ -69,6 +69,7 @@ export const useActiveSession = () => useSessionContext(state =>
 )
 export const useSessionLoading = () => useSessionContext(state => state.isLoading)
 export const useSessionError = () => useSessionContext(state => state.error)
+export const useSessionSandboxClient = () => useSessionContext(state => state.sandboxClient)
 export const useMessages = (sessionId?: string) => useSessionContext(state =>
   sessionId ? (state.messages[sessionId] ?? EMPTY_MESSAGES) : EMPTY_MESSAGES
 )

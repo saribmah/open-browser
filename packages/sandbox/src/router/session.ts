@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { describeRoute, resolver } from 'hono-openapi';
+import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from "zod";
 import { Session } from "../session/session";
 import { Message } from "../message/message";
@@ -141,7 +141,7 @@ route.get(
     },
 );
 
-// POST /session/:id/message - Send a message to a session
+// POST /session/:id/message - Send a message to a session  
 route.post(
     "/:id/message",
     describeRoute({
@@ -167,6 +167,7 @@ route.post(
             },
         },
     }),
+    validator('json', PromptRequestSchema),
     async (c) => {
         const sessionId = c.req.param("id");
 
@@ -176,18 +177,8 @@ route.post(
             }, 400);
         }
 
-        const body = await c.req.json();
-        
-        // Validate request body against schema
-        const parseResult = PromptRequestSchema.safeParse(body);
-        if (!parseResult.success) {
-            return c.json({
-                error: "Invalid request body",
-                details: parseResult.error.message
-            }, 400);
-        }
-
-        const result = await Session.sendMessage(sessionId, parseResult.data);
+        const body = c.req.valid('json');
+        const result = await Session.sendMessage(sessionId, body);
 
         if (!result.success) {
             return c.json({

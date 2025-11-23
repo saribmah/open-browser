@@ -348,6 +348,45 @@ export type MessageWithParts = {
     parts: Array<TextPart | ReasoningPart | FilePart | ToolPart | StepStartPart | StepFinishPart | SnapshotPart | PatchPart | AgentPart | SubtaskPart | RetryPart | CompactionPart>;
 };
 
+export type PromptResponse = {
+    info: AssistantMessage;
+    parts: Array<TextPart | ReasoningPart | FilePart | ToolPart | StepStartPart | StepFinishPart | SnapshotPart | PatchPart | AgentPart | SubtaskPart | RetryPart | CompactionPart>;
+};
+
+export type TextPartInput = {
+    type: 'text';
+    text: string;
+};
+
+export type FilePartInput = {
+    type: 'file';
+    path: string;
+};
+
+export type AgentPartInput = {
+    type: 'agent';
+    name: string;
+};
+
+export type SubtaskPartInput = {
+    type: 'subtask';
+    prompt: string;
+    description: string;
+    agent: string;
+};
+
+export type PromptRequest = {
+    messageID?: string;
+    model?: Model;
+    agent?: string;
+    noReply?: boolean;
+    system?: string;
+    tools?: {
+        [key: string]: boolean;
+    };
+    parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>;
+};
+
 export type GetHealthData = {
     body?: never;
     path?: never;
@@ -488,6 +527,41 @@ export type GetSessionIdMessagesResponses = {
 };
 
 export type GetSessionIdMessagesResponse = GetSessionIdMessagesResponses[keyof GetSessionIdMessagesResponses];
+
+export type PostSessionIdMessageData = {
+    body?: PromptRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/session/{id}/message';
+};
+
+export type PostSessionIdMessageErrors = {
+    /**
+     * Bad request
+     */
+    400: {
+        error: string;
+    };
+    /**
+     * Session not found
+     */
+    404: {
+        error: string;
+    };
+};
+
+export type PostSessionIdMessageError = PostSessionIdMessageErrors[keyof PostSessionIdMessageErrors];
+
+export type PostSessionIdMessageResponses = {
+    /**
+     * Message sent successfully
+     */
+    200: PromptResponse;
+};
+
+export type PostSessionIdMessageResponse = PostSessionIdMessageResponses[keyof PostSessionIdMessageResponses];
 
 export type GetSdkData = {
     body?: never;
