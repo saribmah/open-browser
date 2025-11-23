@@ -3,16 +3,42 @@ import { ChatSidebar } from "./chat-sidebar.component"
 import { SessionBar } from "@/features/session/components/session-bar.component"
 import { SessionContent } from "@/features/session/components/session.component"
 import { MessageProvider } from "@/features/message"
-import { useActiveSessionId } from "@/features/session"
+import { useActiveSessionId, useAddUISession } from "@/features/session"
+import { SandboxNavbar } from "@/components/SandboxNavbar"
+import type { UISession } from "@/features/session/session.store"
 
 export function ChatComponent() {
     const activeSessionId = useActiveSessionId()
+    const addSession = useAddUISession()
+
+    const handleNewSession = () => {
+        const newSession: UISession = {
+            id: Date.now().toString(),
+            title: "new session",
+            type: "chat",
+            ephemeral: true,
+        }
+        addSession(newSession)
+    }
+
+    const handleMaximize = () => {
+        // TODO: Implement maximize functionality
+        console.log("Maximize clicked")
+    }
 
     return (
         <div className="flex h-[calc(100vh-4rem)]">
             <ChatSidebar />
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                {/* Sandbox Navbar - shows sandbox-related info */}
+                <SandboxNavbar 
+                    sessionTitle="Session"
+                    progressPercentage={26}
+                    onMaximize={handleMaximize}
+                    onNewSession={handleNewSession}
+                />
+
                 {/* Session Bar */}
                 <SessionBar />
 
