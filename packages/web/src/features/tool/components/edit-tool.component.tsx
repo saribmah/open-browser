@@ -41,7 +41,6 @@ export function EditTool({ tool }: EditToolProps) {
   return (
     <div className="relative space-y-2">
       {/* Horizontal connector line from timeline to tool */}
-      <div className="absolute -left-[10px] top-6 w-[18px] h-[2px] bg-zinc-800" />
       <div className="animate-in fade-in slide-in-from-left-2 duration-300">
         <div className="flex items-center justify-between p-3 border rounded-lg transition-all cursor-pointer group bg-zinc-900/50 border-zinc-800/50 hover:bg-zinc-900">
           <div className="flex items-center gap-3">

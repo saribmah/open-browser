@@ -33,7 +33,7 @@ export function AssistantMessage({
           return (
             <div key={part.id || idx} className="relative group">
               {/* Horizontal connector line from timeline to text content */}
-              <div className="absolute -left-[10px] top-3.5 w-[18px] h-px bg-zinc-800/50 group-hover:bg-zinc-700 transition-colors" />
+              <div className="absolute -left-[40px] top-3.5 w-[25px] h-px bg-zinc-800/50 group-hover:bg-zinc-700 transition-colors" />
               <Markdown content={part.text} className="text-zinc-300 text-sm leading-relaxed" />
             </div>
           )
