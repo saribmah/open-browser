@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useMemo } from "react"
 import { Command } from "cmdk"
 import {
   Plus,
@@ -8,7 +8,10 @@ import {
   Trash2,
   HelpCircle,
   File,
-  Search
+  Search,
+  Settings,
+  Cpu,
+  Sparkles
 } from "lucide-react"
 import {
   useSpotlightOpen,
@@ -29,9 +32,46 @@ import {
   useAddUISession,
   useSetActiveSession,
 } from "@/features/session"
-import { useClearMessages } from "@/features/chat/chat.context"
+import {
+  useClearMessages,
+  useSelectedAgent,
+  useSetSelectedAgent,
+  useSelectedModel,
+  useSetSelectedModel,
+} from "@/features/chat/chat.context"
+import { useInstanceContext } from "@/features/instance"
+import { useSandboxConfig } from "@/features/sandbox-creator"
+import { useSandboxContext } from "@/features/sandbox"
 import type { UISession } from "@/features/session/session.store"
 import type { FileNode, FileItem } from "@/features/filesystem"
+import type { Model } from "@/features/chat/chat.store"
+import opencodeLogoUrl from "@/assets/icons/opencode-logo.svg"
+import claudeCodeLogoUrl from "@/assets/icons/claude-code-logo.svg"
+
+// SDK Configuration
+const SDK_CONFIG: Record<string, { name: string; iconUrl: string }> = {
+  OPENCODE: { name: "OpenCode", iconUrl: opencodeLogoUrl },
+  CLAUDE_CODE: { name: "Claude Code", iconUrl: claudeCodeLogoUrl },
+  opencode: { name: "OpenCode", iconUrl: opencodeLogoUrl },
+  "claude-code": { name: "Claude Code", iconUrl: claudeCodeLogoUrl },
+}
+
+const normalizeSdkId = (id: string): string => {
+  return id.toLowerCase().replace(/_/g, "-")
+}
+
+interface SdkOption {
+  id: string
+  name: string
+  iconUrl: string
+}
+
+interface ModelInfo {
+  id: string
+  name: string
+  providerId: string
+  providerName: string
+}
 
 export function SpotlightComponent() {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -56,6 +96,78 @@ export function SpotlightComponent() {
   const visibleSessionIds = useVisibleSessionIds()
   const clearMessages = useClearMessages()
   const { handleFileClick } = useFileClick()
+
+  // SDK, Agent, Model state
+  const config = useSandboxConfig()
+  const currentProvider = useSandboxContext((state) => state.sandbox?.provider)
+  const selectedAgent = useSelectedAgent()
+  const setSelectedAgent = useSetSelectedAgent()
+  const selectedModel = useSelectedModel()
+  const setSelectedModel = useSetSelectedModel()
+  const agents = useInstanceContext((s) => s.agent)
+  const providers = useInstanceContext((s) => s.providers)
+  const sdkConfig = useInstanceContext((s) => s.sdkConfig)
+
+  // Get available SDKs
+  const availableSdks = useMemo((): SdkOption[] => {
+    if (!config || !currentProvider) {
+      return [
+        { id: "opencode", name: "OpenCode", iconUrl: opencodeLogoUrl },
+        { id: "claude-code", name: "Claude Code", iconUrl: claudeCodeLogoUrl },
+      ]
+    }
+
+    const providerConfig = config.providers.find(
+      (p) => p.name === currentProvider
+    )
+
+    if (!providerConfig) {
+      return [
+        { id: "opencode", name: "OpenCode", iconUrl: opencodeLogoUrl },
+        { id: "claude-code", name: "Claude Code", iconUrl: claudeCodeLogoUrl },
+      ]
+    }
+
+    return providerConfig.sdks.map((sdk) => {
+      const sdkConfig = SDK_CONFIG[sdk] || SDK_CONFIG[normalizeSdkId(sdk)]
+      return {
+        id: normalizeSdkId(sdk),
+        name: sdkConfig?.name || sdk,
+        iconUrl: sdkConfig?.iconUrl || opencodeLogoUrl,
+      }
+    })
+  }, [config, currentProvider])
+
+  // Get available agents
+  const availableAgents = useMemo(() => {
+    if (!agents || !Array.isArray(agents)) return []
+    
+    return agents.filter(
+      (agent) => agent.mode === "primary" || agent.mode === "all"
+    )
+  }, [agents])
+
+  // Get available models
+  const availableModels = useMemo((): ModelInfo[] => {
+    if (!providers?.providers) return []
+
+    const modelList: ModelInfo[] = []
+
+    for (const provider of providers.providers) {
+      if (provider.models) {
+        for (const [modelId, modelData] of Object.entries(provider.models)) {
+          modelList.push({
+            id: modelId,
+            name: (modelData as any)?.name || modelId,
+            providerId: provider.id,
+            providerName: provider.name,
+          })
+        }
+      }
+    }
+
+    return modelList
+  }, [providers])
 
   // Reset search and focus input when dialog opens
   useEffect(() => {
@@ -117,6 +229,18 @@ export function SpotlightComponent() {
     }
     
     setActiveSession(session.id)
+  }
+
+  const handleAgentSelect = (agentName: string) => {
+    setSelectedAgent(agentName)
+  }
+
+  const handleModelSelect = (modelInfo: ModelInfo) => {
+    const model: Model = {
+      modelID: modelInfo.id,
+      providerID: modelInfo.providerId,
+    }
+    setSelectedModel(model)
   }
 
   if (!isOpen) return null
@@ -196,6 +320,41 @@ export function SpotlightComponent() {
                     <Trash2 className="h-4 w-4" />
                     <span>clear chat</span>
                   </Command.Item>
+                </Command.Group>
+
+                <Command.Separator className="my-2 h-px bg-white/10" />
+
+                <Command.Group heading="settings" className="px-2 py-1.5 text-xs text-zinc-500">
+                  {availableSdks.length > 0 && (
+                    <Command.Item
+                      value="switch sdk"
+                      onSelect={() => pushPage('sdks')}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span>switch SDK…</span>
+                    </Command.Item>
+                  )}
+                  {availableAgents.length > 0 && (
+                    <Command.Item
+                      value="switch agent"
+                      onSelect={() => pushPage('agents')}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                    >
+                      <Cpu className="h-4 w-4" />
+                      <span>switch agent…</span>
+                    </Command.Item>
+                  )}
+                  {availableModels.length > 0 && (
+                    <Command.Item
+                      value="switch model"
+                      onSelect={() => pushPage('models')}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>switch model…</span>
+                    </Command.Item>
+                  )}
                 </Command.Group>
 
                 <Command.Separator className="my-2 h-px bg-white/10" />
@@ -299,6 +458,111 @@ export function SpotlightComponent() {
                         <span className="truncate">{file.name}</span>
                         <span className="text-xs text-zinc-500 truncate">{file.path}</span>
                       </div>
+                    </Command.Item>
+                  ))
+                )}
+              </Command.Group>
+            )}
+
+            {currentPage === 'sdks' && (
+              <Command.Group heading="switch SDK" className="px-2 py-1.5 text-xs text-zinc-500">
+                {availableSdks.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-zinc-500">no SDKs found</div>
+                ) : (
+                  availableSdks.map((sdk) => (
+                    <Command.Item
+                      key={sdk.id}
+                      value={`${sdk.name} ${sdk.id}`}
+                      onSelect={() => {
+                        closeSpotlight()
+                        // Note: SDK switching is currently not implemented in the chat store
+                        // This would need to be added similar to agent/model selection
+                        console.log('SDK selected:', sdk.id)
+                      }}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                    >
+                      <img 
+                        src={sdk.iconUrl} 
+                        alt={sdk.name}
+                        className="h-4 w-4"
+                      />
+                      <span>{sdk.name}</span>
+                    </Command.Item>
+                  ))
+                )}
+              </Command.Group>
+            )}
+
+            {currentPage === 'agents' && (
+              <Command.Group heading="switch agent" className="px-2 py-1.5 text-xs text-zinc-500">
+                {availableAgents.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-zinc-500">no agents found</div>
+                ) : (
+                  availableAgents.map((agent) => (
+                    <Command.Item
+                      key={agent.name}
+                      value={`${agent.name} ${agent.description || ''}`}
+                      onSelect={() => runCommand(() => handleAgentSelect(agent.name))}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                      style={
+                        agent.color
+                          ? {
+                              borderLeft: `2px solid ${agent.color}`,
+                              paddingLeft: "0.625rem",
+                            }
+                          : undefined
+                      }
+                    >
+                      <Cpu className="h-4 w-4" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate">{agent.name}</span>
+                        {agent.description && (
+                          <span className="text-xs text-zinc-500 truncate">
+                            {agent.description}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className="text-[9px] text-zinc-600 uppercase">
+                            {agent.mode}
+                          </span>
+                          {agent.builtIn && (
+                            <span className="text-[9px] text-blue-500 uppercase">
+                              built-in
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {selectedAgent === agent.name && (
+                        <span className="ml-auto text-xs text-green-500">✓</span>
+                      )}
+                    </Command.Item>
+                  ))
+                )}
+              </Command.Group>
+            )}
+
+            {currentPage === 'models' && (
+              <Command.Group heading="switch model" className="px-2 py-1.5 text-xs text-zinc-500">
+                {availableModels.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-zinc-500">no models found</div>
+                ) : (
+                  availableModels.map((modelInfo) => (
+                    <Command.Item
+                      key={`${modelInfo.providerId}-${modelInfo.id}`}
+                      value={`${modelInfo.name} ${modelInfo.providerName}`}
+                      onSelect={() => runCommand(() => handleModelSelect(modelInfo))}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate">{modelInfo.name}</span>
+                        <span className="text-xs text-zinc-500 truncate">
+                          {modelInfo.providerName}
+                        </span>
+                      </div>
+                      {selectedModel?.modelID === modelInfo.id && selectedModel?.providerID === modelInfo.providerId && (
+                        <span className="ml-auto text-xs text-green-500">✓</span>
+                      )}
                     </Command.Item>
                   ))
                 )}
