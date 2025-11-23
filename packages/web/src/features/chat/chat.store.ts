@@ -113,7 +113,7 @@ export const createChatStore = () => {
               client: sandboxClient,
               path: { id: activeSessionId },
               body: {
-                agent: selectedAgent ?? undefined,
+                agent: selectedAgent ?? "build",
                 model: selectedModel ?? undefined,
                 parts,
               },
