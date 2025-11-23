@@ -2,7 +2,6 @@ import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import { postSessionIdMessage } from "@/client/sandbox/sdk.gen"
 import type { client as sandboxClientType } from "@/client/sandbox/client.gen"
-import type { SseEnvelope } from "@/client/sandbox/types.gen"
 import type { FileItem } from "@/features/filesystem"
 import type { FileItemData } from "@/features/filesystem/filesystem.store"
 
@@ -26,11 +25,9 @@ export interface ChatState {
 export interface ChatActions {
   // Message management
   sendMessage: (content: string, mentionedFiles?: FileItem[]) => Promise<void>
-  addMessage: (message: ChatMessage) => void
   clearMessages: () => void
 
   // State management
-  setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   setSandboxClient: (client: typeof sandboxClientType | null) => void
   setActiveSessionId: (sessionId: string) => void
@@ -114,7 +111,7 @@ export const createChatStore = () => {
             for await (const event of sseResponse.stream) {
               // The SSE client has already parsed the JSON for us
               // event is typed as SseEnvelope from the generated types
-              
+
               console.log("SSE Event:", event)
 
               // Handle different event types with proper typing
@@ -131,13 +128,13 @@ export const createChatStore = () => {
                 if (part && part.type === "text") {
                   assistantMessageId = part.messageID
                   assistantContent += part.text || ""
-                  
+
                   // Update or add assistant message
                   set((state) => {
                     const existingIndex = state.messages.findIndex(
                       m => m.id === assistantMessageId
                     )
-                    
+
                     if (existingIndex >= 0 && assistantMessageId) {
                       // Update existing message
                       const updatedMessages = [...state.messages]
@@ -183,21 +180,11 @@ export const createChatStore = () => {
           }
         },
 
-        addMessage: (message: ChatMessage) => {
-          set((state) => ({
-            messages: [...state.messages, message],
-          }))
-        },
-
         clearMessages: () => {
           set({ messages: [] })
         },
 
         // State management
-        setLoading: (loading: boolean) => {
-          set({ isLoading: loading })
-        },
-
         setError: (error: string | null) => {
           set({ error })
         },
