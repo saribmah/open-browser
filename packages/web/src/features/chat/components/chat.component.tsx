@@ -30,13 +30,12 @@ export function ChatComponent() {
 
     return (
         <div className="flex h-[calc(100vh-4rem)]">
-            {isSidebarOpen && <ChatSidebar />}
 
             <div className="flex-1 flex min-w-0 overflow-hidden">
                 {/* Main content area with navbar, session bar, and sessions */}
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                     {/* Sandbox Navbar - shows sandbox-related info */}
-                    <SandboxNavbar 
+                    <SandboxNavbar
                         onMaximize={handleMaximize}
                         onToggleSidebar={handleToggleSidebar}
                         isSidebarOpen={isSidebarOpen}
@@ -46,10 +45,11 @@ export function ChatComponent() {
 
                     {/* Session Bar and Content area wrapper */}
                     <div className="flex-1 flex min-w-0 overflow-hidden">
+                        {isSidebarOpen && <ChatSidebar onClose={() => setIsSidebarOpen(false)} />}
                         {/* Render all sessions with their MessageProviders */}
                         {visibleSessions.map((session) => (
                             <MessageProvider key={session.id} sessionId={session.id}>
-                                <div 
+                                <div
                                     className={`flex-1 flex min-w-0 overflow-hidden ${session.id === activeSessionId ? 'flex' : 'hidden'}`}
                                 >
                                     <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

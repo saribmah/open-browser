@@ -19,13 +19,16 @@ function getProjectIcon(name: string) {
   return <Folder className="h-4 w-4" />
 }
 
+interface ChatSidebarProps {
+  onClose?: () => void
+}
+
 /**
  * Chat sidebar component
  * Handles project management and file tree display
  */
-export function ChatSidebar() {
+export function ChatSidebar({ onClose }: ChatSidebarProps = {}) {
   const [url, setUrl] = useState("")
-  const [isCollapsed, setIsCollapsed] = useState(false)
   const [isAddingProject, setIsAddingProject] = useState(false)
 
   // Get project state and actions
@@ -53,41 +56,17 @@ export function ChatSidebar() {
     setIsAddingProject(!isAddingProject)
   }
 
+  const handleCollapse = () => {
+    // When chevron is clicked, call the parent's onClose to fully hide the sidebar
+    if (onClose) {
+      onClose()
+    }
+  }
+
   return (
-    <Sidebar collapsed={isCollapsed} onCollapsedChange={setIsCollapsed}>
-      {/* Collapsed View - Icons Only */}
-      {isCollapsed && (
-        <div className="h-full flex flex-col items-center pt-[22px] gap-2">
-          {/* Add button */}
-          <button
-            onClick={() => setIsCollapsed(false)}
-            className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-zinc-400 hover:text-white flex items-center justify-center transition-colors"
-            aria-label="add project"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-
-          {/* Project icons */}
-          {projects.map((project) => (
-            <button
-              key={project.id}
-              onClick={() => setIsCollapsed(false)}
-              className="h-8 w-8 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-colors"
-              title={project.directory}
-            >
-              {getProjectIcon(project.directory)}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Expanded View - Full Content */}
-      <div
-        className={cn(
-          "h-full overflow-hidden transition-opacity duration-300 flex flex-col",
-          isCollapsed ? "opacity-0 invisible" : "opacity-100 visible"
-        )}
-      >
+    <Sidebar collapsed={false} onCollapsedChange={handleCollapse}>
+      {/* Full Content */}
+      <div className="h-full overflow-hidden flex flex-col">
         {/* Explorer Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Explorer</span>
