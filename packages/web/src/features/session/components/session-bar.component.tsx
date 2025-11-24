@@ -23,6 +23,13 @@ export function SessionBar() {
   // Spotlight actions
   const openSpotlight = useOpenSpotlight()
 
+  // Truncate title helper
+  const MAX_TITLE_LENGTH = 30
+  const truncateTitle = (title: string) => {
+    if (title.length <= MAX_TITLE_LENGTH) return title
+    return title.slice(0, MAX_TITLE_LENGTH) + "..."
+  }
+
   // Handle creating a new session
   const handleNewSession = () => {
     const newSession: UISession = {
@@ -50,7 +57,7 @@ export function SessionBar() {
     <div className="flex items-center justify-center h-[72px] px-2 gap-1 min-w-0">
       {/* Sessions - scrollable container */}
       <div className="overflow-x-auto overflow-y-hidden scrollbar-hide max-w-full">
-        <div className="flex items-center h-full gap-1 justify-center">
+        <div className="flex items-center h-full gap-1 px-2">
           {sessions.map((session) => (
             <div
               key={session.id}
@@ -59,14 +66,15 @@ export function SessionBar() {
                 else sessionRefs.current.delete(session.id)
               }}
               className={cn(
-                "group flex items-center gap-2 px-4 py-1.5 rounded-full cursor-pointer transition-colors shrink-0",
+                "group flex items-center gap-2 px-4 py-1.5 rounded-full cursor-pointer transition-colors shrink-0 relative",
                 activeSessionId === session.id
                   ? "bg-white/10 text-white"
                   : "text-zinc-500 hover:text-zinc-300"
               )}
               onClick={() => setActiveSession(session.id)}
+              title={session.title && session.title.length > MAX_TITLE_LENGTH ? session.title : undefined}
             >
-              <span className="text-sm whitespace-nowrap">{session.title}</span>
+              <span className="text-sm whitespace-nowrap">{truncateTitle(session.title || "")}</span>
               {sessions.length > 1 && (
                 <button
                   onClick={(e) => {

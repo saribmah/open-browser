@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { ArrowUp } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { FileMention } from "@/features/filesystem/components/file-mention.component.tsx"
@@ -44,6 +44,16 @@ export function ChatInput({
   const [mentionIndex, setMentionIndex] = useState(0)
   const [mentionedFiles, setMentionedFiles] = useState<FileItem[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-focus the textarea when active session changes
+  useEffect(() => {
+    if (activeSession && textareaRef.current) {
+      // Use setTimeout to ensure the component is fully rendered
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 100)
+    }
+  }, [activeSession?.id])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
