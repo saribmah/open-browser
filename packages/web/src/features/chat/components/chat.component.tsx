@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChatInput } from "./chat-input.component"
 import { ChatSidebar } from "./chat-sidebar.component"
 import { SessionBar } from "@/features/session/components/session-bar.component"
@@ -8,11 +8,17 @@ import { useActiveSessionId, useVisibleSessions } from "@/features/session"
 import { SandboxNavbar } from "@/components/SandboxNavbar"
 import { ActivityLog } from "@/features/activity-log"
 
+// Check if the viewport is mobile sized (less than 768px - Tailwind's md breakpoint)
+const isMobileView = () => {
+    return typeof window !== 'undefined' && window.innerWidth < 768
+}
+
 export function ChatComponent() {
     const activeSessionId = useActiveSessionId()
     const visibleSessions = useVisibleSessions()
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-    const [isActivityLogOpen, setIsActivityLogOpen] = useState(true)
+    // Initialize sidebars based on viewport size - hide on mobile by default
+    const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobileView())
+    const [isActivityLogOpen, setIsActivityLogOpen] = useState(!isMobileView())
 
     const handleMaximize = () => {
         // Close both sidebars for maximized view
