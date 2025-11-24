@@ -12,7 +12,7 @@ interface WebfetchToolProps {
  */
 export function WebfetchTool({ tool }: WebfetchToolProps) {
   const { state } = tool
-  const [isExpanded, setIsExpanded] = useState(tool.state.status === 'running')
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Extract URL and format from input
   if (!('input' in state) || !state.input) {
@@ -54,7 +54,7 @@ export function WebfetchTool({ tool }: WebfetchToolProps) {
         {/* Webfetch header with optional expandable content */}
         <div className="border border-zinc-800/50 rounded-lg overflow-hidden">
           {/* Header - clickable to collapse/expand if there's output */}
-          <div 
+          <div
             className={cn(
               "flex items-center justify-between p-2.5 bg-zinc-900/50",
               output ? "border-b border-zinc-800/50 cursor-pointer hover:bg-zinc-900 transition-colors" : ""
@@ -94,7 +94,7 @@ export function WebfetchTool({ tool }: WebfetchToolProps) {
               </div>
             )}
           </div>
-          
+
           {/* Output content - conditionally rendered based on isExpanded (currently hidden) */}
           {false && output && (
             <div

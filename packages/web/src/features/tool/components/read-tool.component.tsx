@@ -21,7 +21,7 @@ function getFilename(filePath: string): string {
  */
 export const ReadTool = memo(function ReadTool({ tool }: ReadToolProps) {
   const { state } = tool
-  const [isExpanded, setIsExpanded] = useState(tool.state.status === 'running')
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Extract file path from input
   if (!('input' in state) || !state.input) {

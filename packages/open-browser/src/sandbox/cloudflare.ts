@@ -39,7 +39,7 @@ export class CloudflareSandbox implements SandboxProviderInterface {
             console.log("SERVER URL", serverUrl)
 
             // Wait for server to be ready
-            // await this.waitForServerReady(serverUrl);
+            await this.waitForServerReady(serverUrl);
 
             return {
                 id,
@@ -91,7 +91,7 @@ export class CloudflareSandbox implements SandboxProviderInterface {
     private getHostname(): string {
         // Try to get hostname from environment variable or use a default
         // You may want to customize this based on your deployment setup
-        return (this.env as any).HOSTNAME || "sandbox.example.com";
+        return this.env.HOSTNAME;
     }
 
     async stop(sandboxId: string): Promise<void> {

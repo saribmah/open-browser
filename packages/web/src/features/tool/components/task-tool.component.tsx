@@ -12,7 +12,7 @@ interface TaskToolProps {
  */
 export function TaskTool({ tool }: TaskToolProps) {
   const { state } = tool
-  const [isExpanded, setIsExpanded] = useState(tool.state.status === 'running')
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Extract task info from input
   if (!('input' in state) || !state.input) {
@@ -22,9 +22,9 @@ export function TaskTool({ tool }: TaskToolProps) {
   const input = state.input as Record<string, unknown>
   const subagentType = typeof input.subagent_type === 'string' ? input.subagent_type : null
   const description = typeof input.description === 'string' ? input.description : 'Task'
-  
+
   // Create agent title - capitalize first letter of each word
-  const agentTitle = subagentType 
+  const agentTitle = subagentType
     ? `${subagentType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Agent`
     : `${tool.tool.charAt(0).toUpperCase() + tool.tool.slice(1)} Agent`
 
@@ -51,7 +51,7 @@ export function TaskTool({ tool }: TaskToolProps) {
         {/* Task header with optional expandable content */}
         <div className="border border-zinc-800/50 rounded-lg overflow-hidden">
           {/* Header - clickable to collapse/expand if there's output */}
-          <div 
+          <div
             className={cn(
               "flex items-center justify-between p-2.5 bg-zinc-900/50",
               output ? "border-b border-zinc-800/50 cursor-pointer hover:bg-zinc-900 transition-colors" : ""
@@ -77,7 +77,7 @@ export function TaskTool({ tool }: TaskToolProps) {
               </div>
             )}
           </div>
-          
+
           {/* Output content - conditionally rendered based on isExpanded (currently hidden) */}
           {false && output && (
             <div

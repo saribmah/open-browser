@@ -12,7 +12,7 @@ interface ListToolProps {
  */
 export function ListTool({ tool }: ListToolProps) {
   const { state } = tool
-  const [isExpanded, setIsExpanded] = useState(tool.state.status === 'running')
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Extract path from input
   if (!('input' in state) || !state.input) {
@@ -55,7 +55,7 @@ export function ListTool({ tool }: ListToolProps) {
         {output ? (
           <div className="border border-zinc-800/50 rounded-lg overflow-hidden">
             {/* Header as part of the content - clickable to collapse/expand */}
-            <div 
+            <div
               className="flex items-center justify-between p-2.5 bg-zinc-900/50 border-b border-zinc-800/50 cursor-pointer hover:bg-zinc-900 transition-colors"
               onClick={() => setIsExpanded(!isExpanded)}
             >

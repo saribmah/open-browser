@@ -76,7 +76,7 @@ export const createSandboxCreatorStore = () => {
 
   return create<SandboxCreatorStoreState>()(
     devtools(
-      (set) => ({
+      (set, get) => ({
         // Initial state
         ...initialState,
 
@@ -93,7 +93,7 @@ export const createSandboxCreatorStore = () => {
           set({ isLoadingConfig: true })
           try {
             const result = await getConfig()
-            
+
             if (result.error) {
               console.error("Failed to load config:", result.error)
               set({ isLoadingConfig: false })
@@ -121,7 +121,7 @@ export const createSandboxCreatorStore = () => {
 
         createSandbox: async (url: string, provider?: string, sdkType?: string) => {
           const parsed = parseUrl(url)
-          
+
           if (!parsed) {
             set({ error: "Invalid URL. Please enter a valid GitHub or arXiv URL." })
             return { success: false }
@@ -131,7 +131,7 @@ export const createSandboxCreatorStore = () => {
 
           try {
             // Get config or use defaults
-            const currentConfig = (set as any).getState?.()?.config
+            const currentConfig = get().config
             const defaultProvider = provider || currentConfig?.defaultProvider || 'local'
             const defaultSdk = sdkType || currentConfig?.providers?.find((p: ProviderConfig) => p.name === defaultProvider)?.defaultSdk || 'OPENCODE'
 
@@ -153,10 +153,10 @@ export const createSandboxCreatorStore = () => {
 
             const data = result.data as PostSandboxResponses[200]
             if (data?.sandbox) {
-              set({ 
-                isCreating: false, 
+              set({
+                isCreating: false,
                 createdSandboxId: data.sandbox.id,
-                error: null 
+                error: null
               })
               return { success: true, sandboxId: data.sandbox.id }
             } else {

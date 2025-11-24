@@ -12,7 +12,7 @@ interface BashToolProps {
  */
 export function BashTool({ tool }: BashToolProps) {
   const { state } = tool
-  const [isExpanded, setIsExpanded] = useState(tool.state.status === 'running')
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Extract command from input
   if (!('input' in state) || !state.input) {
@@ -46,7 +46,7 @@ export function BashTool({ tool }: BashToolProps) {
         {output ? (
           <div className="border border-zinc-800/50 rounded-lg overflow-hidden">
             {/* Header as part of the content - clickable to collapse/expand */}
-            <div 
+            <div
               className="flex items-center justify-between p-2.5 bg-zinc-900/50 border-b border-zinc-800/50 cursor-pointer hover:bg-zinc-900 transition-colors"
               onClick={() => setIsExpanded(!isExpanded)}
             >
