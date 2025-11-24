@@ -162,11 +162,11 @@ export function SessionContent() {
   // Chat messages area
   return (
     <div className="relative flex-1 h-full overflow-hidden">
-      {/* Scroll to bottom button */}
+      {/* Scroll to bottom button - positioned above chat input */}
       {!shouldAutoScroll && messages.length > 0 && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2 rounded-full shadow-lg border border-zinc-600 flex items-center gap-2 transition-all duration-200 hover:scale-105"
+          className="fixed bottom-[180px] left-1/2 -translate-x-1/2 z-30 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2 rounded-full shadow-lg border border-zinc-600 flex items-center gap-2 transition-all duration-200 hover:scale-105"
           aria-label="Scroll to bottom"
         >
           <ArrowDown className="h-4 w-4" />
