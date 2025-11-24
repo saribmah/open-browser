@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { ArrowUp } from "lucide-react"
+import { ArrowUp, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { FileMention } from "@/features/filesystem/components/file-mention.component.tsx"
 import { SdkSelector } from "./sdk-selector.component"
@@ -7,7 +7,7 @@ import { AgentSelector } from "./agent-selector.component"
 import { ModelSelector } from "./model-selector.component"
 import type { FormEvent, KeyboardEvent } from "react"
 import type { FileItem } from "@/features/filesystem"
-import { useSendMessage, useSelectedAgent, useSetSelectedAgent, useSelectedModel, useSetSelectedModel } from "@/features/chat/chat.context"
+import { useSendMessage, useSelectedAgent, useSetSelectedAgent, useSelectedModel, useSetSelectedModel, useMessageLoading } from "@/features/chat/chat.context"
 import {
   useActiveSession,
   useConvertEphemeralToReal,
@@ -36,6 +36,7 @@ export function ChatInput({
   const setSelectedAgent = useSetSelectedAgent()
   const selectedModel = useSelectedModel()
   const setSelectedModel = useSetSelectedModel()
+  const isMessageLoading = useMessageLoading()
 
   // Local state
   const [message, setMessage] = useState("")
@@ -242,10 +243,14 @@ export function ChatInput({
           {/* Send button */}
           <Button
             type="submit"
-            disabled={!message.trim() || disabled}
+            disabled={!message.trim() || disabled || isMessageLoading}
             className="h-8 w-8 p-0 rounded-full bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            <ArrowUp className="h-4 w-4" />
+            {isMessageLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowUp className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </form>
