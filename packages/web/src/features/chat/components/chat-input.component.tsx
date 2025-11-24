@@ -58,7 +58,7 @@ export function ChatInput({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!message.trim() || disabled || !activeSession) return
+    if (!message.trim() || disabled || !activeSession || isMessageLoading) return
 
     // Check if the session is ephemeral and convert it to a real session
     if (activeSession.ephemeral && activeSession.type === "chat") {
