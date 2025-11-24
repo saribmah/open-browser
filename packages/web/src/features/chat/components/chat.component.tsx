@@ -50,8 +50,23 @@ export function ChatComponent() {
                     />
 
                     {/* Session Bar and Content area wrapper */}
-                    <div className="flex-1 flex min-w-0 overflow-hidden">
-                        {isSidebarOpen && <ChatSidebar onClose={() => setIsSidebarOpen(false)} />}
+                    <div className="flex-1 flex min-w-0 overflow-hidden relative">
+                        {/* Left Sidebar - Overlay on mobile (absolute), inline on desktop (relative) */}
+                        {isSidebarOpen && (
+                            <>
+                                {/* Backdrop for mobile */}
+                                <div 
+                                    className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                                    onClick={() => setIsSidebarOpen(false)}
+                                    aria-label="Close sidebar"
+                                />
+                                {/* Sidebar */}
+                                <div className="md:relative absolute left-0 top-0 bottom-0 z-50">
+                                    <ChatSidebar onClose={() => setIsSidebarOpen(false)} />
+                                </div>
+                            </>
+                        )}
+                        
                         {/* Render all sessions with their MessageProviders */}
                         {visibleSessions.map((session) => (
                             <MessageProvider key={session.id} sessionId={session.id}>
@@ -77,8 +92,21 @@ export function ChatComponent() {
                                         </div>
                                     </div>
 
-                                    {/* Activity Log - Right side panel - shares same MessageProvider */}
-                                    {isActivityLogOpen && <ActivityLog />}
+                                    {/* Activity Log - Right side panel - Overlay on mobile (absolute), inline on desktop (relative) */}
+                                    {isActivityLogOpen && (
+                                        <>
+                                            {/* Backdrop for mobile */}
+                                            <div 
+                                                className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                                                onClick={() => setIsActivityLogOpen(false)}
+                                                aria-label="Close activity log"
+                                            />
+                                            {/* Activity Log */}
+                                            <div className="md:relative absolute right-0 top-0 bottom-0 z-50">
+                                                <ActivityLog />
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </MessageProvider>
                         ))}
