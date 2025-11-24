@@ -69,6 +69,16 @@ export function ModelSelector({
     ? models.find((m) => m.id === selectedModel.modelID && m.providerId === selectedModel.providerID)
     : defaultModel
 
+  // Set the default model in the store when it's determined and no model is selected
+  useEffect(() => {
+    if (!selectedModel && defaultModel && onModelChange) {
+      onModelChange({
+        providerID: defaultModel.providerId,
+        modelID: defaultModel.id,
+      })
+    }
+  }, [defaultModel, selectedModel, onModelChange])
+
   const handleClick = () => {
     openSpotlight('models')
   }
