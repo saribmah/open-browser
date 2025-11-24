@@ -1,6 +1,7 @@
 import { Log } from "../util/log";
 import { Integration } from "../integration/integration";
 import path from "path";
+import * as fs from "fs/promises";
 
 const log = Log.create({ service: "project" });
 
@@ -93,31 +94,59 @@ export namespace Project {
 
         const project = createProjectFromUrl(opts.url, type, directoryName);
         
-        // Check if project already exists
+        // Check if project already exists in state
         const exists = state.projects.find(p => p.id === project.id);
         if (exists) {
+            log.info("Project already exists in state, returning existing project", {
+                projectId: project.id,
+                directory: project.directory
+            });
             return {
-                success: false,
-                error: "Project already exists"
+                success: true,
+                project: exists
             };
         }
 
         try {
             const fullDirectory = getFullDirectory(project);
             
-            // Setup the integration
-            log.info("Setting up project integration", {
-                projectId: project.id,
-                directory: project.directory,
-                fullDirectory
-            });
+            // Check if directory already exists
+            let directoryExists = false;
+            try {
+                const stats = await fs.stat(fullDirectory);
+                directoryExists = stats.isDirectory();
+            } catch (error) {
+                // Directory doesn't exist, which is fine
+                directoryExists = false;
+            }
 
-            await Integration.setup({
-                url: project.url,
-                type: project.type,
-                directory: fullDirectory,
-                metadata: project.metadata
-            });
+            if (directoryExists) {
+                log.info("Project directory already exists, skipping setup", {
+                    projectId: project.id,
+                    directory: project.directory,
+                    fullDirectory
+                });
+            } else {
+                // Setup the integration only if directory doesn't exist
+                log.info("Setting up project integration", {
+                    projectId: project.id,
+                    directory: project.directory,
+                    fullDirectory
+                });
+
+                await Integration.setup({
+                    url: project.url,
+                    type: project.type,
+                    directory: fullDirectory,
+                    metadata: project.metadata
+                });
+
+                log.info("Project integration setup completed", {
+                    projectId: project.id,
+                    directory: project.directory,
+                    fullDirectory
+                });
+            }
 
             state.projects.push(project);
 
@@ -125,7 +154,8 @@ export namespace Project {
                 projectId: project.id,
                 directory: project.directory,
                 fullDirectory,
-                totalProjects: state.projects.length
+                totalProjects: state.projects.length,
+                directoryExisted: directoryExists
             });
 
             return {

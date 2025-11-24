@@ -2,6 +2,14 @@ import React, { useRef, useEffect, useState } from "react"
 import { InstanceContext } from "./instance.context"
 import { createInstanceStore, type InstanceStore, type SdkType } from "./instance.store"
 import { useSandboxContext } from "@/features/sandbox/sandbox.context"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import { Spinner } from "@/components/ui/spinner"
 
 type InstanceProviderProps = React.PropsWithChildren<{
   sdkType?: SdkType
@@ -49,9 +57,30 @@ export const InstanceProvider = ({
     performInit()
   }, [sandbox, sandboxClient, sdkType])
 
+  // Show loading state while initializing
+  if (!isReady) {
+    return (
+      <InstanceContext.Provider value={storeRef.current}>
+        <div className="flex items-center justify-center h-screen">
+          <Empty className="w-full border-none">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Spinner className="size-6" />
+              </EmptyMedia>
+              <EmptyTitle>Initializing instance</EmptyTitle>
+              <EmptyDescription>
+                Setting up your development environment. This will only take a moment.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </div>
+      </InstanceContext.Provider>
+    )
+  }
+
   return (
     <InstanceContext.Provider value={storeRef.current}>
-      {isReady ? children : null}
+      {children}
     </InstanceContext.Provider>
   )
 }
