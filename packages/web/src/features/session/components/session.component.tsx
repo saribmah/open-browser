@@ -45,10 +45,10 @@ export function SessionContent() {
           }
         })
       },
-      { 
-        root: scrollContainerRef.current, 
-        threshold: 0.1, 
-        rootMargin: "-40% 0px -40% 0px" 
+      {
+        root: scrollContainerRef.current,
+        threshold: 0.1,
+        rootMargin: "-40% 0px -40% 0px"
       }
     )
 
@@ -86,18 +86,18 @@ export function SessionContent() {
           {userMessages.map((msg) => {
             const messageId = msg.info.id || ''
             const isActive = activeMessageId === messageId
-            
+
             // Get first text part for tooltip
             const firstTextPart = msg.parts.find((part) => part.type === 'text' && 'text' in part && !part.synthetic)
             const previewText = firstTextPart && 'text' in firstTextPart ? firstTextPart.text : ''
-            
+
             return (
               <div key={messageId} className="group relative flex items-center justify-end">
                 {/* Tooltip (Left of dot) */}
                 <div className="absolute right-6 px-2 py-1 bg-zinc-800 text-zinc-200 text-[10px] rounded-md border border-zinc-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg z-30 origin-right scale-95 group-hover:scale-100 duration-200">
                   <span className="max-w-[150px] truncate block">{previewText.substring(0, 30)}...</span>
                 </div>
-                
+
                 {/* Dot */}
                 <button
                   onClick={() => scrollToMessage(messageId)}
@@ -114,7 +114,7 @@ export function SessionContent() {
         </div>
       )}
 
-      <div ref={scrollContainerRef} className="h-full overflow-y-auto p-4 md:p-6 md:pr-16 space-y-8">
+      <div ref={scrollContainerRef} className="h-full overflow-y-auto p-4 md:p-6 space-y-8">
         {isLoadingMessages ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center text-zinc-500">
@@ -133,16 +133,16 @@ export function SessionContent() {
             </div>
           </div>
         ) : (
-          <div className="relative">
+          <div className="relative md:pr-16">
             {/* Continuous timeline line with fade effect at both top and bottom */}
             <div className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-zinc-700 to-transparent" />
-            
+
             {/* Messages */}
             <div className="space-y-8">
               {messages.map((message, idx) => {
                 const messageId = message.info.id || idx.toString()
                 const isCollapsed = collapsedMessages.has(messageId)
-                
+
                 // For assistant messages, check if we're in a collapsed thread
                 // Walk backwards to find the most recent user message
                 let isInCollapsedThread = false
@@ -156,9 +156,9 @@ export function SessionContent() {
                     }
                   }
                 }
-                
+
                 return (
-                  <div 
+                  <div
                     key={messageId}
                     id={`msg-${messageId}`}
                     data-message-id={messageId}
