@@ -12,7 +12,7 @@ interface MarkdownProps {
   className?: string
 }
 
-const highlighter = await getSharedHighlighter({ themes: ["OpenBrowser"], langs: [] })
+const highlighterPromise = getSharedHighlighter({ themes: ["OpenBrowser"], langs: [] })
 
 /**
  * Markdown component that renders markdown content with syntax highlighting
@@ -31,6 +31,7 @@ export function Markdown({ content, className = "" }: MarkdownProps) {
             if (!(lang in bundledLanguages)) {
                 lang = "text"
             }
+            const highlighter = await highlighterPromise;
             if (!highlighter.getLoadedLanguages().includes(lang)) {
                 await highlighter.loadLanguage(lang as BundledLanguage)
             }

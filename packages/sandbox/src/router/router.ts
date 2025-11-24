@@ -45,7 +45,7 @@ export namespace Router {
             .use(
                 "*",
                 cors({
-                    origin: process.env["CORS_ORIGIN"] ?? "*",
+                    origin: [process.env["CORS_ORIGIN"] ?? "*"],
                     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
                     allowHeaders: ["Content-Type", "Authorization"],
                     credentials: true,
@@ -70,7 +70,7 @@ export namespace Router {
                         200: {
                             description: 'Service is healthy',
                             content: {
-                                'application/json': { 
+                                'application/json': {
                                     schema: resolver(z.object({
                                         status: z.string(),
                                         timestamp: z.string()
@@ -94,7 +94,7 @@ export namespace Router {
                         200: {
                             description: 'Service details',
                             content: {
-                                'application/json': { 
+                                'application/json': {
                                     schema: resolver(z.object({
                                         service: z.string(),
                                         version: z.string()

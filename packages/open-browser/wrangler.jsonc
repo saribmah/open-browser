@@ -17,15 +17,15 @@
     "API_HOST": "open-browser.com",
     "SANDBOX_IMAGE_NAME": "open-browser-sandbox",
     "SANDBOX_SERVER_PORT": "3097",
-    "DEFAULT_SANDBOX_PROVIDER": "cloudflare",
-    "DAYTONA_IMAGE_TAG": "0.1.0"
+    "DEFAULT_SANDBOX_PROVIDER": "daytona",
+    "DAYTONA_IMAGE_TAG": "0.3.0"
   },
   "containers": [
     {
       "class_name": "CloudflareSandbox",
       "image": "../sandbox/Cloudflare.Dockerfile",
-      "instance_type": "standard-1",
-      "max_instances": 100
+      "instance_type": "lite",
+      "max_instances": 0
     }
   ],
   "durable_objects": {
