@@ -38,7 +38,7 @@ export function SessionContent() {
 
     const threshold = 150 // pixels from bottom
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold
-    
+
     setShouldAutoScroll(isNearBottom)
   }, [])
 
@@ -61,7 +61,7 @@ export function SessionContent() {
     if (!container) return
 
     const currentScrollHeight = container.scrollHeight
-    
+
     // Always update the ref to track content changes
     // But only scroll if shouldAutoScroll is enabled
     if (shouldAutoScroll && currentScrollHeight > lastScrollHeightRef.current) {
@@ -70,7 +70,7 @@ export function SessionContent() {
         behavior: 'smooth'
       })
     }
-    
+
     lastScrollHeightRef.current = currentScrollHeight
   }, [messages, shouldAutoScroll])
 
@@ -137,7 +137,7 @@ export function SessionContent() {
   const scrollToBottom = useCallback(() => {
     const container = scrollContainerRef.current
     if (!container) return
-    
+
     container.scrollTo({
       top: container.scrollHeight,
       behavior: 'smooth'
@@ -148,12 +148,14 @@ export function SessionContent() {
   if (activeSession?.type === "file" && activeSession.fileContent) {
     // File viewer
     return (
-      <Code
-        file={{
-          name: activeSession.title || activeSession.filePath || "Untitled",
-          contents: activeSession.fileContent,
-        }}
-      />
+        <div className="pb-48">
+            <Code
+                file={{
+                    name: activeSession.title || activeSession.filePath || "Untitled",
+                    contents: activeSession.fileContent,
+                }}
+            />
+        </div>
     )
   }
 
@@ -225,7 +227,7 @@ export function SessionContent() {
             </div>
           </div>
         ) : (
-          <div className="relative md:pr-16">
+          <div className="relative md:pr-16 pb-48">
             {/* Continuous timeline line with fade effect at both top and bottom */}
             <div className="absolute left-[5px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-zinc-700 to-transparent" />
 

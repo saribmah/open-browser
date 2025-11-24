@@ -58,7 +58,7 @@ export function ChatComponent() {
 
                                         {/* Content area */}
                                         <div className="flex-1 relative overflow-hidden">
-                                            <div className="absolute inset-0 overflow-y-auto pb-48">
+                                            <div className="absolute inset-0 overflow-y-auto">
                                                 <SessionContent />
                                             </div>
 
