@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { Code } from "@/components/Code"
 import { useActiveSession } from "@/features/session"
 import { useMessages, useMessagesLoading, Message } from "@/features/message"
-import { Terminal, Loader2 } from "lucide-react"
+import { Terminal, Loader2, ArrowDown } from "lucide-react"
 
 /**
  * Session content component
@@ -16,6 +16,8 @@ export function SessionContent() {
   const [collapsedMessages, setCollapsedMessages] = useState<Set<string>>(new Set())
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
+  const lastScrollHeightRef = useRef(0)
 
   const toggleMessageCollapse = useCallback((messageId: string) => {
     setCollapsedMessages((prev) => {
@@ -28,6 +30,55 @@ export function SessionContent() {
       return newSet
     })
   }, [])
+
+  // Detect if user is scrolled near bottom
+  const checkIfShouldAutoScroll = useCallback(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const threshold = 150 // pixels from bottom
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold
+    
+    setShouldAutoScroll(isNearBottom)
+  }, [])
+
+  // Handle user scroll
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      checkIfShouldAutoScroll()
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [checkIfShouldAutoScroll])
+
+  // Auto-scroll when messages change (new message or streaming update)
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const currentScrollHeight = container.scrollHeight
+    
+    // Always update the ref to track content changes
+    // But only scroll if shouldAutoScroll is enabled
+    if (shouldAutoScroll && currentScrollHeight > lastScrollHeightRef.current) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+    
+    lastScrollHeightRef.current = currentScrollHeight
+  }, [messages, shouldAutoScroll])
+
+  // Reset auto-scroll when session changes
+  useEffect(() => {
+    setShouldAutoScroll(true)
+    lastScrollHeightRef.current = 0
+  }, [activeSession?.id])
 
   // Filter only user messages for the nav rail
   const userMessages = messages.filter(m => m.info.role === 'user')
@@ -65,6 +116,17 @@ export function SessionContent() {
     }
   }, [])
 
+  const scrollToBottom = useCallback(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth'
+    })
+    setShouldAutoScroll(true)
+  }, [])
+
   if (activeSession?.type === "file" && activeSession.fileContent) {
     // File viewer
     return (
@@ -80,6 +142,18 @@ export function SessionContent() {
   // Chat messages area
   return (
     <div className="relative flex-1 h-full overflow-hidden">
+      {/* Scroll to bottom button */}
+      {!shouldAutoScroll && messages.length > 0 && (
+        <button
+          onClick={scrollToBottom}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2 rounded-full shadow-lg border border-zinc-600 flex items-center gap-2 transition-all duration-200 hover:scale-105"
+          aria-label="Scroll to bottom"
+        >
+          <ArrowDown className="h-4 w-4" />
+          <span className="text-sm">Scroll to bottom</span>
+        </button>
+      )}
+
       {/* Navigation Rail (Right) */}
       {!isLoadingMessages && messages.length > 0 && userMessages.length > 0 && (
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex flex-col gap-3 py-4 pr-1">
