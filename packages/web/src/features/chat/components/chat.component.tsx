@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { ChatInput } from "./chat-input.component"
 import { ChatSidebar } from "./chat-sidebar.component"
 import { SessionBar } from "@/features/session/components/session-bar.component"
