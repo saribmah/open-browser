@@ -29,7 +29,7 @@ export interface SandboxActions {
 export type SandboxStoreState = SandboxState & SandboxActions
 
 // Configure the API client base URL
-const baseUrl = import.meta.env?.VITE_API_URL || "https://open-browser.sarib.workers.dev/api"
+const baseUrl = import.meta.env?.VITE_API_URL || "https://open-browser.ai/api"
 client.setConfig({baseUrl})
 
 export const createSandboxStore = (initialSandbox?: Sandbox) => {

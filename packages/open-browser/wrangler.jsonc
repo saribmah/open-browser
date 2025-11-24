@@ -3,6 +3,16 @@
   "name": "open-browser",
   "main": "src/index.ts",
   "compatibility_date": "2025-11-21",
+  "routes": [
+    {
+      "pattern": "open-browser.ai/*",
+      "zone_name": "open-browser.ai"
+    },
+    {
+      "pattern": "*.open-browser.ai/*",
+      "zone_name": "open-browser.ai"
+    }
+  ],
   "assets": {
     "directory": "../web/dist/",
     "not_found_handling": "single-page-application",
