@@ -73,6 +73,11 @@ interface ModelInfo {
   providerName: string
 }
 
+// Maximum number of files to show when no search query
+const MAX_FILES_INITIAL = 50
+// Maximum number of files to show when searching
+const MAX_FILES_FILTERED = 100
+
 export function SpotlightComponent() {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -168,6 +173,29 @@ export function SpotlightComponent() {
 
     return modelList
   }, [providers])
+
+  // Limit files for performance - let cmdk handle filtering
+  const limitedFiles = useMemo(() => {
+    if (!availableFiles.length) return []
+    
+    const searchLower = search.toLowerCase().trim()
+    
+    // If no search query, return limited initial set
+    if (!searchLower) {
+      return availableFiles.slice(0, MAX_FILES_INITIAL)
+    }
+    
+    // When searching, pre-filter to reduce items cmdk needs to process
+    // This improves performance while still letting cmdk handle the final filtering
+    const filtered = availableFiles.filter((file) => {
+      const nameLower = file.name.toLowerCase()
+      const pathLower = file.path.toLowerCase()
+      return nameLower.includes(searchLower) || pathLower.includes(searchLower)
+    })
+    
+    // Limit filtered results
+    return filtered.slice(0, MAX_FILES_FILTERED)
+  }, [availableFiles, search])
 
   // Reset search and focus input when dialog opens
   useEffect(() => {
@@ -380,10 +408,13 @@ export function SpotlightComponent() {
 
                 <Command.Separator className="my-2 h-px bg-white/10" />
 
-                {availableFiles.length > 0 && (
+                {limitedFiles.length > 0 && (
                   <>
-                    <Command.Group heading="files" className="px-2 py-1.5 text-xs text-zinc-500">
-                      {availableFiles.map((file) => (
+                    <Command.Group 
+                      heading={`files${availableFiles.length > limitedFiles.length ? ` (showing ${limitedFiles.length} of ${availableFiles.length})` : ''}`} 
+                      className="px-2 py-1.5 text-xs text-zinc-500"
+                    >
+                      {limitedFiles.map((file) => (
                         <Command.Item
                           key={file.path}
                           value={`${file.name} ${file.path}`}
@@ -442,11 +473,14 @@ export function SpotlightComponent() {
             )}
 
             {currentPage === 'files' && (
-              <Command.Group heading="add context files" className="px-2 py-1.5 text-xs text-zinc-500">
-                {availableFiles.length === 0 ? (
+              <Command.Group 
+                heading={`add context files${availableFiles.length > limitedFiles.length ? ` (showing ${limitedFiles.length} of ${availableFiles.length})` : ''}`}
+                className="px-2 py-1.5 text-xs text-zinc-500"
+              >
+                {limitedFiles.length === 0 ? (
                   <div className="px-3 py-2 text-xs text-zinc-500">no files found</div>
                 ) : (
-                  availableFiles.map((file) => (
+                  limitedFiles.map((file) => (
                     <Command.Item
                       key={file.path}
                       value={`${file.name} ${file.path}`}
