@@ -59,7 +59,7 @@ export class SandboxManager extends DurableObject {
             case "cloudflare":
                 return new CloudflareSandbox(this.env);
             case "daytona":
-                return new DaytonaSandbox();
+                return new DaytonaSandbox(this.env);
             case "vercel":
                 return new VercelSandbox();
             case "docker":

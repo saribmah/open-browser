@@ -1,27 +1,28 @@
 import { Daytona, Sandbox as DaytonaSandboxInstance } from '@daytonaio/sdk';
 import type { SandboxConfig, SandboxSession, SandboxProviderInterface } from "./manager";
 
-const DAYTONA_IMAGE = "daytonaio/ai-sandbox:latest";
-const SERVER_PORT = 3097;
-
 export class DaytonaSandbox implements SandboxProviderInterface {
     private daytona: Daytona;
+    private readonly daytonaImage: string;
+    private readonly serverPort: number;
 
-    constructor() {
-        const apiKey = process.env.DAYTONA_API_KEY;
+    constructor(env: Cloudflare.Env) {
+        const apiKey = env.DAYTONA_API_KEY;
         if (!apiKey) {
             throw new Error('DAYTONA_API_KEY environment variable is not set');
         }
         this.daytona = new Daytona({ apiKey, target: 'us' });
+        this.daytonaImage = `${env.SANDBOX_IMAGE_NAME}:${env.DAYTONA_IMAGE_TAG}`;
+        this.serverPort = Number(env.SANDBOX_SERVER_PORT);
     }
 
     async create(config: SandboxConfig): Promise<SandboxSession> {
         const id = crypto.randomUUID();
-        
+
         try {
             // Create the Daytona container
             const container = await this.daytona.create({
-                snapshot: DAYTONA_IMAGE,
+                snapshot: this.daytonaImage,
                 autoStopInterval: 45,
                 autoDeleteInterval: 0,
                 public: true,
@@ -31,7 +32,7 @@ export class DaytonaSandbox implements SandboxProviderInterface {
             await this.startServer(container);
 
             // Get preview URL for the server port
-            const previewLink = await container.getPreviewLink(SERVER_PORT);
+            const previewLink = await container.getPreviewLink(this.serverPort);
             const serverUrl = previewLink.url;
 
             // Wait for server to be ready

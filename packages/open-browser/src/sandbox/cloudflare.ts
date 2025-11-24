@@ -1,13 +1,13 @@
 import { getSandbox, type Sandbox } from '@cloudflare/sandbox';
 import type { SandboxConfig, SandboxSession, SandboxProviderInterface } from "./manager";
 
-const SERVER_PORT = 4096;
-
 export class CloudflareSandbox implements SandboxProviderInterface {
     private env: Cloudflare.Env;
+    private readonly serverPort: number;
 
     constructor(env: Cloudflare.Env) {
         this.env = env;
+        this.serverPort = Number(env.SANDBOX_SERVER_PORT);
     }
 
     async create(config: SandboxConfig): Promise<SandboxSession> {
@@ -31,7 +31,7 @@ export class CloudflareSandbox implements SandboxProviderInterface {
 
             console.log("EXPOSING PORTS");
             // Expose the server port and get the preview URL
-            const portInfo = await container.exposePort(SERVER_PORT, {
+            const portInfo = await container.exposePort(this.serverPort, {
                 name: 'server',
                 hostname,
             });

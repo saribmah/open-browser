@@ -12,6 +12,12 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "vars": {
+    "API_HOST": "open-browser.com",
+    "SANDBOX_IMAGE_NAME": "open-browser-sandbox",
+    "SANDBOX_SERVER_PORT": "3097",
+    "DAYTONA_IMAGE_TAG": "0.1.0"
+  },
   "containers": [
     {
       "class_name": "CloudflareSandbox",
