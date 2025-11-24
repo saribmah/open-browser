@@ -3,6 +3,7 @@ import { Plus, FolderGit2, FileText, Folder } from "lucide-react"
 import { Sidebar } from "@/components/Sidebar"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
+import { Spinner } from "@/components/ui/spinner"
 import { useProjects, useGetAllProjects, useAddProject } from "@/features/project"
 import { FileTreeManager } from "@/features/filesystem/components/file-tree-manager.component"
 import { cn } from "@/lib/utils"
@@ -30,6 +31,7 @@ interface ChatSidebarProps {
 export function ChatSidebar({ onClose }: ChatSidebarProps = {}) {
   const [url, setUrl] = useState("")
   const [isAddingProject, setIsAddingProject] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Get project state and actions
   const projects = useProjects()
@@ -38,17 +40,22 @@ export function ChatSidebar({ onClose }: ChatSidebarProps = {}) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!url) return
+    if (!url || isSubmitting) return
 
-    const success = await addProject({
-      url,
-    })
+    setIsSubmitting(true)
+    try {
+      const success = await addProject({
+        url,
+      })
 
-    if (success) {
-      // Refresh projects list
-      getAllProjects()
-      setUrl("")
-      setIsAddingProject(false)
+      if (success) {
+        // Refresh projects list
+        getAllProjects()
+        setUrl("")
+        setIsAddingProject(false)
+      }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -101,19 +108,23 @@ export function ChatSidebar({ onClose }: ChatSidebarProps = {}) {
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://github.com/username/repo"
                     className="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50 font-mono"
+                    disabled={isSubmitting}
                   />
                   <div className="flex justify-end gap-2">
                     <button
                       type="button"
                       onClick={() => setIsAddingProject(false)}
                       className="px-2 py-1 text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
+                      disabled={isSubmitting}
                     >
                       Cancel
                     </button>
                     <Button
                       type="submit"
-                      className="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] rounded font-medium transition-colors h-auto"
+                      disabled={isSubmitting}
+                      className="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] rounded font-medium transition-colors h-auto disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                     >
+                      {isSubmitting && <Spinner className="size-3" />}
                       Clone Project
                     </Button>
                   </div>
