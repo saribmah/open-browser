@@ -104,6 +104,38 @@ export namespace File {
                 maxDepth
             });
 
+            // Check if directory exists
+            try {
+                const stats = await fs.stat(fullPath);
+                if (!stats.isDirectory()) {
+                    log.warn("Path is not a directory, returning empty tree", { fullPath });
+                    return {
+                        success: true,
+                        tree: {
+                            name: path.basename(fullPath),
+                            path: dirPath,
+                            type: "directory",
+                            children: []
+                        }
+                    };
+                }
+            } catch (error) {
+                // Directory doesn't exist, return empty tree
+                log.warn("Directory does not exist, returning empty tree", { 
+                    fullPath,
+                    error: (error as Error).message 
+                });
+                return {
+                    success: true,
+                    tree: {
+                        name: path.basename(fullPath),
+                        path: dirPath,
+                        type: "directory",
+                        children: []
+                    }
+                };
+            }
+
             // Build tree starting from depth -1 so the requested directory itself is at depth 0
             // This way its children will be included
             const tree = await buildTree(fullPath, ".", -1, maxDepth);

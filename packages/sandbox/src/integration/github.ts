@@ -24,9 +24,9 @@ export const GITHUB: Integration.Config = {
     },
     setup: async (opts) => {
         const { url, directory, metadata } = opts;
-        
-        log.info("Setting up GitHub repository", { 
-            url, 
+
+        log.info("Setting up GitHub repository", {
+            url,
             directory,
             owner: metadata?.owner,
             repo: metadata?.repo
@@ -35,13 +35,14 @@ export const GITHUB: Integration.Config = {
         try {
             // Clone repository with depth 1 (shallow clone)
             await $`git clone --depth 1 ${url} ${directory}`.quiet();
-            
-            log.info("GitHub repository cloned successfully", { 
+
+            log.info("GitHub repository cloned successfully", {
                 directory,
                 url
             });
         } catch (error: any) {
-            log.error("Failed to clone GitHub repository", { 
+            console.log(error)
+            log.error("Failed to clone GitHub repository", {
                 error: error.message,
                 url,
                 directory
@@ -51,8 +52,8 @@ export const GITHUB: Integration.Config = {
     },
     remove: async (opts) => {
         const { directory, metadata } = opts;
-        
-        log.info("Removing GitHub repository", { 
+
+        log.info("Removing GitHub repository", {
             directory,
             owner: metadata?.owner,
             repo: metadata?.repo
@@ -61,12 +62,12 @@ export const GITHUB: Integration.Config = {
         try {
             // Remove the directory
             await $`rm -rf ${directory}`.quiet();
-            
-            log.info("GitHub repository removed successfully", { 
+
+            log.info("GitHub repository removed successfully", {
                 directory
             });
         } catch (error: any) {
-            log.error("Failed to remove GitHub repository", { 
+            log.error("Failed to remove GitHub repository", {
                 error: error.message,
                 directory
             });

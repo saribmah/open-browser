@@ -16,7 +16,7 @@
     "API_HOST": "open-browser.com",
     "SANDBOX_IMAGE_NAME": "open-browser-sandbox",
     "SANDBOX_SERVER_PORT": "3097",
-    "DEFAULT_SANDBOX_PROVIDER": "daytona",
+    "DEFAULT_SANDBOX_PROVIDER": "local",
     "DAYTONA_IMAGE_TAG": "0.1.0"
   },
   "containers": [
