@@ -54,7 +54,7 @@ route.get(
             }
         ];
 
-        const DEFAULT_PROVIDER: SandboxProvider = "local";
+        const DEFAULT_PROVIDER: SandboxProvider = env.DEFAULT_SANDBOX_PROVIDER;
         return c.json({
             providers: PROVIDER_CONFIGS,
             defaultProvider: DEFAULT_PROVIDER
