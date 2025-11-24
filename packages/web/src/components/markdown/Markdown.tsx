@@ -1,11 +1,18 @@
 import { useEffect, useState, useMemo } from "react"
 import { Marked } from "marked"
 import markedShiki from "marked-shiki"
+import { bundledLanguages, type BundledLanguage } from "shiki"
+import { getSharedHighlighter } from "@pierre/precision-diffs"
+import {registerOpenbrowserTheme} from "@/components/theme.ts";
+
+registerOpenbrowserTheme();
 
 interface MarkdownProps {
   content: string
   className?: string
 }
+
+const highlighter = await getSharedHighlighter({ themes: ["OpenBrowser"], langs: [] })
 
 /**
  * Markdown component that renders markdown content with syntax highlighting
@@ -17,10 +24,24 @@ export function Markdown({ content, className = "" }: MarkdownProps) {
   // Create marked instance with shiki extension
   const marked = useMemo(() => {
     const markedInstance = new Marked()
-    
+
     // Use shiki extension for syntax highlighting
-    markedInstance.use(markedShiki())
-    
+    markedInstance.use(markedShiki({
+        async highlight(code, lang) {
+            if (!(lang in bundledLanguages)) {
+                lang = "text"
+            }
+            if (!highlighter.getLoadedLanguages().includes(lang)) {
+                await highlighter.loadLanguage(lang as BundledLanguage)
+            }
+            return highlighter.codeToHtml(code, {
+                lang: lang || "text",
+                theme: "OpenCode",
+                tabindex: false,
+            })
+        },
+    }))
+
     return markedInstance
   }, [])
 
