@@ -80,6 +80,24 @@ export function SessionContent() {
     lastScrollHeightRef.current = 0
   }, [activeSession?.id])
 
+  // Scroll to bottom on initial load when messages are first available
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container || isLoadingMessages || messages.length === 0) return
+
+    // Check if this is the first load (lastScrollHeightRef is 0)
+    if (lastScrollHeightRef.current === 0) {
+      // Use setTimeout to ensure DOM has updated with all messages
+      setTimeout(() => {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'auto' // instant scroll on initial load
+        })
+        lastScrollHeightRef.current = container.scrollHeight
+      }, 0)
+    }
+  }, [messages, isLoadingMessages])
+
   // Filter only user messages for the nav rail
   const userMessages = messages.filter(m => m.info.role === 'user')
 
