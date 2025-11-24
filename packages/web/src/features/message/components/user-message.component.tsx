@@ -39,7 +39,7 @@ export const UserMessage = memo(function UserMessage({
     const previewText = (summary && "title" in summary ? summary.title : null) || (firstTextPart && 'text' in firstTextPart ? firstTextPart.text : '')
 
   return (
-    <div className="group relative pl-16 min-w-0">
+    <div className="group relative pl-10 min-w-0">
       {/* Timeline dot indicator - pulsating dot like in mock design */}
       <div className="absolute top-[0.6em] z-10" style={{ left: '6px', transform: 'translate(-50%, -50%)' }}>
         <button
