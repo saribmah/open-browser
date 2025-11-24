@@ -14,6 +14,7 @@ export function useChatContext<T>(selector: (state: ChatStoreState) => T): T {
 
 // Action hooks
 export const useSendMessage = () => useChatContext(state => state.sendMessage)
+export const useMessageLoading = () => useChatContext(state => state.isLoading)
 export const useClearMessages = () => useChatContext(state => state.clearMessages)
 export const useSelectedAgent = () => useChatContext(state => state.selectedAgent)
 export const useSetSelectedAgent = () => useChatContext(state => state.setSelectedAgent)

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { Code } from "@/components/Code"
 import { useActiveSession } from "@/features/session"
 import { useMessages, useMessagesLoading, Message } from "@/features/message"
+import { useMessageLoading } from "@/features/chat/chat.context"
 import { Terminal, Loader2, ArrowDown } from "lucide-react"
 
 /**
@@ -13,6 +14,7 @@ export function SessionContent() {
   const activeSessionType = activeSession?.type
   const messages = useMessages()
   const isLoadingMessages = useMessagesLoading()
+  const isSendingMessage = useMessageLoading()
   const [collapsedMessages, setCollapsedMessages] = useState<Set<string>>(new Set())
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -267,8 +269,19 @@ export function SessionContent() {
                       onToggleCollapse={toggleMessageCollapse}
                     />
                   </div>
-                )
-              })}
+                  )
+                })}
+
+              {/* Loading indicator when sending message */}
+              {isSendingMessage && (
+                <div className="flex items-start gap-3 pl-8 pt-1.5">
+                  <div className="flex items-center gap-1 mt-0.6">
+                    <div className="w-2 h-2 rounded-full bg-zinc-600 animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-zinc-600 animate-pulse [animation-delay:200ms]" />
+                    <div className="w-2 h-2 rounded-full bg-zinc-600 animate-pulse [animation-delay:400ms]" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
