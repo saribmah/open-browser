@@ -39,8 +39,8 @@ export function SandboxCreatorComponent() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-white/5 rounded-full blur-[120px] -z-10 opacity-50 pointer-events-none" />
 
       <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent pb-4">
-        The web, <br />
-        <span className="text-white">open-ed by AI.</span>
+        Open the web<br />
+        <span className="text-white">to questions.</span>
       </h1>
 
       <p className="mt-6 text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed text-balance">
