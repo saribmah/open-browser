@@ -22,7 +22,7 @@ export const AssistantMessage = memo(function AssistantMessage({
     <div className="relative pl-16 space-y-4 min-w-0">
       {/* Timeline dot indicator for assistant - only show on first in sequence */}
       {showDot && (
-        <div className="absolute top-1 z-10" style={{ left: '6px', transform: 'translateX(-50%)' }}>
+        <div className="absolute top-[0.7em] z-10" style={{ left: '6px', transform: 'translate(-50%, -50%)' }}>
           <div className="h-3 w-3 rounded-full bg-zinc-600 border-2 border-zinc-950 ring-4 ring-zinc-950" />
         </div>
       )}
@@ -34,7 +34,7 @@ export const AssistantMessage = memo(function AssistantMessage({
           return (
             <div key={part.id || idx} className="relative group min-w-0">
               {/* Horizontal connector line from timeline to text content */}
-              <div className="absolute -left-[40px] top-3.5 w-[25px] h-px bg-zinc-800/50 group-hover:bg-zinc-700 transition-colors" />
+              <div className="absolute -left-[40px] top-[0.7em] w-[25px] h-px bg-zinc-800/50 group-hover:bg-zinc-700 transition-colors" />
               <Markdown content={part.text} className="text-zinc-300 text-sm leading-relaxed" />
             </div>
           )

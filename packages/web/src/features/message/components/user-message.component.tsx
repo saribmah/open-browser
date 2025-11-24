@@ -41,7 +41,7 @@ export const UserMessage = memo(function UserMessage({
   return (
     <div className="group relative pl-16 min-w-0">
       {/* Timeline dot indicator - pulsating dot like in mock design */}
-      <div className="absolute top-0 z-10" style={{ left: '6px', transform: 'translateX(-50%)' }}>
+      <div className="absolute top-[0.6em] z-10" style={{ left: '6px', transform: 'translate(-50%, -50%)' }}>
         <button
           onClick={() => onToggleCollapse(messageId)}
           className="relative flex items-center justify-center focus:outline-none"
@@ -80,7 +80,10 @@ export const UserMessage = memo(function UserMessage({
       ) : (
         <div className="flex flex-col gap-2 min-w-0">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-sm font-medium text-zinc-300 truncate">
+            <span
+              className="text-sm font-medium text-zinc-300 truncate cursor-pointer hover:text-zinc-100 transition-colors"
+              onClick={() => onToggleCollapse(messageId)}
+            >
               {previewText.split(" ").slice(0, 4).join(" ")}...
             </span>
             {timestamp && (
