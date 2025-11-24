@@ -16,14 +16,14 @@ export function ActivityLog() {
         .filter((part) => part.type === 'tool')
         .map((part) => part as ToolPart)
     )
-    // Sort by timestamp, most recent first
-    .sort((a, b) => {
-      const timeA = 'time' in a.state && a.state.time && 'start' in a.state.time ? a.state.time.start : 0
-      const timeB = 'time' in b.state && b.state.time && 'start' in b.state.time ? b.state.time.start : 0
-      return timeB - timeA
-    })
-    // Take the most recent 20
-    .slice(0, 20)
+    // // Sort by timestamp, most recent first
+    // .sort((a, b) => {
+    //   const timeA = 'time' in a.state && a.state.time && 'start' in a.state.time ? a.state.time.start : 0
+    //   const timeB = 'time' in b.state && b.state.time && 'start' in b.state.time ? b.state.time.start : 0
+    //   return timeB - timeA
+    // })
+    // // Take the most recent 20
+    // .slice(0, 20)
 
   return (
     <div className="w-80 border-l border-white/10 bg-black/30 backdrop-blur-sm flex flex-col">
