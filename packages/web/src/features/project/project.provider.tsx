@@ -3,6 +3,15 @@ import { ProjectContext } from "./project.context"
 import { createProjectStore, type ProjectStore } from "./project.store"
 import { useSandboxContext } from "@/features/sandbox/sandbox.context"
 import { useInstanceContext } from "@/features/instance/instance.context"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import { Spinner } from "@/components/ui/spinner"
 
 type ProjectProviderProps = React.PropsWithChildren
 
@@ -25,7 +34,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
     const addProjectFromMetadata = async () => {
       // Only run once
       if (projectAddedRef.current) return
-      
+
       // Check if all required conditions are met
       if (!instanceInitialized || !sandboxClient || !sandbox?.metadata) {
         return
@@ -67,15 +76,18 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   if (isAddingProject) {
     return (
       <ProjectContext.Provider value={storeRef.current}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          height: '100vh',
-          fontSize: '14px',
-          color: '#666'
-        }}>
-          Loading project...
+        <div className="flex items-center justify-center h-screen">
+          <Empty className="w-full border-none">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Spinner className="size-6" />
+              </EmptyMedia>
+              <EmptyTitle>Cloning project</EmptyTitle>
+              <EmptyDescription>
+                Please wait while we clone your project. This may take a few moments.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         </div>
       </ProjectContext.Provider>
     )
