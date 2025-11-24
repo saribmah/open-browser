@@ -19,7 +19,7 @@ export const AssistantMessage = memo(function AssistantMessage({
   const { parts } = message
 
   return (
-    <div className="relative pl-16 space-y-4 min-w-0">
+    <div className="relative pl-16 space-y-2 min-w-0">
       {/* Timeline dot indicator for assistant - only show on first in sequence */}
       {showDot && (
         <div className="absolute top-[0.7em] z-10" style={{ left: '6px', transform: 'translate(-50%, -50%)' }}>
