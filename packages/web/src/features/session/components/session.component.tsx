@@ -142,7 +142,20 @@ export function SessionContent() {
               {messages.map((message, idx) => {
                 const messageId = message.info.id || idx.toString()
                 const isCollapsed = collapsedMessages.has(messageId)
-                const prevMessageId = messages[idx - 1]?.info.id || (idx - 1).toString()
+                
+                // For assistant messages, check if we're in a collapsed thread
+                // Walk backwards to find the most recent user message
+                let isInCollapsedThread = false
+                if (message?.info?.role === 'assistant') {
+                  for (let i = idx - 1; i >= 0; i--) {
+                    const prevMsg = messages[i]
+                    if (prevMsg?.info?.role === 'user') {
+                      const userMsgId = prevMsg.info.id || i.toString()
+                      isInCollapsedThread = collapsedMessages.has(userMsgId)
+                      break
+                    }
+                  }
+                }
                 
                 return (
                   <div 
@@ -156,7 +169,7 @@ export function SessionContent() {
                       index={idx}
                       nextMessage={messages[idx + 1]}
                       prevMessage={messages[idx - 1]}
-                      isCollapsed={collapsedMessages.has(prevMessageId)}
+                      isCollapsed={message?.info?.role === 'user' ? isCollapsed : isInCollapsedThread}
                       onToggleCollapse={toggleMessageCollapse}
                     />
                   </div>

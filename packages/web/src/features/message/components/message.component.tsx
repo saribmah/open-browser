@@ -25,11 +25,10 @@ export const Message = memo(function Message({
 }: MessageProps) {
   const { info } = message
   
-  // Check visibility states
-  const shouldHideAssistant = 
-    info.role === 'assistant' && 
-    prevMessage?.info.role === 'user' && 
-    isCollapsed
+  // Check if this assistant message is part of a collapsed thread
+  // We need to hide ALL assistant messages after a collapsed user message
+  // until we hit the next user message
+  const shouldHideAssistant = info.role === 'assistant' && isCollapsed
   
   if (shouldHideAssistant) return null
   
