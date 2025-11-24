@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useEffect } from "react"
 import { useInstanceContext } from "@/features/instance"
 import { useOpenSpotlight } from "@/features/spotlight/spotlight.context"
 import type { Model } from "@/features/chat/chat.store"
@@ -52,7 +52,11 @@ export function ModelSelector({
       const configModel = (sdkConfig as any).model
       if (configModel && typeof configModel === "string") {
         // Find the model in our list by ID
-        return models.find((m) => m.id === configModel)
+        const foundModel = models.find((m) => m.id === configModel)
+        // Only use config model if it exists in the available models
+        if (foundModel) {
+          return foundModel
+        }
       }
     }
 
@@ -61,7 +65,7 @@ export function ModelSelector({
   }, [sdkConfig, models])
 
   // Get current model (use selected, then default)
-  const currentModel = selectedModel 
+  const currentModel = selectedModel
     ? models.find((m) => m.id === selectedModel.modelID && m.providerId === selectedModel.providerID)
     : defaultModel
 
