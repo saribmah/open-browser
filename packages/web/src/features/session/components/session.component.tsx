@@ -1,3 +1,4 @@
+import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Code } from "@/components/Code"
 import { useActiveSession } from "@/features/session"
@@ -224,7 +225,11 @@ export function SessionContent() {
               <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <div className="mb-2">No messages yet. Start a conversation!</div>
               <div className="text-xs text-zinc-600">
-                Press <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400">⌘K</kbd> to explore
+                Press <KbdGroup>
+                  <Kbd>⌘</Kbd>
+                  <span>+</span>
+                  <Kbd>k</Kbd>
+              </KbdGroup> to explore
               </div>
             </div>
           </div>
