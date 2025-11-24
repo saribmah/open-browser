@@ -1,0 +1,23 @@
+{
+  "name": "open-browser",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "generate:openapi": "bun run scripts/openapi.ts",
+    "generate:client": "bun run scripts/generate.ts",
+    "generate": "bun run generate:openapi && bun run generate:client"
+  },
+  "dependencies": {
+    "@cloudflare/sandbox": "^0.5.1",
+    "@daytonaio/sdk": "^0.115.2",
+    "hono": "^4.10.6",
+    "hono-openapi": "^1.1.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.88.0",
+    "wrangler": "^4.4.0"
+  }
+}

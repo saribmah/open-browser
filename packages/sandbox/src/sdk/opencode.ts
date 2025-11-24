@@ -1,0 +1,431 @@
+import { createOpencode, createOpencodeServer } from "@opencode-ai/sdk";
+import { Log } from "../util/log";
+
+const log = Log.create({ service: "opencode-sdk" });
+
+// Store active OpenCode instances by directory
+const instances = new Map<string, Awaited<ReturnType<typeof createOpencode>>>();
+
+/**
+ * OpenCode SDK configuration
+ */
+export const OPENCODE = {
+    type: "OPENCODE" as const,
+    name: "OpenCode",
+    setup: async (opts: { directory: string; metadata?: Record<string, any> }) => {
+        const { directory, metadata } = opts;
+
+        log.info("Setting up OpenCode SDK", {
+            directory,
+            metadata
+        });
+
+        try {
+            // Check if instance already exists for this directory
+            if (instances.has(directory)) {
+                log.info("OpenCode SDK instance already exists for directory", { directory });
+                return;
+            }
+
+            // Create OpenCode instance with server + client
+            const opencode = await createOpencode({
+                hostname: metadata?.hostname || "127.0.0.1",
+                port: metadata?.port || 4096,
+                config: {
+                    model: metadata?.model || "anthropic/claude-3-5-sonnet-20241022",
+                    ...(metadata?.config || {})
+                },
+            });
+
+            // Store the instance
+            instances.set(directory, opencode);
+
+            log.info("OpenCode SDK setup completed", {
+                directory,
+                serverUrl: opencode.server.url,
+                port: metadata?.port || 4096
+            });
+        } catch (error: any) {
+            log.error("Failed to setup OpenCode SDK", {
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to setup OpenCode SDK: ${error.message}`);
+        }
+    },
+    remove: async (opts: { directory: string; metadata?: Record<string, any> }) => {
+        const { directory, metadata } = opts;
+
+        log.info("Removing OpenCode SDK", {
+            directory,
+            metadata
+        });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (opencode) {
+                // Close the server
+                opencode.server.close();
+
+                // Remove from instances map
+                instances.delete(directory);
+
+                log.info("OpenCode SDK removed successfully", {
+                    directory
+                });
+            } else {
+                log.warn("No OpenCode SDK instance found for directory", { directory });
+            }
+        } catch (error: any) {
+            log.error("Failed to remove OpenCode SDK", {
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to remove OpenCode SDK: ${error.message}`);
+        }
+    },
+    getSessions: async (opts: { directory: string }) => {
+        const { directory } = opts;
+
+        log.info("Getting sessions from OpenCode SDK", { directory });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Get sessions using the OpenCode client
+            const response = await opencode.client.session.list();
+
+            if (!response.data) {
+                log.warn("No session data returned from OpenCode SDK", { directory });
+                return [];
+            }
+
+            log.info("Sessions retrieved successfully", {
+                directory,
+                count: response.data.length
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to get sessions from OpenCode SDK", {
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to get sessions: ${error.message}`);
+        }
+    },
+    createSession: async (opts: { directory: string }) => {
+        const { directory } = opts;
+
+        log.info("Creating session in OpenCode SDK", { directory });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Create session using the OpenCode client
+            const response = await opencode.client.session.create({
+                body: {}
+            });
+
+            if (!response.data) {
+                log.error("No session data returned from OpenCode SDK", { directory });
+                throw new Error("Failed to create session: No data returned");
+            }
+
+            log.info("Session created successfully", {
+                directory,
+                sessionId: response.data.id
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to create session in OpenCode SDK", {
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to create session: ${error.message}`);
+        }
+    },
+    getConfig: async (opts: { directory: string }) => {
+        const { directory } = opts;
+
+        log.info("Getting config from OpenCode SDK", { directory });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Get config using the OpenCode client
+            const response = await opencode.client.config.get();
+
+            if (!response.data) {
+                log.error("No config data returned from OpenCode SDK", { directory });
+                throw new Error("Failed to get config: No data returned");
+            }
+
+            log.info("Config retrieved successfully", {
+                directory
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to get config from OpenCode SDK", {
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to get config: ${error.message}`);
+        }
+    },
+    getAgent: async (opts: { directory: string }) => {
+        const { directory } = opts;
+
+        log.info("Getting agents from OpenCode SDK", { directory });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Get agents using the OpenCode client
+            const response = await opencode.client.app.agents();
+
+            if (!response.data) {
+                log.error("No agent data returned from OpenCode SDK", { directory });
+                throw new Error("Failed to get agents: No data returned");
+            }
+
+            log.info("Agents retrieved successfully", {
+                directory,
+                agentsCount: Array.isArray(response.data) ? response.data.length : 0
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to get agents from OpenCode SDK", {
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to get agents: ${error.message}`);
+        }
+    },
+    getProviders: async (opts: { directory: string }) => {
+        const { directory } = opts;
+
+        log.info("Getting providers from OpenCode SDK", { directory });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Get providers using the OpenCode client
+            const response = await opencode.client.config.providers();
+
+            if (!response.data) {
+                log.error("No provider data returned from OpenCode SDK", { directory });
+                throw new Error("Failed to get providers: No data returned");
+            }
+
+            log.info("Providers retrieved successfully", {
+                directory,
+                providersCount: response.data.providers?.length || 0
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to get providers from OpenCode SDK", {
+                error: error.message,
+                directory
+            });
+            throw new Error(`Failed to get providers: ${error.message}`);
+        }
+    },
+    getMessages: async (opts: { directory: string; sessionId: string }) => {
+        const { directory, sessionId } = opts;
+
+        log.info("Getting messages from OpenCode SDK", { directory, sessionId });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Get messages using the OpenCode client
+            const response = await opencode.client.session.messages({
+                path: { id: sessionId }
+            });
+
+            if (!response.data) {
+                log.warn("No message data returned from OpenCode SDK", { directory, sessionId });
+                return [];
+            }
+
+            // Log first message structure for debugging
+            if (response.data.length > 0) {
+                log.info("Message structure (first message)", {
+                    directory,
+                    sessionId,
+                    firstMessage: JSON.stringify(response.data[0], null, 2)
+                });
+            }
+
+            log.info("Messages retrieved successfully", {
+                directory,
+                sessionId,
+                count: response.data.length
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to get messages from OpenCode SDK", {
+                error: error.message,
+                directory,
+                sessionId
+            });
+            throw new Error(`Failed to get messages: ${error.message}`);
+        }
+    },
+    sendMessage: async (opts: { directory: string; sessionId: string; request: any }) => {
+        const { directory, sessionId, request } = opts;
+
+        log.info("Sending message to OpenCode SDK", { directory, sessionId, request });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Send message using the OpenCode client
+            const response = await opencode.client.session.prompt({
+                path: { id: sessionId },
+                body: request
+            });
+
+            if (!response.data) {
+                log.error("No message data returned from OpenCode SDK", { directory, sessionId });
+                throw new Error("Failed to send message: No data returned");
+            }
+
+            log.info("Message sent successfully", {
+                directory,
+                sessionId,
+                messageId: response.data.info.id
+            });
+
+            return response.data;
+        } catch (error: any) {
+            log.error("Failed to send message to OpenCode SDK", {
+                error: error.message,
+                directory,
+                sessionId
+            });
+            throw new Error(`Failed to send message: ${error.message}`);
+        }
+    },
+    streamMessage: async (opts: { directory: string; sessionId: string; request: any; sse: any }) => {
+        const { directory, sessionId, request, sse } = opts;
+
+        log.info("Streaming message to OpenCode SDK", { directory, sessionId, request });
+
+        try {
+            // Get the instance
+            const opencode = instances.get(directory);
+
+            if (!opencode) {
+                log.error("No OpenCode SDK instance found for directory", { directory });
+                throw new Error(`No OpenCode SDK instance found for directory: ${directory}`);
+            }
+
+            // Subscribe to events first
+            const events = await opencode.client.event.subscribe();
+
+            // Start listening to events in the background
+            const eventListener = (async () => {
+                try {
+                    for await (const event of events.stream) {
+                        // Stream all events back to the client
+                        await sse.write(event.type, event.properties);
+
+                        log.info("Event streamed", {
+                            type: event.type,
+                            sessionId,
+                        });
+                    }
+                } catch (error: any) {
+                    log.error("Event stream error", { error: error.message });
+                }
+            })();
+
+            // Send the message (this triggers events)
+            const response = await opencode.client.session.prompt({
+                path: { id: sessionId },
+                body: request
+            });
+
+            if (!response.data) {
+                throw new Error("Failed to send message: No data returned");
+            }
+
+            log.info("Message sent successfully", {
+                directory,
+                sessionId,
+                messageId: response.data.info.id
+            });
+
+            // Wait a bit for any remaining events
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Send final message data
+            await sse.write("message.completed", response.data);
+        } catch (error: any) {
+            log.error("Failed to stream message to OpenCode SDK", {
+                error: error.message,
+                directory,
+                sessionId
+            });
+            throw error;
+        }
+    }
+};
+
+/**
+ * Get OpenCode instance for a directory
+ */
+export function getOpencodeInstance(directory: string) {
+    return instances.get(directory);
+}

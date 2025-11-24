@@ -3,6 +3,9 @@
   "type": "module",
   "private": true,
   "workspaces": ["packages/*"],
+  "scripts": {
+    "generate": "bun run --filter '*' generate"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

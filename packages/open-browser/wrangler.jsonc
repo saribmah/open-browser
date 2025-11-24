@@ -1,0 +1,88 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "open-browser",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-11-21",
+  "routes": [
+    {
+      "pattern": "open-browser.ai/*",
+      "zone_name": "open-browser.ai"
+    },
+    {
+      "pattern": "*.open-browser.ai/*",
+      "zone_name": "open-browser.ai"
+    }
+  ],
+  "assets": {
+    "directory": "../web/dist/",
+    "not_found_handling": "single-page-application",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "!/api/docs/*"]
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "HOSTNAME": "open-browser.com",
+    "API_HOST": "open-browser.com",
+    "SANDBOX_IMAGE_NAME": "open-browser-sandbox",
+    "SANDBOX_SERVER_PORT": "3097",
+    "DEFAULT_SANDBOX_PROVIDER": "daytona",
+    "DAYTONA_IMAGE_TAG": "0.3.0"
+  },
+  "containers": [
+    {
+      "class_name": "CloudflareSandbox",
+      "image": "../sandbox/Cloudflare.Dockerfile",
+      "instance_type": "lite",
+      "max_instances": 0
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "CloudflareSandbox",
+        "name": "CLOUDFLARE_SANDBOX"
+      },
+      {
+        "class_name": "SandboxManager",
+        "name": "SANDBOX_MANAGER"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "new_sqlite_classes": ["SandboxManager", "CloudflareSandbox"],
+      "tag": "v1"
+    }
+  ]
+  // "vars": {
+  //   "MY_VAR": "my-variable"
+  // },
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "MY_KV_NAMESPACE",
+  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  //   }
+  // ],
+  // "r2_buckets": [
+  //   {
+  //     "binding": "MY_BUCKET",
+  //     "bucket_name": "my-bucket"
+  //   }
+  // ],
+  // "d1_databases": [
+  //   {
+  //     "binding": "MY_DB",
+  //     "database_name": "my-database",
+  //     "database_id": ""
+  //   }
+  // ],
+  // "ai": {
+  //   "binding": "AI"
+  // },
+  // "observability": {
+  //   "enabled": true,
+  //   "head_sampling_rate": 1
+  // }
+}
