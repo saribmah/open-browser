@@ -1,30 +1,37 @@
-import { useNavigate } from "react-router"
+import { useNavigate, useSearchParams } from "react-router"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Search, Loader2 } from "lucide-react"
-import type { FormEvent } from "react"
+import { useEffect, useRef, type FormEvent } from "react"
 import {
   useSandboxUrl,
   useSandboxIsCreating,
   useSandboxError,
+  useSandboxConfig,
+  useSandboxIsLoadingConfig,
   useSetSandboxUrl,
   useCreateSandbox,
 } from "../sandbox-creator.context"
 
 export function SandboxCreatorComponent() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const hasTriggeredRef = useRef(false)
+  const hasSetUrlRef = useRef(false)
 
   // Get state from store
   const url = useSandboxUrl()
   const isCreating = useSandboxIsCreating()
   const error = useSandboxError()
+  const config = useSandboxConfig()
+  const isLoadingConfig = useSandboxIsLoadingConfig()
 
   // Get actions from store
   const setUrl = useSetSandboxUrl()
   const createSandbox = useCreateSandbox()
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault()
     if (!url) return
 
     const result = await createSandbox(url)
@@ -33,6 +40,23 @@ export function SandboxCreatorComponent() {
       navigate(`/chat/${result.sandboxId}`)
     }
   }
+
+  // Handle openurl query parameter - set URL first
+  useEffect(() => {
+    const urlParam = searchParams.get("openurl")
+    if (urlParam && !hasSetUrlRef.current) {
+      hasSetUrlRef.current = true
+      setUrl(urlParam)
+    }
+  }, [searchParams, setUrl])
+
+  // Auto-submit when URL is set from query param AND config is loaded
+  useEffect(() => {
+    if (hasSetUrlRef.current && !hasTriggeredRef.current && url && !isCreating && !isLoadingConfig && config) {
+      hasTriggeredRef.current = true
+      handleSubmit()
+    }
+  }, [url, isCreating, isLoadingConfig, config])
 
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4 w-full max-w-6xl mx-auto text-center">
@@ -76,7 +100,7 @@ export function SandboxCreatorComponent() {
           <span>Try:</span>
           <button
             type="button"
-            onClick={() => setUrl("https://github.com/vercel/next.js")}
+            onClick={() => setUrl("https://github.com/colinhacks/zod")}
             className="hover:text-white transition-colors underline decoration-zinc-700 underline-offset-2"
           >
             github.com/vercel/next.js

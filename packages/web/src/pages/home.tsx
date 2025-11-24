@@ -1,6 +1,8 @@
 import { useEffect } from "react"
-import { SandboxCreatorComponent, useLoadSandboxConfig } from "@/features/sandbox-creator"
-import { DemoSection } from "@/components/DemoSection"
+import {
+  SandboxCreatorComponent,
+  useLoadSandboxConfig,
+} from "@/features/sandbox-creator"
 
 export default function HomePage() {
   const loadConfig = useLoadSandboxConfig()
