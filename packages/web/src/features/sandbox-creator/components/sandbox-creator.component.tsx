@@ -13,12 +13,12 @@ import {
 
 export function SandboxCreatorComponent() {
   const navigate = useNavigate()
-  
+
   // Get state from store
   const url = useSandboxUrl()
   const isCreating = useSandboxIsCreating()
   const error = useSandboxError()
-  
+
   // Get actions from store
   const setUrl = useSetSandboxUrl()
   const createSandbox = useCreateSandbox()
@@ -28,7 +28,7 @@ export function SandboxCreatorComponent() {
     if (!url) return
 
     const result = await createSandbox(url)
-    
+
     if (result.success && result.sandboxId) {
       navigate(`/chat/${result.sandboxId}`)
     }
@@ -83,10 +83,11 @@ export function SandboxCreatorComponent() {
           </button>
           <button
             type="button"
+            disabled={true}
             onClick={() => setUrl("https://arxiv.org/abs/1706.03762")}
             className="hover:text-white transition-colors underline decoration-zinc-700 underline-offset-2"
           >
-            arxiv.org/abs/1706.03762
+            arxiv.org/abs/1706.03762 (coming soon)
           </button>
         </div>
       </div>
