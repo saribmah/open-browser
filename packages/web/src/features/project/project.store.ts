@@ -107,7 +107,17 @@ export const createProjectStore = () => {
             }
 
             const data = result.data as PostInstanceProjectAddResponses[200]
-            set({ isLoading: false })
+            
+            // Add the new project to local state if successful
+            if (data?.success && data.project) {
+              set((state) => ({
+                projects: [...state.projects, data.project!],
+                isLoading: false,
+              }))
+            } else {
+              set({ isLoading: false })
+            }
+            
             return data?.success || false
           } catch (err: any) {
             set({
