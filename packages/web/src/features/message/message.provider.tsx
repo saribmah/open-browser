@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import React, { useEffect, useRef } from "react"
 import { MessageContext } from "./message.context"
 import { createMessageStore, type MessageStore } from "./message.store"
 import { useSessionSandboxClient } from "@/features/session"
@@ -9,13 +9,17 @@ interface MessageProviderProps extends React.PropsWithChildren {
 
 export const MessageProvider = ({ sessionId, children }: MessageProviderProps) => {
   const sandboxClient = useSessionSandboxClient()
+  const storeRef = useRef<MessageStore | null>(null)
+  const currentSessionIdRef = useRef<string>(sessionId)
   
-  // Create a new store whenever sessionId changes
-  // useMemo ensures we don't create unnecessary stores on every render
-  const store = useMemo<MessageStore>(() => {
+  // Create a new store only when sessionId changes
+  if (!storeRef.current || currentSessionIdRef.current !== sessionId) {
     console.log(`[Message Provider] Creating store for session: ${sessionId}`)
-    return createMessageStore(sessionId)
-  }, [sessionId])
+    storeRef.current = createMessageStore(sessionId)
+    currentSessionIdRef.current = sessionId
+  }
+  
+  const store = storeRef.current
 
   // Set sandbox client and fetch messages when client or store changes
   useEffect(() => {

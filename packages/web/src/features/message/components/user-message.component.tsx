@@ -1,3 +1,4 @@
+import { memo } from "react"
 import { Minimize2, Maximize2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { MessageWithParts } from "@/client/sandbox"
@@ -15,7 +16,7 @@ interface UserMessageProps {
 /**
  * User message component with collapsible functionality
  */
-export function UserMessage({
+export const UserMessage = memo(function UserMessage({
   message,
   index,
   isCollapsed,
@@ -109,4 +110,4 @@ export function UserMessage({
       )}
     </div>
   )
-}
+})

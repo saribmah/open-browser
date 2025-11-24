@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Code } from "@/components/Code"
 import { useActiveSession } from "@/features/session"
 import { useMessages, useMessagesLoading, Message } from "@/features/message"
@@ -17,7 +17,7 @@ export function SessionContent() {
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-  const toggleMessageCollapse = (messageId: string) => {
+  const toggleMessageCollapse = useCallback((messageId: string) => {
     setCollapsedMessages((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(messageId)) {
@@ -27,7 +27,7 @@ export function SessionContent() {
       }
       return newSet
     })
-  }
+  }, [])
 
   // Filter only user messages for the nav rail
   const userMessages = messages.filter(m => m.info.role === 'user')
@@ -58,12 +58,12 @@ export function SessionContent() {
     return () => observer.disconnect()
   }, [messages])
 
-  const scrollToMessage = (id: string) => {
+  const scrollToMessage = useCallback((id: string) => {
     const el = document.getElementById(`msg-${id}`)
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-  }
+  }, [])
 
   if (activeSession?.type === "file" && activeSession.fileContent) {
     // File viewer

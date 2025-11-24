@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, memo } from "react"
 import { FileText, ChevronRight, CheckCircle2, Loader2, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Code } from "@/components/Code"
@@ -19,7 +19,7 @@ function getFilename(filePath: string): string {
 /**
  * Read tool component that displays file read information
  */
-export function ReadTool({ tool }: ReadToolProps) {
+export const ReadTool = memo(function ReadTool({ tool }: ReadToolProps) {
   const { state } = tool
   const [isExpanded, setIsExpanded] = useState(tool.state.status === 'running')
 
@@ -108,4 +108,4 @@ export function ReadTool({ tool }: ReadToolProps) {
       </div>
     </div>
   )
-}
+})

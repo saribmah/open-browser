@@ -1,3 +1,4 @@
+import { memo } from "react"
 import type { ToolPart } from "@/client/sandbox"
 import { EditTool, WriteTool, ReadTool, BashTool, GlobTool, GrepTool, ListTool, TodoWriteTool, TaskTool, WebfetchTool } from "@/features/tool"
 import { FileCode, Terminal, FilePlus, Circle } from "lucide-react"
@@ -80,7 +81,7 @@ function PendingTool({ tool }: ToolProps) {
 /**
  * Tool component that renders different tool types
  */
-export function Tool({ tool }: ToolProps) {
+export const Tool = memo(function Tool({ tool }: ToolProps) {
   // Show generic pending state for pending tools
   if (tool.state.status === 'pending') {
     return <PendingTool tool={tool} />
@@ -121,4 +122,4 @@ export function Tool({ tool }: ToolProps) {
 
   // For other tool types, return null for now
   return null
-}
+})

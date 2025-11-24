@@ -1,3 +1,4 @@
+import { memo } from "react"
 import type { MessageWithParts } from "@/client/sandbox"
 import { Tool } from "@/features/tool"
 import { Markdown } from "@/components/markdown"
@@ -11,7 +12,7 @@ interface AssistantMessageProps {
 /**
  * Assistant message component with file changes display
  */
-export function AssistantMessage({
+export const AssistantMessage = memo(function AssistantMessage({
   message,
   showDot = true,
 }: AssistantMessageProps) {
@@ -48,4 +49,4 @@ export function AssistantMessage({
       })}
     </div>
   )
-}
+})

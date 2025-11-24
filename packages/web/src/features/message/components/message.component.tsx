@@ -1,3 +1,4 @@
+import { memo } from "react"
 import type { MessageWithParts } from "@/client/sandbox"
 import { UserMessage } from "./user-message.component"
 import { AssistantMessage } from "./assistant-message.component"
@@ -14,7 +15,7 @@ interface MessageProps {
 /**
  * Message component that renders either a user or assistant message
  */
-export function Message({
+export const Message = memo(function Message({
   message,
   index,
   nextMessage,
@@ -62,4 +63,4 @@ export function Message({
       )}
     </div>
   )
-}
+})
