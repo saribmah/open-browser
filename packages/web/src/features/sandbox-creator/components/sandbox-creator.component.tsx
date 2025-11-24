@@ -103,7 +103,7 @@ export function SandboxCreatorComponent() {
             onClick={() => setUrl("https://github.com/colinhacks/zod")}
             className="hover:text-white transition-colors underline decoration-zinc-700 underline-offset-2"
           >
-            github.com/vercel/next.js
+            github.com/colinhacks/zod
           </button>
           <button
             type="button"
