@@ -163,4 +163,51 @@ route.get(
     },
 );
 
+// GET /file/raw - Get raw file content (for binary files like PDFs)
+route.get(
+    "/raw",
+    describeRoute({
+        description: 'Get Raw File Content',
+        responses: {
+            200: {
+                description: 'Raw file content retrieved successfully',
+                content: {
+                    'application/octet-stream': {
+                        schema: {
+                            type: 'string',
+                            format: 'binary'
+                        }
+                    },
+                },
+            },
+            400: {
+                description: 'Bad request',
+                content: {
+                    'application/json': { schema: resolver(ErrorSchema) },
+                },
+            },
+        },
+    }),
+    validator('query', ReadQuerySchema),
+    async (c) => {
+        const { path } = c.req.valid('query');
+        const result = await File.raw(path);
+
+        if (!result.success || !result.buffer) {
+            return c.json({
+                error: result.error || "Failed to read file"
+            }, 400);
+        }
+
+        // Set appropriate headers and return raw binary content
+        c.header('Content-Type', result.mimeType || 'application/octet-stream');
+        c.header('Content-Length', result.buffer.length.toString());
+        c.header('Content-Disposition', `inline; filename="${path.split('/').pop()}"`);
+        
+        return new Response(result.buffer, {
+            headers: c.res.headers
+        });
+    },
+);
+
 export { route as fileRoutes };

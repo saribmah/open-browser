@@ -26,7 +26,7 @@ export function ActivityLog() {
     // .slice(0, 20)
 
   return (
-    <div className="w-80 border-l border-white/10 bg-black/30 backdrop-blur-sm flex flex-col">
+    <div className="w-80 h-full border-l border-white/10 bg-black/30 backdrop-blur-sm flex flex-col">
       {/* Header */}
       <div className="h-12 border-b border-white/10 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">

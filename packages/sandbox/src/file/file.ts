@@ -274,4 +274,85 @@ export namespace File {
             };
         }
     }
+
+    /**
+     * Get raw file buffer for binary files (like PDFs)
+     */
+    export async function raw(filePath: string): Promise<{ success: boolean; buffer?: Buffer; mimeType?: string; error?: string }> {
+        log.info("Getting raw file", { filePath });
+
+        try {
+            // Get instance directory
+            const basePath = Instance.getDirectory();
+            const fullPath = path.join(basePath, filePath);
+
+            log.info("Reading raw file", {
+                basePath,
+                fullPath
+            });
+
+            // Check if file exists
+            try {
+                const stats = await fs.stat(fullPath);
+                if (!stats.isFile()) {
+                    return {
+                        success: false,
+                        error: `Path is not a file: ${filePath}`
+                    };
+                }
+            } catch {
+                return {
+                    success: false,
+                    error: `File not found: ${filePath}`
+                };
+            }
+
+            // Read file as buffer
+            const buffer = await fs.readFile(fullPath);
+
+            // Determine MIME type based on extension
+            const ext = path.extname(filePath).toLowerCase();
+            const mimeTypes: Record<string, string> = {
+                '.pdf': 'application/pdf',
+                '.png': 'image/png',
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.gif': 'image/gif',
+                '.svg': 'image/svg+xml',
+                '.webp': 'image/webp',
+                '.mp4': 'video/mp4',
+                '.webm': 'video/webm',
+                '.mp3': 'audio/mpeg',
+                '.wav': 'audio/wav',
+                '.json': 'application/json',
+                '.xml': 'application/xml',
+                '.zip': 'application/zip',
+                '.txt': 'text/plain',
+                '.html': 'text/html',
+                '.css': 'text/css',
+                '.js': 'application/javascript',
+            };
+            const mimeType = mimeTypes[ext] || 'application/octet-stream';
+
+            log.info("Raw file read successfully", {
+                size: buffer.length,
+                mimeType
+            });
+
+            return {
+                success: true,
+                buffer,
+                mimeType
+            };
+        } catch (error: any) {
+            log.error("Failed to read raw file", {
+                error: error.message,
+                filePath
+            });
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
 }

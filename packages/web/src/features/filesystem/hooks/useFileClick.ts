@@ -10,6 +10,15 @@ import {
 import { useReadFile, useCurrentFile } from "@/features/filesystem"
 
 /**
+ * Check if a file is a binary file that shouldn't be read as text
+ */
+function isBinaryFile(filePath: string): boolean {
+  const binaryExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.mp4', '.webm', '.mp3', '.wav', '.zip']
+  const ext = filePath.toLowerCase().slice(filePath.lastIndexOf('.'))
+  return binaryExtensions.includes(ext)
+}
+
+/**
  * Hook to handle file click functionality
  * Manages file tab creation, loading state, and content fetching
  */
@@ -52,7 +61,20 @@ export function useFileClick() {
       return
     }
 
-    // Create tab with loading state
+    // For binary files (like PDFs), don't try to read content - they'll be served via /file/raw
+    if (isBinaryFile(filePath)) {
+      const newSession: UISession = {
+        id: filePath,
+        title: file.name,
+        type: "file",
+        fileContent: undefined, // No content for binary files
+        filePath: filePath,
+      }
+      addSession(newSession)
+      return
+    }
+
+    // Create tab with loading state for text files
     const newSession: UISession = {
       id: filePath,
       title: file.name,

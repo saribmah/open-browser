@@ -4,7 +4,16 @@ import { Code } from "@/components/Code"
 import { useActiveSession } from "@/features/session"
 import { useMessages, useMessagesLoading, Message } from "@/features/message"
 import { useMessageLoading } from "@/features/chat/chat.context"
-import { Terminal, Loader2, ArrowDown } from "lucide-react"
+import { useSandboxContext } from "@/features/sandbox"
+import { Terminal, Loader2, ArrowDown, FileText } from "lucide-react"
+
+/**
+ * Check if a file path is a PDF
+ */
+function isPdfFile(filePath: string | undefined): boolean {
+  if (!filePath) return false
+  return filePath.toLowerCase().endsWith('.pdf')
+}
 
 /**
  * Session content component
@@ -148,18 +157,61 @@ export function SessionContent() {
     setShouldAutoScroll(true)
   }, [])
 
-  if (activeSession?.type === "file" && activeSession.fileContent) {
-    // File viewer
-    return (
-        <div className="pb-48">
-            <Code
-                file={{
-                    name: activeSession.title || activeSession.filePath || "Untitled",
-                    contents: activeSession.fileContent,
-                }}
+  // Get sandbox URL for raw file access
+  const sandbox = useSandboxContext((s) => s.sandbox)
+
+  if (activeSession?.type === "file" && activeSession.filePath) {
+    const filePath = activeSession.filePath
+    
+    // PDF viewer
+    if (isPdfFile(filePath)) {
+      const pdfUrl = sandbox?.url 
+        ? `${sandbox.url}/file/raw?path=${encodeURIComponent(filePath)}`
+        : null
+
+      if (!pdfUrl) {
+        return (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center text-zinc-500">
+              <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <div>Unable to load PDF - sandbox not available</div>
+            </div>
+          </div>
+        )
+      }
+
+      return (
+        <div className="h-full w-full flex flex-col">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+            <FileText className="h-4 w-4 text-zinc-400" />
+            <span className="text-sm text-zinc-300 font-mono truncate">
+              {activeSession.title || filePath}
+            </span>
+          </div>
+          <div className="flex-1 min-h-0">
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border-0"
+              title={activeSession.title || filePath}
             />
+          </div>
         </div>
-    )
+      )
+    }
+
+    // Regular file viewer (code)
+    if (activeSession.fileContent) {
+      return (
+        <div className="pb-48">
+          <Code
+            file={{
+              name: activeSession.title || filePath || "Untitled",
+              contents: activeSession.fileContent,
+            }}
+          />
+        </div>
+      )
+    }
   }
 
   // Chat messages area
